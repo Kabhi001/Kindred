@@ -26,8 +26,6 @@
   --sans: "Quicksand", "Trebuchet MS", system-ui, sans-serif;
   --hand: "Caveat", "Segoe Print", cursive;
   box-sizing: border-box;
-  padding-top: env(safe-area-inset-top, 0px);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -65,7 +63,7 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: env(safe-area-inset-top, 0px); }
+html { scroll-behavior: smooth; }
 body {
   margin: 0;
   min-height: 100vh;
@@ -122,9 +120,9 @@ body::after {
 }
 
 .wrap {
-  max-width: 960px;
+  max-width: 860px;
   margin: 0 auto;
-  padding: 0 22px 80px;
+  padding: 0 22px 60px;
 }
 
 /* Nav */
@@ -134,7 +132,7 @@ body::after {
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  padding: 20px 0 16px;
+  padding: 24px 0 16px;
   border-bottom: 1px solid var(--line);
   margin-bottom: 24px;
 }
@@ -148,59 +146,68 @@ body::after {
   text-decoration: none;
 }
 .logo span { color: var(--lv); }
+
 .nl {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 8px;
   align-items: center;
 }
-.nl a, .nl button {
-  background: none;
-  border: 0;
+.nl a {
   font: 600 15px var(--sans);
   color: var(--soft);
-  padding: 8px 16px;
-  border-radius: 99px;
-  cursor: pointer;
   text-decoration: none;
-  transition: all .25s ease;
+  padding: 6px 14px;
+  border-radius: 99px;
+  transition: all .2s ease;
 }
-.nl a:hover, .nl button:hover {
+.nl a:hover {
   color: var(--ink);
   background: rgba(0, 0, 0, 0.04);
 }
-.nl a.on {
-  background: var(--ink);
-  color: var(--bg);
-}
 
-/* Typography */
-h1, h2, h3, h4 {
+/* Hero Typography */
+.hero {
+  text-align: center;
+  padding: 20px 0 10px;
+}
+h1 {
   font-family: var(--serif);
   font-style: italic;
   font-weight: 400;
   line-height: 1.05;
-  margin: 0;
+  margin: 8px 0 0;
+  font-size: clamp(46px, 8.2vw, 92px);
 }
-h1 { font-size: clamp(48px, 8.6vw, 100px); }
-h2 { font-size: clamp(32px, 5vw, 48px); }
-h3 { font-size: 28px; }
 .hand {
   font-family: var(--hand);
-  font-size: 25px;
+  font-size: 26px;
   color: var(--lv);
   line-height: 1.2;
   display: block;
 }
 .sub {
   color: var(--soft);
-  max-width: 38em;
-  margin: 14px 0 24px;
+  max-width: 34em;
+  margin: 16px auto 24px;
   font-size: 18px;
+  line-height: 1.55;
 }
-.sm { font-size: 14px; color: var(--soft); }
 
-/* Cards & Buttons */
+.ln {
+  display: block;
+  overflow: hidden;
+  padding: .06em .1em .12em;
+}
+.ln > span {
+  display: block;
+  animation: rise 1.1s cubic-bezier(.2, .8, .2, 1) both;
+}
+.ln:nth-child(2) > span { animation-delay: .18s; }
+@keyframes rise {
+  from { transform: translateY(110%) rotate(2deg); }
+}
+
+/* Card & Buttons */
 .card {
   background: var(--surface);
   backdrop-filter: blur(14px);
@@ -208,23 +215,6 @@ h3 { font-size: 28px; }
   border: 1px solid var(--line);
   border-radius: 34px;
   padding: 24px 28px;
-  transition: transform .25s ease, box-shadow .25s ease;
-}
-.card:hover {
-  box-shadow: 0 16px 36px -18px rgba(133, 102, 209, 0.15);
-}
-
-.g2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  margin-top: 18px;
-}
-.row {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-items: center;
 }
 
 .btn {
@@ -257,64 +247,14 @@ h3 { font-size: 28px; }
   color: var(--lv);
 }
 
-/* Chips */
-.chips {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 12px;
-}
-.chip {
-  padding: 5px 14px;
-  border-radius: 99px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #35293f;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.g { background: var(--sage); }
-.w { background: var(--butter); }
-.r { background: var(--rose); }
-.l { background: var(--lav); }
-
-/* Hero */
-.hero {
-  text-align: center;
-  padding: 24px 0 10px;
-}
-.hero h1 {
-  font-size: clamp(48px, 8.6vw, 100px);
-  margin-top: 8px;
-}
-.ln {
-  display: block;
-  overflow: hidden;
-  padding: .06em .1em .12em;
-}
-.ln > span {
-  display: block;
-  animation: rise 1.1s cubic-bezier(.2, .8, .2, 1) both;
-}
-.ln:nth-child(2) > span { animation-delay: .18s; }
-@keyframes rise {
-  from { transform: translateY(110%) rotate(2deg); }
-}
-.hero .sub {
-  margin: 18px auto 26px;
-}
-.hero .row {
-  justify-content: center;
-}
-
-/* Sine Wave Rhythm Box */
+/* Animated Sine-Wave Card */
 .rh {
-  margin: 36px 0 16px;
+  margin: 32px 0 28px;
   padding: 22px 26px 16px;
   border-radius: 44px;
   transition: box-shadow 1.2s;
   background: var(--surface);
+  border: 1px solid var(--line);
 }
 .rh.sync {
   box-shadow: 0 0 70px -10px var(--lv);
@@ -345,237 +285,206 @@ h3 { font-size: 28px; }
   margin-top: 4px;
 }
 
-/* 4-Step Journey Grid (.jy) */
-.jy {
+/* Clean Role Selection Tabs */
+.role-tabs {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin-top: 22px;
+  gap: 8px;
+  margin-bottom: 22px;
 }
-.stp {
-  padding: 22px;
-  border-radius: 30px;
+.rtab {
+  padding: 12px 10px;
+  border-radius: 20px;
   border: 1px solid var(--line);
-  text-align: left;
-  cursor: pointer;
-  font: inherit;
-  color: #35293f;
-  transition: transform .3s;
-  position: relative;
-  text-decoration: none;
-  display: block;
-}
-.stp:hover {
-  transform: translateY(-6px) rotate(-1deg);
-}
-.stp h3 {
-  font-size: 24px;
-  margin: 8px 0 4px;
-}
-.stp span {
-  font-size: 14px;
-  opacity: .85;
-  display: block;
-  line-height: 1.4;
-}
-.stp i {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  font-style: normal;
-  background: #ffffff88;
-  color: #35293f;
-  font-weight: 700;
-}
-.s0 { background: var(--rose); }
-.s1 { background: var(--butter); }
-.s2 { background: var(--sage); }
-.s3 { background: var(--peach); }
-
-/* Live Statistics */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin: 28px 0 10px;
-}
-.stat {
-  text-align: center;
-  padding: 20px 14px;
-}
-.stat b {
-  display: block;
-  font: italic 500 52px/1 var(--serif);
-  color: var(--ink);
-}
-.stat span {
-  font-size: 14px;
+  background: transparent;
+  font: 600 14px var(--sans);
   color: var(--soft);
-  font-weight: 600;
-  display: block;
-  margin-top: 4px;
-}
-
-/* Section Header */
-.sec-head {
-  margin: 54px 0 18px;
-  text-align: center;
-}
-.sec-head h2 {
-  margin-top: 6px;
-}
-
-/* Role Gateway Cards */
-.role-box {
+  cursor: pointer;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  position: relative;
-  overflow: hidden;
+  align-items: center;
+  gap: 4px;
+  transition: all .2s ease;
 }
-.role-badge {
-  font-family: var(--hand);
-  font-size: 22px;
-  color: var(--lv);
-  margin-bottom: 2px;
+.rtab:hover {
+  background: rgba(255, 255, 255, 0.4);
+  color: var(--ink);
+  transform: translateY(-2px);
 }
-.role-title {
-  font-size: 32px;
-  margin-bottom: 6px;
+.rtab.active {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+  box-shadow: 0 8px 20px -8px var(--ink);
 }
-.role-auth {
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--soft);
-  margin-bottom: 12px;
-}
-.role-desc {
-  font-size: 15.5px;
-  color: var(--soft);
-  line-height: 1.5;
-  margin-bottom: 18px;
-  flex-grow: 1;
+.rtab i {
+  font-size: 20px;
+  font-style: normal;
 }
 
-/* Calendar Timeline Pill */
-.cal-pill {
+/* Login Form Area */
+.login-box {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 34px;
+  padding: 30px 32px;
+  margin-top: 14px;
+  box-shadow: 0 16px 36px -18px rgba(133, 102, 209, 0.12);
+}
+
+.login-heading {
+  font: italic 500 32px var(--serif);
+  margin-bottom: 4px;
+}
+.login-sub {
+  font-size: 14.5px;
+  color: var(--soft);
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+  text-align: left;
+}
+.form-label {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--soft);
+  margin-bottom: 6px;
+}
+.form-input {
+  width: 100%;
+  padding: 13px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 16px var(--sans);
+  transition: border-color .2s;
+}
+.form-input:focus {
+  border-color: var(--lv);
+  outline: none;
+}
+
+.otp-row {
   display: flex;
+  gap: 10px;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+}
+.otp-btn {
+  padding: 12px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: var(--butter);
+  color: #35293f;
+  font: 600 14px var(--sans);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform .2s;
+}
+.otp-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Quick Demo Chips */
+.quick-chips {
+  display: flex;
+  gap: 8px;
   flex-wrap: wrap;
-  padding: 16px 24px;
+  align-items: center;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--line);
+}
+.demo-tag {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--soft);
+}
+.demo-btn {
+  padding: 5px 14px;
+  border-radius: 99px;
+  border: 1px solid var(--line);
+  background: transparent;
+  font: 600 13px var(--sans);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all .2s;
+}
+.demo-btn:hover {
+  background: var(--lav);
+  border-color: var(--lv);
+}
+
+/* Toast */
+.toast-box {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  padding: 12px 24px;
+  border-radius: 99px;
+  font: 600 14px var(--sans);
+  color: #fff;
+  background: var(--ink);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  animation: pop .3s cubic-bezier(.2,.8,.2,1) both;
+}
+.toast.ok { background: var(--lv); }
+.toast.err { background: var(--warn); }
+@keyframes pop { from { opacity: 0; transform: translateY(14px); } }
+
+/* Simple Stats Row */
+.stats-strip {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 36px 0 12px;
+  padding: 18px 24px;
   border-radius: 26px;
   background: var(--surface);
   border: 1px solid var(--line);
-  margin: 20px 0;
+  text-align: center;
 }
-.cal-dots {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-.cal-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--line);
-}
-.cal-dot.on {
-  background: var(--lv);
-  box-shadow: 0 0 10px var(--lv);
-  transform: scale(1.3);
-}
-
-/* Block Meter */
-.meter {
-  height: 10px;
-  border-radius: 99px;
-  background: var(--line);
-  overflow: hidden;
-  margin: 10px 0 8px;
-}
-.meter i {
+.s-item b {
+  font: italic 500 28px/1 var(--serif);
+  color: var(--ink);
   display: block;
-  height: 100%;
-  border-radius: 99px;
-  background: linear-gradient(90deg, var(--lv), var(--rd));
 }
-
-/* Accordion FAQ */
-.faq-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 18px;
-}
-.faq-card {
-  padding: 18px 24px;
-  cursor: pointer;
-  border-radius: 24px;
-}
-.faq-q {
-  font: italic 500 24px var(--serif);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.faq-a {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height .3s ease, margin .3s ease;
-  font-size: 15.5px;
+.s-item span {
+  font-size: 13px;
   color: var(--soft);
-  line-height: 1.6;
-}
-.faq-card.open .faq-a {
-  max-height: 200px;
-  margin-top: 10px;
-}
-.faq-card.open .faq-q span {
-  color: var(--lv);
+  font-weight: 600;
 }
 
 /* Footer */
 .ft {
-  margin-top: 60px;
-  padding-top: 24px;
+  margin-top: 40px;
+  padding-top: 20px;
   border-top: 1px solid var(--line);
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: 12px;
   font-size: 14px;
   color: var(--soft);
 }
-.ft a {
-  color: var(--soft);
-  text-decoration: none;
-  font-weight: 600;
-  margin-left: 14px;
-}
-.ft a:hover { color: var(--ink); }
 
-@media (max-width: 820px) {
-  .jy { grid-template-columns: 1fr 1fr; }
-  .stats { grid-template-columns: 1fr 1fr; }
-  .g2 { grid-template-columns: 1fr; }
-}
-@media (max-width: 520px) {
-  .jy { grid-template-columns: 1fr; }
-  .stats { grid-template-columns: 1fr; }
-  .nl a, .nl button { padding: 6px 11px; font-size: 14px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation: none !important;
-    transition: none !important;
-  }
+@media (max-width: 600px) {
+  .role-tabs { grid-template-columns: 1fr 1fr; }
+  .login-box { padding: 22px 20px; }
+  .otp-row { flex-direction: column; align-items: stretch; }
 }
 </style>
 </head>
@@ -586,30 +495,31 @@ h3 { font-size: 28px; }
 
 <div class="wrap">
 
-  <!-- Aesthetic Header / Navbar -->
+  <!-- Header -->
   <nav class="nv">
     <a href="{% url 'matcher:home' %}" class="logo">kin<span>dred</span></a>
     <div class="nl">
-      <a href="{% url 'matcher:home' %}" class="on">home</a>
-      <a href="{% url 'matcher:student_portal' %}">matcher</a>
-      <a href="{% url 'matcher:warden_dashboard' %}">warden</a>
-      <a href="{% url 'matcher:caretaker_dashboard' %}">caretaker</a>
-      <a href="{% url 'matcher:admin_dashboard' %}">admin</a>
       {% if logged_in_user %}
-        <a href="{% url 'matcher:logout' %}" style="color:var(--rd)">sign out ({{ logged_in_user.name }})</a>
+        <span style="font-size: 14.5px; color: var(--soft);">signed in as <b>{{ logged_in_user.name }}</b></span>
+        {% if logged_in_user.role == 'student' %}
+          <a href="{% url 'matcher:student_portal' %}" class="btn" style="padding: 6px 16px; margin: 0;">my matcher →</a>
+        {% elif logged_in_user.role == 'warden' %}
+          <a href="{% url 'matcher:warden_dashboard' %}" class="btn" style="padding: 6px 16px; margin: 0;">warden desk →</a>
+        {% elif logged_in_user.role == 'caretaker' %}
+          <a href="{% url 'matcher:caretaker_dashboard' %}" class="btn" style="padding: 6px 16px; margin: 0;">caretaker desk →</a>
+        {% elif logged_in_user.role == 'admin' %}
+          <a href="{% url 'matcher:admin_dashboard' %}" class="btn" style="padding: 6px 16px; margin: 0;">admin portal →</a>
+        {% endif %}
+        <a href="{% url 'matcher:logout' %}" style="color: var(--rd); font-size: 13.5px;">sign out</a>
       {% else %}
-        <a href="{% url 'matcher:login' %}" class="btn" style="padding: 7px 18px; margin: 0;">sign in</a>
+        <a href="#login-section" class="btn gh" style="padding: 7px 18px; margin: 0;">sign in</a>
       {% endif %}
     </div>
   </nav>
 
-  <!-- Hero Section with Iconic Wave Box -->
+  <!-- Hero Section -->
   <header class="hero">
-    {% if logged_in_user %}
-      <span class="hand">welcome back, {{ logged_in_user.name }} · {{ logged_in_user.role|capfirst }}</span>
-    {% else %}
-      <span class="hand">a hostel roommate matcher</span>
-    {% endif %}
+    <span class="hand">a hostel roommate matcher</span>
 
     <h1>
       <span class="ln"><span>find the roommate</span></span>
@@ -620,26 +530,8 @@ h3 { font-size: 28px; }
       Answer a short quiz about how you live, compare it with real classmates, and send a request. When both say yes, the pair goes to the warden.
     </p>
 
-    <div class="row">
-      {% if logged_in_user %}
-        {% if logged_in_user.role == 'student' %}
-          <a href="{% url 'matcher:student_portal' %}" class="btn">open my matcher</a>
-        {% elif logged_in_user.role == 'warden' %}
-          <a href="{% url 'matcher:warden_dashboard' %}" class="btn">open warden portal</a>
-        {% elif logged_in_user.role == 'caretaker' %}
-          <a href="{% url 'matcher:caretaker_dashboard' %}" class="btn">open facility desk</a>
-        {% elif logged_in_user.role == 'admin' %}
-          <a href="{% url 'matcher:admin_dashboard' %}" class="btn">open admin governance</a>
-        {% endif %}
-      {% else %}
-        <a href="{% url 'matcher:login' %}?role=student" class="btn">take the quiz</a>
-        <a href="{% url 'matcher:login' %}" class="btn gh">sign in</a>
-      {% endif %}
-      <a href="#portals" class="btn gh">all portals</a>
-    </div>
-
-    <!-- Sine-Wave Rhythm SVG Box -->
-    <div class="card rh" id="rh">
+    <!-- Animated Sine-Wave Synchronization Box -->
+    <div class="rh" id="rh">
       <svg viewBox="0 0 1000 240" preserveAspectRatio="none" aria-hidden="true">
         <path id="wa"/>
         <path id="wb"/>
@@ -648,248 +540,253 @@ h3 { font-size: 28px; }
     </div>
   </header>
 
-  <!-- 4 Step Journey in Kindred Pastels -->
-  <div class="jy">
-    <a href="{% url 'matcher:student_portal' %}" class="stp s0">
-      <i>1</i>
-      <h3>Take the quiz</h3>
-      <span>Five minutes, 8 lifestyle questions, made for you.</span>
-    </a>
-    <a href="{% url 'matcher:student_portal' %}" class="stp s1">
-      <i>2</i>
-      <h3>Meet matches</h3>
-      <span>Compare real student profiles and harmony scores.</span>
-    </a>
-    <a href="{% url 'matcher:student_portal' %}" class="stp s2">
-      <i>3</i>
-      <h3>Send request</h3>
-      <span>Ask someone to pair with mutual consent.</span>
-    </a>
-    <a href="{% url 'matcher:warden_dashboard' %}" class="stp s3">
-      <i>4</i>
-      <h3>Get paired</h3>
-      <span>Two yeses make a pair. Warden allots the room.</span>
-    </a>
-  </div>
+  <!-- Clean, Simple Role Login Box -->
+  <section class="login-box" id="login-section">
+    <div style="text-align: center; margin-bottom: 20px;">
+      <span class="hand" style="font-size: 24px;">welcome to kindred</span>
+      <h2 class="login-heading">sign in to your portal.</h2>
+      <p class="login-sub">Choose your role below to access your dedicated hostel allocation dashboard.</p>
+    </div>
 
-  <!-- Live Statistics Row -->
-  <div class="stats">
-    <div class="card stat">
+    <!-- 4 Role Selector Tabs -->
+    <div class="role-tabs">
+      <button class="rtab active" data-role="student" onclick="selectRole('student')">
+        <i>🎓</i>
+        <span>Student</span>
+      </button>
+      <button class="rtab" data-role="warden" onclick="selectRole('warden')">
+        <i>🛡️</i>
+        <span>Warden</span>
+      </button>
+      <button class="rtab" data-role="caretaker" onclick="selectRole('caretaker')">
+        <i>🔑</i>
+        <span>Caretaker</span>
+      </button>
+      <button class="rtab" data-role="admin" onclick="selectRole('admin')">
+        <i>⚙️</i>
+        <span>Admin</span>
+      </button>
+    </div>
+
+    <!-- Form Area -->
+    <form id="role-login-form" onsubmit="submitLogin(event)">
+      <div class="form-group">
+        <label class="form-label" id="identity-label">Roll Number or College Email</label>
+        <input type="text" class="form-input" id="login-identity" placeholder="e.g. CS26B014" required>
+      </div>
+
+      <!-- Student OTP Field -->
+      <div class="form-group" id="otp-group">
+        <label class="form-label">6-Digit One-Time Password (OTP)</label>
+        <div class="otp-row">
+          <input type="text" class="form-input" id="login-otp" placeholder="Enter 6-digit code" maxlength="6">
+          <button type="button" class="otp-btn" onclick="sendOtpCode()">Send OTP</button>
+        </div>
+      </div>
+
+      <!-- Staff Password Field (Hidden by default for student) -->
+      <div class="form-group" id="password-group" style="display: none;">
+        <label class="form-label" id="password-label">Staff Password</label>
+        <input type="password" class="form-input" id="login-password" placeholder="Enter your staff password">
+      </div>
+
+      <div style="margin-top: 22px; text-align: center;">
+        <button type="submit" class="btn" style="width: 100%; padding: 14px 28px; font-size: 16px;" id="login-submit-btn">
+          Sign In as Student →
+        </button>
+      </div>
+    </form>
+
+    <!-- Quick 1-Click Demo Profiles -->
+    <div class="quick-chips">
+      <span class="demo-tag">Quick Demo:</span>
+      <button type="button" class="demo-btn" onclick="quickFill('student', 'CS26B014', 'Aarav Patel')">🎓 Aarav (Student)</button>
+      <button type="button" class="demo-btn" onclick="quickFill('student', 'EE26B042', 'Rohan Verma')">🎓 Rohan (Student)</button>
+      <button type="button" class="demo-btn" onclick="quickFill('warden', 'WARDEN-01', 'warden123', 'Dr. Sharma')">🛡️ Warden</button>
+      <button type="button" class="demo-btn" onclick="quickFill('caretaker', 'CARETAKER-01', 'caretaker123', 'Ramesh Kumar')">🔑 Caretaker</button>
+      <button type="button" class="demo-btn" onclick="quickFill('admin', 'ADMIN-01', 'admin123', 'Prof. Verma')">⚙️ Admin</button>
+    </div>
+  </section>
+
+  <!-- Live Statistics Strip -->
+  <div class="stats-strip">
+    <div class="s-item">
       <b>{{ students_count }}</b>
       <span>verified students</span>
     </div>
-    <div class="card stat">
+    <div class="s-item">
       <b>{{ confirmed_pairs_count }}</b>
       <span>confirmed pairs</span>
     </div>
-    <div class="card stat">
+    <div class="s-item">
       <b>{{ total_beds }}</b>
-      <span>campus beds ({{ total_rooms }} rooms)</span>
+      <span>campus beds</span>
     </div>
-    <div class="card stat">
-      <b>100%</b>
-      <span>DPDP privacy shielded</span>
-    </div>
-  </div>
-
-  <!-- Active Allotment Phase Strip -->
-  <div class="cal-pill">
-    <div>
-      <span class="hand" style="font-size: 20px;">current allotment term</span>
-      <h3 style="font-size: 24px;">{{ calendar.get_phase_display }}</h3>
-    </div>
-    <div class="cal-dots" title="7 Phases of Allotment">
-      <div class="cal-dot {% if calendar.phase == 'REGISTRATION' %}on{% endif %}"></div>
-      <div class="cal-dot {% if calendar.phase == 'SURVEY_OPEN' %}on{% endif %}"></div>
-      <div class="cal-dot {% if calendar.phase == 'MATCHING_OPEN' %}on{% endif %}"></div>
-      <div class="cal-dot {% if calendar.phase == 'FREEZE' %}on{% endif %}"></div>
-      <div class="cal-dot {% if calendar.phase == 'WARDEN_ALLOTMENT' %}on{% endif %}"></div>
-      <div class="cal-dot {% if calendar.phase == 'LEFTOVER_PAIRING' %}on{% endif %}"></div>
-      <div class="cal-dot {% if calendar.phase == 'PUBLISHED' %}on{% endif %}"></div>
-    </div>
-  </div>
-
-  <!-- 4 Role Portals Gateway -->
-  <div class="sec-head" id="portals">
-    <span class="hand">for every role in the hostel</span>
-    <h2>four dedicated portals.</h2>
-  </div>
-
-  <div class="g2">
-    <!-- Student Portal -->
-    <div class="card role-box">
-      <div>
-        <span class="role-badge">students</span>
-        <h3 class="role-title">Roommate Matcher</h3>
-        <div class="role-auth">Roll No + 6-Digit OTP</div>
-        <p class="role-desc">Answer 8 lifestyle questions, discover match scores with clash detection, send up to 3 requests, and confirm mutual roommates.</p>
-        <div class="chips">
-          <span class="chip l">8 dimensions</span>
-          <span class="chip r">deal-breakers</span>
-          <span class="chip g">max 3 requests</span>
-        </div>
-      </div>
-      <div style="margin-top: 18px;">
-        <a href="{% url 'matcher:login' %}?role=student" class="btn">enter student portal</a>
-      </div>
-    </div>
-
-    <!-- Warden Portal -->
-    <div class="card role-box">
-      <div>
-        <span class="role-badge">hostel warden</span>
-        <h3 class="role-title">Allocation Desk</h3>
-        <div class="role-auth">Staff ID + Staff Password</div>
-        <p class="role-desc">Review confirmed roommate pairings, assign vacant rooms, execute overrides, and trigger automated Blossom maximum-weight leftover pairing.</p>
-        <div class="chips">
-          <span class="chip w">allocation queue</span>
-          <span class="chip g">room assignment</span>
-          <span class="chip l">blossom algorithm</span>
-        </div>
-      </div>
-      <div style="margin-top: 18px;">
-        <a href="{% url 'matcher:login' %}?role=warden" class="btn">open warden desk</a>
-      </div>
-    </div>
-
-    <!-- Caretaker Portal -->
-    <div class="card role-box">
-      <div>
-        <span class="role-badge">caretaker</span>
-        <h3 class="role-title">Facility Desk</h3>
-        <div class="role-auth">Caretaker ID + Passcode</div>
-        <p class="role-desc">Daily physical check-in toggles, room key distribution logs, floor-by-floor occupancy grid, and student move-in notes.</p>
-        <div class="chips">
-          <span class="chip g">physical check-in</span>
-          <span class="chip l">key issuance</span>
-          <span class="chip w">floor occupancy</span>
-        </div>
-      </div>
-      <div style="margin-top: 18px;">
-        <a href="{% url 'matcher:login' %}?role=caretaker" class="btn">launch facility desk</a>
-      </div>
-    </div>
-
-    <!-- Admin Portal -->
-    <div class="card role-box">
-      <div>
-        <span class="role-badge">administrator</span>
-        <h3 class="role-title">Governance & Calendar</h3>
-        <div class="role-auth">Admin ID + Master Key</div>
-        <p class="role-desc">Control the 7-phase allotment calendar, monitor block capacity limits, inspect system audit trails, and download official CSV reports.</p>
-        <div class="chips">
-          <span class="chip r">7-phase calendar</span>
-          <span class="chip l">master roster</span>
-          <span class="chip g">1-click csv export</span>
-        </div>
-      </div>
-      <div style="margin-top: 18px;">
-        <a href="{% url 'matcher:login' %}?role=admin" class="btn">manage allotment</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Hostel Blocks Capacity Section -->
-  <div class="sec-head">
-    <span class="hand">residential halls</span>
-    <h2>hostel blocks overview.</h2>
-  </div>
-
-  <div class="g2">
-    {% for b in blocks_data %}
-    <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3>{{ b.block.name }}</h3>
-        <span class="chip {% if b.block.gender == 'M' %}l{% else %}r{% endif %}">{{ b.block.get_gender_display }}</span>
-      </div>
-      <p class="sm" style="margin: 8px 0 14px;">{{ b.block.campus }} · {{ b.block.total_floors }} Floors · {{ b.room_count }} Rooms</p>
-      
-      <div class="meter"><i style="width: {{ b.percent }}%;"></i></div>
-      
-      <div style="display:flex; justify-content:space-between; font-size:14px; color:var(--soft); font-weight:600; margin-top:10px;">
-        <span>Occupancy: {{ b.occupied }}/{{ b.capacity }} beds ({{ b.percent }}%)</span>
-        <span>Available: {{ b.available }}</span>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-
-  <!-- Why Kindred (Pillars) -->
-  <div class="sec-head">
-    <span class="hand">built for real hostels</span>
-    <h2>honest algorithms, strict privacy.</h2>
-  </div>
-
-  <div class="g2">
-    <div class="card">
-      <span class="chip l" style="margin-bottom:8px">DPDP Act 2023</span>
-      <h3>privacy by design</h3>
-      <p class="sm" style="margin-top:8px">Your questionnaire answers are never shown raw to anyone. Peers only see compatibility scores and shared harmonies. Two yeses are required before room assignment.</p>
-    </div>
-    <div class="card">
-      <span class="chip g" style="margin-bottom:8px">Edmonds' Blossom Algorithm</span>
-      <h3>no student left behind</h3>
-      <p class="sm" style="margin-top:8px">Students who do not pick a roommate are paired using a maximum-weight blossom algorithm that maximizes total cohort harmony across all remaining residents.</p>
-    </div>
-  </div>
-
-  <!-- FAQ Accordion -->
-  <div class="sec-head">
-    <span class="hand">common questions</span>
-    <h2>how it all works.</h2>
-  </div>
-
-  <div class="faq-wrap">
-    <div class="card faq-card">
-      <div class="faq-q">
-        <span>How does the student OTP sign-in work?</span>
-        <span>+</span>
-      </div>
-      <div class="faq-a">
-        Students sign in using their registered roll number or college email. A 6-digit cryptographic OTP is generated, hashed with PBKDF2 in the database, and valid for 5 minutes (max 3 entry attempts). In demo mode, the code is shown instantly in the toast for seamless testing.
-      </div>
-    </div>
-
-    <div class="card faq-card">
-      <div class="faq-q">
-        <span>What is a deal-breaker?</span>
-        <span>+</span>
-      </div>
-      <div class="faq-a">
-        When taking the lifestyle quiz, you can mark questions (like smoking or sleep hours) as a deal-breaker. If a classmate has an incompatible habit, Kindred flags the clash and caps your mutual compatibility score at 59%, protecting you from incompatible rooms.
-      </div>
-    </div>
-
-    <div class="card faq-card">
-      <div class="faq-q">
-        <span>How does physical check-in work?</span>
-        <span>+</span>
-      </div>
-      <div class="faq-a">
-        When rooms are officially published, visit your hostel caretaker desk. The caretaker logs into the Caretaker Facility Desk, verifies your roll number, marks your physical bed arrival, and documents your room key handover.
-      </div>
+    <div class="s-item">
+      <b>{{ calendar.get_phase_display|truncatewords:2 }}</b>
+      <span>active phase</span>
     </div>
   </div>
 
   <!-- Footer -->
   <footer class="ft">
     <div>
-      <span style="font-family:var(--serif); font-style:italic; font-size:22px; color:var(--ink);">kin<span style="color:var(--lv)">dred</span></span>
+      <span style="font-family: var(--serif); font-style: italic; font-size: 22px; color: var(--ink);">kin<span style="color: var(--lv)">dred</span></span>
       <span style="margin-left: 8px;">· hostel roommate matcher</span>
     </div>
     <div>
-      <a href="{% url 'matcher:student_portal' %}">student</a>
-      <a href="{% url 'matcher:warden_dashboard' %}">warden</a>
-      <a href="{% url 'matcher:caretaker_dashboard' %}">caretaker</a>
-      <a href="{% url 'matcher:admin_dashboard' %}">admin</a>
-      <a href="{% url 'matcher:login' %}">sign in</a>
+      <span>DPDP Act 2023 Compliant · PBKDF2 Hashed · Blossom Algorithm</span>
     </div>
   </footer>
 
 </div>
 
+<!-- Floating Notification Toast Box -->
+<div class="toast-box" id="toast-box"></div>
+
 <script>
-// Animated Sine-Wave Synchronization Loop from original prototype
+// State
+var activeRole = "student";
+
+// Role Switcher
+function selectRole(role) {
+  activeRole = role;
+  document.querySelectorAll(".rtab").forEach(function(tab) {
+    tab.classList.toggle("active", tab.dataset.role === role);
+  });
+
+  var identityLabel = document.getElementById("identity-label");
+  var identityInput = document.getElementById("login-identity");
+  var otpGroup = document.getElementById("otp-group");
+  var passwordGroup = document.getElementById("password-group");
+  var passwordLabel = document.getElementById("password-label");
+  var submitBtn = document.getElementById("login-submit-btn");
+
+  if (role === "student") {
+    identityLabel.textContent = "Roll Number or College Email";
+    identityInput.placeholder = "e.g. CS26B014";
+    otpGroup.style.display = "block";
+    passwordGroup.style.display = "none";
+    submitBtn.textContent = "Sign In as Student →";
+  } else if (role === "warden") {
+    identityLabel.textContent = "Hostel Warden Staff ID or Email";
+    identityInput.placeholder = "e.g. WARDEN-01";
+    otpGroup.style.display = "none";
+    passwordGroup.style.display = "block";
+    passwordLabel.textContent = "Staff Password";
+    submitBtn.textContent = "Sign In to Warden Desk →";
+  } else if (role === "caretaker") {
+    identityLabel.textContent = "Caretaker ID or Email";
+    identityInput.placeholder = "e.g. CARETAKER-01";
+    otpGroup.style.display = "none";
+    passwordGroup.style.display = "block";
+    passwordLabel.textContent = "Facility Desk Passcode";
+    submitBtn.textContent = "Sign In to Facility Desk →";
+  } else if (role === "admin") {
+    identityLabel.textContent = "Administrator ID or Email";
+    identityInput.placeholder = "e.g. ADMIN-01";
+    otpGroup.style.display = "none";
+    passwordGroup.style.display = "block";
+    passwordLabel.textContent = "Master Security Key";
+    submitBtn.textContent = "Sign In to Governance Portal →";
+  }
+}
+
+// Toast Notification
+function showToast(msg, type) {
+  var box = document.getElementById("toast-box");
+  var el = document.createElement("div");
+  el.className = "toast " + (type || "ok");
+  el.textContent = msg;
+  box.appendChild(el);
+  setTimeout(function() {
+    el.style.opacity = "0";
+    setTimeout(function() { el.remove(); }, 300);
+  }, 4000);
+}
+
+// Send OTP
+async function sendOtpCode() {
+  var identity = document.getElementById("login-identity").value.trim();
+  if (!identity) {
+    showToast("Please enter your Roll Number or Email first", "err");
+    document.getElementById("login-identity").focus();
+    return;
+  }
+  try {
+    var res = await fetch("{% url 'matcher:api_send_otp' %}", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identity: identity, role: "student" })
+    });
+    var data = await res.json();
+    if (!res.ok) {
+      showToast(data.error || "Failed to generate OTP", "err");
+      return;
+    }
+    if (data.demo_otp) {
+      document.getElementById("login-otp").value = data.demo_otp;
+      showToast("OTP generated: " + data.demo_otp + " (valid 5 min)", "ok");
+    } else {
+      showToast(data.message || "OTP sent to registered email", "ok");
+    }
+  } catch (err) {
+    showToast("Network error requesting OTP", "err");
+  }
+}
+
+// 1-Click Quick Demo Fill
+function quickFill(role, identity, secretOrName, optName) {
+  selectRole(role);
+  document.getElementById("login-identity").value = identity;
+
+  if (role === "student") {
+    sendOtpCode();
+  } else {
+    document.getElementById("login-password").value = secretOrName;
+    showToast("Loaded credentials for " + (optName || role), "ok");
+  }
+}
+
+// Handle Login Submission
+async function submitLogin(e) {
+  e.preventDefault();
+  var identity = document.getElementById("login-identity").value.trim();
+  var secret = (activeRole === "student") 
+    ? document.getElementById("login-otp").value.trim() 
+    : document.getElementById("login-password").value.trim();
+
+  if (!identity) {
+    showToast("Please enter your identifier", "err");
+    return;
+  }
+  if (!secret) {
+    showToast((activeRole === "student") ? "Please enter your 6-digit OTP" : "Please enter your password", "err");
+    return;
+  }
+
+  try {
+    var res = await fetch("{% url 'matcher:api_login' %}", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role: activeRole, identity: identity, secret: secret })
+    });
+    var data = await res.json();
+    if (!res.ok) {
+      showToast(data.error || "Login failed. Check your credentials.", "err");
+      return;
+    }
+
+    showToast("Welcome, " + data.name + "!", "ok");
+    setTimeout(function() {
+      window.location.href = data.redirect_url || "/";
+    }, 500);
+  } catch (err) {
+    showToast("Connection error: " + err.message, "err");
+  }
+}
+
+// Sine Wave Animation Loop
 var raf;
 function waves() {
   var wa = document.getElementById("wa");
@@ -929,15 +826,6 @@ function waves() {
   raf = requestAnimationFrame(f);
 }
 waves();
-
-// Interactive FAQ Accordion
-document.querySelectorAll('.faq-card').forEach(function(card) {
-  card.addEventListener('click', function() {
-    var isOpen = card.classList.contains('open');
-    document.querySelectorAll('.faq-card').forEach(function(c) { c.classList.remove('open'); });
-    if (!isOpen) card.classList.add('open');
-  });
-});
 </script>
 
 </body>

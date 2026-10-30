@@ -342,8 +342,8 @@ class SecureAuthenticationAndHomePageTests(TestCase):
         self.assertEqual(res.status_code, 200)
         content = res.content.decode('utf-8')
         self.assertIn("kindred", content)
-        self.assertIn("Mandakini Hall", content)
-        self.assertIn("four dedicated portals", content)
+        self.assertIn("sign in to your portal", content)
+        self.assertIn("verified students", content)
 
     def test_secure_otp_generation_and_verification(self):
         # 1. Request OTP
