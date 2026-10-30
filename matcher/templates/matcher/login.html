@@ -1,0 +1,422 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sign In · kindred hostel allotment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Cormorant+Garamond:ital,wght@0,500;1,400;1,500;1,600&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f8f2f4;--surface:#ffffffdd;--ink:#35293f;--soft:#6a5d78;--line:#35293f22;
+  --lav:#d4c6f5;--lv:#8566d1;--rd:#e0709f;--peach:#ffd9c9;--sage:#d6e8da;
+  --butter:#fff1c4;--rose:#f7c4d8;--warn:#c2410c;
+  --serif:"Cormorant Garamond","Iowan Old Style",Georgia,serif;
+  --sans:"Quicksand","Trebuchet MS",system-ui,sans-serif;
+  --hand:"Caveat","Segoe Print",cursive;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1424;--surface:#281f36dd;--ink:#f4ecfb;--soft:#bbaed1;--line:#f4ecfb26;
+    --lv:#bda2ff;--rd:#ff8fbb;--lav:#4a3a73;--peach:#5a3a40;--sage:#2f4a3c;
+    --butter:#554a2a;--rose:#5e3450;--warn:#fdba74;
+  }
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;background:var(--bg);color:var(--ink);
+  font-family:var(--sans);font-size:16px;line-height:1.6;overflow-x:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:30px 20px;
+}
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;opacity:.08;z-index:50;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:.75;z-index:-1;pointer-events:none}
+.o1{width:50vmax;height:50vmax;background:var(--lav);left:-15vmax;top:-15vmax;animation:d1 24s ease-in-out infinite alternate}
+.o2{width:45vmax;height:45vmax;background:var(--peach);right:-12vmax;bottom:-12vmax;animation:d2 28s ease-in-out infinite alternate}
+@keyframes d1{to{transform:translate(12vmax,8vmax) scale(1.15)}}
+@keyframes d2{to{transform:translate(-14vmax,-8vmax) scale(.9)}}
+
+.container{width:100%;max-width:580px;position:relative;z-index:2}
+.header{text-align:center;margin-bottom:28px}
+.logo{font:italic 500 38px var(--serif);color:var(--ink);text-decoration:none;display:inline-block}
+.logo span{color:var(--lv)}
+.tagline{font:500 24px var(--hand);color:var(--lv);margin-top:2px;display:block}
+.subtitle{color:var(--soft);font-size:14.5px;margin-top:6px}
+
+.card{
+  background:var(--surface);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border:1px solid var(--line);border-radius:32px;padding:32px 34px;
+  box-shadow:0 24px 60px #00000020;animation:rise .6s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}}
+
+/* Role Selector Tabs */
+.role-tabs{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:6px;
+  background:var(--line);padding:5px;border-radius:99px;margin-bottom:26px;
+}
+.role-tab{
+  background:none;border:0;padding:9px 6px;border-radius:99px;
+  font:600 13px var(--sans);color:var(--soft);cursor:pointer;
+  transition:all .25s;text-align:center;white-space:nowrap;
+}
+.role-tab:hover{color:var(--ink)}
+.role-tab.active{background:var(--ink);color:var(--bg);box-shadow:0 4px 12px #0000001f}
+
+.pane{display:none}
+.pane.active{display:block;animation:fadein .3s ease both}
+@keyframes fadein{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
+
+.form-group{margin-bottom:18px}
+label{display:block;font-size:13px;font-weight:700;letter-spacing:.03em;color:var(--soft);margin-bottom:6px;text-transform:uppercase}
+.input-wrap{position:relative}
+input[type=text],input[type=email],input[type=password]{
+  width:100%;padding:13px 18px;border-radius:18px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);font:500 15.5px var(--sans);
+  transition:all .2s;outline:none;
+}
+input:focus{border-color:var(--lv);box-shadow:0 0 0 4px #8566d125}
+
+.otp-row{display:grid;grid-template-columns:1fr auto;gap:10px}
+.btn-otp{
+  background:var(--butter);color:#35293f;border:1px solid transparent;
+  padding:0 18px;border-radius:18px;font:600 13.5px var(--sans);cursor:pointer;
+  white-space:nowrap;transition:all .25s;height:49px;
+}
+.btn-otp:hover{background:#ffe393;transform:translateY(-1px)}
+
+.btn-primary{
+  width:100%;padding:14px;border-radius:999px;background:var(--ink);color:var(--bg);
+  font:600 16px var(--sans);border:1px solid var(--ink);cursor:pointer;
+  margin-top:10px;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 28px -10px var(--lv)}
+
+.helper-text{font-size:12.5px;color:var(--soft);margin-top:6px}
+
+/* Quick Demo Selectors */
+.demo-section{margin-top:28px;padding-top:22px;border-top:1px dashed var(--line)}
+.demo-title{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);margin-bottom:12px;text-align:center}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.demo-btn{
+  background:transparent;border:1px solid var(--line);border-radius:16px;
+  padding:10px 12px;text-align:left;cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;gap:10px;color:var(--ink);
+}
+.demo-btn:hover{background:var(--butter);border-color:transparent;transform:translateY(-1px)}
+.demo-avatar{
+  width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+  font:italic 600 16px var(--serif);color:#fffe;flex:none;
+}
+.demo-meta b{display:block;font-size:13px;line-height:1.2}
+.demo-meta span{font-size:11px;color:var(--soft)}
+
+#toast{position:fixed;bottom:24px;right:24px;z-index:100;display:flex;flex-direction:column;gap:10px}
+.toast-msg{
+  background:var(--ink);color:var(--bg);padding:14px 22px;border-radius:99px;
+  font:600 14px var(--sans);box-shadow:0 14px 32px #00000030;animation:rise .35s both;
+  max-width:380px;line-height:1.4;
+}
+.toast-msg.ok{background:linear-gradient(135deg,#2e7d32,#388e3c);color:#fff}
+.toast-msg.err{background:var(--warn);color:#fff}
+
+.footer{text-align:center;margin-top:24px;font-size:13px;color:var(--soft)}
+.footer a{color:var(--lv);text-decoration:none;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="orb o1"></div><div class="orb o2"></div>
+
+<div class="container">
+  <div class="header">
+    <a href="{% url 'matcher:index' %}" class="logo">kin<span>dred</span></a>
+    <span class="tagline">hostel roommate allotment</span>
+    <p class="subtitle">Sign in to your college hostel identity</p>
+  </div>
+
+  <div class="card">
+    <!-- Role Tabs -->
+    <div class="role-tabs">
+      <button class="role-tab active" data-role="student">🎓 Student</button>
+      <button class="role-tab" data-role="warden">🛡️ Warden</button>
+      <button class="role-tab" data-role="caretaker">🔑 Caretaker</button>
+      <button class="role-tab" data-role="admin">⚙️ Admin</button>
+    </div>
+
+    <!-- 1. STUDENT PANE -->
+    <div class="pane active" id="pane-student">
+      <form id="form-student" onsubmit="handleLogin(event, 'student')">
+        <div class="form-group">
+          <label>Roll Number or College Email</label>
+          <input type="text" id="student-identity" placeholder="e.g. CS26B014 or aarav.p@college.edu" required autofocus>
+          <div class="helper-text">Verified against registered university enrollment records</div>
+        </div>
+
+        <div class="form-group">
+          <label>One-Time Passcode (OTP)</label>
+          <div class="otp-row">
+            <input type="text" id="student-otp" maxlength="6" placeholder="6-digit code" required>
+            <button type="button" class="btn-otp" onclick="requestOtp()">Send OTP</button>
+          </div>
+          <div class="helper-text">Enter OTP sent to your registered college email (demo: click 'Send OTP')</div>
+        </div>
+
+        <button type="submit" class="btn-primary">Sign In as Student →</button>
+      </form>
+
+      <div class="demo-section">
+        <div class="demo-title">Quick Demo Student Login</div>
+        <div class="demo-grid">
+          <button type="button" class="demo-btn" onclick="quickFill('student', 'CS26B014', '123456', 'Aarav Patel')">
+            <div class="demo-avatar" style="background:hsl(270,70%,70%)">a</div>
+            <div class="demo-meta"><b>Aarav Patel</b><span>CS26B014 · Block A</span></div>
+          </button>
+          <button type="button" class="demo-btn" onclick="quickFill('student', 'EE26B042', '123456', 'Rohan Verma')">
+            <div class="demo-avatar" style="background:hsl(190,70%,70%)">r</div>
+            <div class="demo-meta"><b>Rohan Verma</b><span>EE26B042 · Block A</span></div>
+          </button>
+          <button type="button" class="demo-btn" onclick="quickFill('student', 'ME26B105', '123456', 'Kabir Sharma')">
+            <div class="demo-avatar" style="background:hsl(35,70%,70%)">k</div>
+            <div class="demo-meta"><b>Kabir Sharma</b><span>ME26B105 · Block A</span></div>
+          </button>
+          <button type="button" class="demo-btn" onclick="quickFill('student', 'DS26B088', '123456', 'Meera Nair')">
+            <div class="demo-avatar" style="background:hsl(320,70%,70%)">m</div>
+            <div class="demo-meta"><b>Meera Nair</b><span>DS26B088 · Block B</span></div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. WARDEN PANE -->
+    <div class="pane" id="pane-warden">
+      <form id="form-warden" onsubmit="handleLogin(event, 'warden')">
+        <div class="form-group">
+          <label>Warden Staff ID or Email</label>
+          <input type="text" id="warden-identity" placeholder="e.g. WARDEN-01 or warden.sharma@college.edu" required>
+        </div>
+        <div class="form-group">
+          <label>Staff Security Password</label>
+          <input type="password" id="warden-password" placeholder="••••••••" value="warden123" required>
+        </div>
+        <button type="submit" class="btn-primary">Access Warden Allotment Portal →</button>
+      </form>
+
+      <div class="demo-section">
+        <div class="demo-title">Quick Demo Warden Login</div>
+        <button type="button" class="demo-btn" style="width:100%" onclick="quickFill('warden', 'WARDEN-01', 'warden123', 'Dr. V. K. Sharma')">
+          <div class="demo-avatar" style="background:hsl(220,70%,65%)">w</div>
+          <div class="demo-meta"><b>Dr. V. K. Sharma</b><span>Chief Warden · Mandakini & Cauvery Halls</span></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. CARETAKER PANE -->
+    <div class="pane" id="pane-caretaker">
+      <form id="form-caretaker" onsubmit="handleLogin(event, 'caretaker')">
+        <div class="form-group">
+          <label>Caretaker Staff ID or Email</label>
+          <input type="text" id="caretaker-identity" placeholder="e.g. CARETAKER-01 or ramesh.caretaker@college.edu" required>
+        </div>
+        <div class="form-group">
+          <label>Passcode</label>
+          <input type="password" id="caretaker-password" placeholder="••••••••" value="caretaker123" required>
+        </div>
+        <button type="submit" class="btn-primary">Access Caretaker Facility Desk →</button>
+      </form>
+
+      <div class="demo-section">
+        <div class="demo-title">Quick Demo Caretaker Login</div>
+        <button type="button" class="demo-btn" style="width:100%" onclick="quickFill('caretaker', 'CARETAKER-01', 'caretaker123', 'Ramesh Kumar')">
+          <div class="demo-avatar" style="background:hsl(145,65%,65%)">c</div>
+          <div class="demo-meta"><b>Ramesh Kumar</b><span>Senior Caretaker · Bed Check-in & Key Handover</span></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- 4. ADMIN PANE -->
+    <div class="pane" id="pane-admin">
+      <form id="form-admin" onsubmit="handleLogin(event, 'admin')">
+        <div class="form-group">
+          <label>Administrator Email or ID</label>
+          <input type="text" id="admin-identity" placeholder="e.g. ADMIN-01 or allotment.admin@college.edu" required>
+        </div>
+        <div class="form-group">
+          <label>Master Security Key</label>
+          <input type="password" id="admin-password" placeholder="••••••••" value="admin123" required>
+        </div>
+        <button type="submit" class="btn-primary">Access Allotment Administration →</button>
+      </form>
+
+      <div class="demo-section">
+        <div class="demo-title">Quick Demo Admin Login</div>
+        <button type="button" class="demo-btn" style="width:100%" onclick="quickFill('admin', 'ADMIN-01', 'admin123', 'Prof. Anjali Verma')">
+          <div class="demo-avatar" style="background:hsl(310,70%,65%)">a</div>
+          <div class="demo-meta"><b>Prof. Anjali Verma</b><span>Dean of Student Affairs · Master Roster & Rules</span></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Hostel Roommate Allotment System · Protected by DPDP Act 2023 Guidelines
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// Role switcher tabs
+document.querySelectorAll(".role-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".role-tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".pane").forEach(p => p.classList.remove("active"));
+    tab.classList.add("active");
+    const targetPane = document.getElementById("pane-" + tab.dataset.role);
+    if (targetPane) targetPane.classList.add("active");
+  });
+});
+
+// Toast notification helper
+function showToast(msg, type = "ok") {
+  const container = document.getElementById("toast");
+  const el = document.createElement("div");
+  el.className = "toast-msg " + type;
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = "0";
+    setTimeout(() => el.remove(), 300);
+  }, 4000);
+}
+
+// Request OTP from backend API
+async function requestOtp() {
+  const identity = document.getElementById("student-identity").value.trim();
+  if (!identity) {
+    showToast("Please enter your Roll Number or Email first", "err");
+    document.getElementById("student-identity").focus();
+    return;
+  }
+  try {
+    const res = await fetch("{% url 'matcher:api_send_otp' %}", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({identity, role: "student"})
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showToast(data.error || "Failed to generate OTP", "err");
+      return;
+    }
+    if (data.demo_otp) {
+      document.getElementById("student-otp").value = data.demo_otp;
+      showToast("OTP generated: " + data.demo_otp + " (valid 5 min)", "ok");
+    } else {
+      showToast(data.message || "OTP sent to registered email", "ok");
+    }
+  } catch (err) {
+    showToast("Network error requesting OTP", "err");
+  }
+}
+
+// Quick Fill Demo helper
+function quickFill(role, identity, secret, name) {
+  // Switch to role tab
+  const tab = document.querySelector(`.role-tab[data-role='${role}']`);
+  if (tab) tab.click();
+
+  if (role === "student") {
+    document.getElementById("student-identity").value = identity;
+    document.getElementById("student-otp").value = secret;
+    // Call server to generate real active OTP record
+    fetch("{% url 'matcher:api_send_otp' %}", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({identity, role: "student"})
+    }).then(r => r.json()).then(data => {
+      if (data.demo_otp) {
+        document.getElementById("student-otp").value = data.demo_otp;
+        showToast("Demo OTP loaded: " + data.demo_otp, "ok");
+      } else {
+        showToast("Loaded credentials for " + name, "ok");
+      }
+    }).catch(() => {
+      showToast("Demo profile loaded for " + name, "ok");
+    });
+  } else if (role === "warden") {
+    document.getElementById("warden-identity").value = identity;
+    document.getElementById("warden-password").value = secret;
+    showToast("Warden credentials loaded for " + name, "ok");
+  } else if (role === "caretaker") {
+    document.getElementById("caretaker-identity").value = identity;
+    document.getElementById("caretaker-password").value = secret;
+    showToast("Caretaker credentials loaded for " + name, "ok");
+  } else if (role === "admin") {
+    document.getElementById("admin-identity").value = identity;
+    document.getElementById("admin-password").value = secret;
+    showToast("Admin credentials loaded for " + name, "ok");
+  }
+}
+
+// Form Submission & API call
+async function handleLogin(e, role) {
+  e.preventDefault();
+  let identity = "";
+  let secret = "";
+
+  if (role === "student") {
+    identity = document.getElementById("student-identity").value.trim();
+    secret = document.getElementById("student-otp").value.trim();
+  } else if (role === "warden") {
+    identity = document.getElementById("warden-identity").value.trim();
+    secret = document.getElementById("warden-password").value.trim();
+  } else if (role === "caretaker") {
+    identity = document.getElementById("caretaker-identity").value.trim();
+    secret = document.getElementById("caretaker-password").value.trim();
+  } else if (role === "admin") {
+    identity = document.getElementById("admin-identity").value.trim();
+    secret = document.getElementById("admin-password").value.trim();
+  }
+
+  try {
+    const res = await fetch("{% url 'matcher:api_login' %}", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({role, identity, secret})
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showToast(data.error || "Login failed. Check your credentials.", "err");
+      return;
+    }
+
+    showToast("Welcome back, " + data.name + "!", "ok");
+    setTimeout(() => {
+      window.location.href = data.redirect_url || "/";
+    }, 500);
+  } catch (err) {
+    showToast("Network error: " + err.message, "err");
+  }
+}
+
+// Auto-switch tab if ?role= in query
+const params = new URLSearchParams(window.location.search);
+const reqRole = params.get("role");
+if (reqRole) {
+  const reqTab = document.querySelector(`.role-tab[data-role='${reqRole}']`);
+  if (reqTab) reqTab.click();
+}
+const msg = params.get("msg");
+if (msg === "logged_out") {
+  showToast("You have been signed out safely.", "ok");
+}
+</script>
+
+</body>
+</html>

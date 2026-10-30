@@ -1,0 +1,345 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kindred · hostel administration portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Cormorant+Garamond:ital,wght@0,500;1,400;1,500&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f8f2f4;--surface:#ffffffd9;--ink:#35293f;--soft:#6a5d78;--line:#35293f26;--lav:#d4c6f5;--lv:#8566d1;--rd:#e0709f;--peach:#ffd9c9;--sage:#d6e8da;--butter:#fff1c4;--rose:#f7c4d8;--warn:#c2410c;
+  --serif:"Cormorant Garamond","Iowan Old Style",Georgia,serif;--sans:"Quicksand","Trebuchet MS",system-ui,sans-serif;--hand:"Caveat","Segoe Print",cursive;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1a1424;--surface:#2a2138e6;--ink:#f4ecfb;--soft:#bbaed1;--line:#f4ecfb2b;--lv:#bda2ff;--rd:#ff8fbb;--lav:#4a3a73;--peach:#5a3a40;--sage:#2f4a3c;--butter:#554a2a;--rose:#5e3450;--warn:#fdba74
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;opacity:.08;z-index:50;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+
+.orb{position:fixed;border-radius:50%;filter:blur(70px);opacity:.75;z-index:-1;pointer-events:none}
+.o1{width:46vmax;height:46vmax;background:var(--lav);left:-14vmax;top:-14vmax}
+.o2{width:40vmax;height:40vmax;background:var(--peach);right:-12vmax;bottom:-10vmax}
+
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px 80px}
+.nv{display:flex;justify-content:space-between;align-items:center;padding:24px 0 16px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.logo{font:italic 500 32px var(--serif);color:var(--ink);text-decoration:none}.logo span{color:var(--lv)}
+.back-link{font:600 15px var(--sans);color:var(--soft);text-decoration:none;padding:8px 18px;border-radius:99px;border:1px solid var(--line);transition:all .2s}
+.back-link:hover{color:var(--ink);border-color:var(--lv)}
+
+h1{font:italic 400 clamp(36px,5.5vw,52px) var(--serif);margin:0 0 8px;line-height:1.1}
+h2{font:italic 400 32px var(--serif);margin:32px 0 14px}
+.hand{font-family:var(--hand);font-size:24px;color:var(--lv);display:block}
+.sub{color:var(--soft);max-width:44em;margin:8px 0 24px}
+
+.card{background:var(--surface);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:28px;padding:24px;margin-bottom:20px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
+.stat{text-align:center;padding:18px 14px}
+.stat b{display:block;font:italic 500 48px/1 var(--serif);color:var(--ink)}
+.stat span{font-size:13.5px;color:var(--soft);font-weight:600}
+
+/* Phase Controller */
+.phase-box{background:var(--surface);border:1px solid var(--line);border-radius:26px;padding:20px 24px;margin-bottom:28px}
+.phase-steps{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.phase-btn{padding:8px 16px;border-radius:99px;border:1px solid var(--line);background:none;font:600 13px var(--sans);cursor:pointer;color:var(--soft);transition:all .2s}
+.phase-btn:hover{color:var(--ink);border-color:var(--lv)}
+.phase-btn.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+.pair-card{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;padding:22px 26px;border-radius:28px;background:var(--surface);border:1px solid var(--line);margin-bottom:18px;transition:box-shadow .2s}
+.pair-card:hover{box-shadow:0 12px 30px -10px var(--lv)}
+.pair-card.allotted{border-color:var(--lv);background:linear-gradient(135deg,var(--surface),var(--sage))}
+
+.pair-students{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.av{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font:italic 500 24px var(--serif);color:#fffe;flex:none}
+.st-info h3{font:italic 500 24px var(--serif);margin:0;line-height:1.1}
+.st-info span{font-size:13px;color:var(--soft);font-weight:600}
+
+.score-badge{display:inline-block;padding:5px 13px;border-radius:99px;font-size:13px;font-weight:700;background:var(--butter);color:#35293f}
+.score-badge.high{background:var(--sage)}
+
+.allot-form{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+input[type=text]{padding:10px 16px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:500 14.5px var(--sans);width:130px}
+.btn{padding:10px 22px;border-radius:999px;background:var(--ink);color:var(--bg);font:600 14px var(--sans);border:1px solid var(--ink);cursor:pointer;transition:all .2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px -6px var(--lv)}
+.btn.action{background:var(--lv);border-color:var(--lv);color:#fff}
+
+.tag{padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700}
+.tag.done{background:var(--sage);color:#35293f}
+.tag.wait{background:var(--butter);color:#35293f}
+
+.unpaired-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.unpaired-item{padding:16px 18px;border-radius:24px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;gap:12px}
+
+/* Audit table */
+.audit-table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:12px}
+.audit-table th, .audit-table td{padding:10px 14px;border-bottom:1px solid var(--line);text-align:left}
+.audit-table th{font-weight:700;color:var(--soft);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+
+#toast{position:fixed;bottom:24px;right:24px;z-index:100;display:flex;flex-direction:column;gap:10px}
+.toast-msg{background:var(--ink);color:var(--bg);padding:12px 22px;border-radius:99px;font:600 14px var(--sans);box-shadow:0 12px 28px #00000028}
+
+@media(max-width:760px){
+  .pair-card{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="orb o1"></div><div class="orb o2"></div>
+
+<div class="wrap">
+  <nav class="nv">
+    <a href="{% url 'matcher:home' %}" class="logo">kin<span>dred</span> · administration</a>
+    <div style="display:flex;gap:10px;align-items:center">
+      <a href="/" class="back-link">← Return to Student App</a>
+    </div>
+  </nav>
+
+  <span class="hand">hostel allotment & transaction controls</span>
+  <h1>Allotment Calendar & Room Allocations</h1>
+  <p class="sub">Manage the full allotment lifecycle through discrete time windows, execute Blossom maximum-weight leftover matching, and assign rooms with full audit logging.</p>
+
+  <!-- Allotment Calendar Phase Controller (Section 4) -->
+  <div class="phase-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <div>
+        <span class="demo-tag" style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase">Current Calendar Phase:</span>
+        <b style="font-size:17px;margin-left:8px;color:var(--lv)">{{ calendar.get_phase_display }}</b>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn action" onclick="runBlossomMatching()">Run Blossom Algorithm (Leftovers)</button>
+        <button class="btn" onclick="runAutoAllotment()">Auto-Allot Rooms</button>
+      </div>
+    </div>
+    <div class="phase-steps">
+      <button class="phase-btn {% if calendar.phase == 'REGISTRATION' %}active{% endif %}" onclick="setPhase('REGISTRATION')">1. Registration</button>
+      <button class="phase-btn {% if calendar.phase == 'SURVEY_OPEN' %}active{% endif %}" onclick="setPhase('SURVEY_OPEN')">2. Survey Open</button>
+      <button class="phase-btn {% if calendar.phase == 'MATCHING_OPEN' %}active{% endif %}" onclick="setPhase('MATCHING_OPEN')">3. Matching Open</button>
+      <button class="phase-btn {% if calendar.phase == 'FREEZE' %}active{% endif %}" onclick="setPhase('FREEZE')">4. Freeze</button>
+      <button class="phase-btn {% if calendar.phase == 'WARDEN_ALLOTMENT' %}active{% endif %}" onclick="setPhase('WARDEN_ALLOTMENT')">5. Warden Allotment</button>
+      <button class="phase-btn {% if calendar.phase == 'LEFTOVER_PAIRING' %}active{% endif %}" onclick="setPhase('LEFTOVER_PAIRING')">6. Leftover Pairing</button>
+      <button class="phase-btn {% if calendar.phase == 'PUBLISHED' %}active{% endif %}" onclick="setPhase('PUBLISHED')">7. Published</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="card stat"><b>{{ total_students_count }}</b><span>Enrolled Students</span></div>
+    <div class="card stat"><b>{{ confirmed_pairs_count }}</b><span>Confirmed Pairs</span></div>
+    <div class="card stat"><b>{{ allotted_count }}</b><span>Rooms Allotted</span></div>
+    <div class="card stat"><b>{{ pending_requests_count }}</b><span>Open 48h Requests</span></div>
+  </div>
+
+  <h2>Confirmed Roommate Pairings</h2>
+  <p class="sub">These student pairs are confirmed via mutual agreement or Blossom matching and ready for keys.</p>
+
+  {% if pairs_data %}
+    {% for item in pairs_data %}
+    <div class="pair-card {% if item.pairing.status == 'ALLOTTED' %}allotted{% endif %}" id="pair-{{ item.pairing.id }}">
+      <div>
+        <div class="pair-students">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="av" style="background:linear-gradient(150deg,hsl({{ item.s1.avatar_hue }},70%,78%),hsl({{ item.s1.avatar_hue|add:50 }},75%,72%))">
+              {{ item.s1.name|slice:":1"|lower }}
+            </div>
+            <div class="st-info">
+              <h3>{{ item.s1.name }}</h3>
+              <span>{{ item.s1.roll_no }} · the {{ item.s1.persona }}</span>
+            </div>
+          </div>
+
+          <span style="font-family:var(--hand);font-size:24px;color:var(--lv)">+</span>
+
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="av" style="background:linear-gradient(150deg,hsl({{ item.s2.avatar_hue }},70%,78%),hsl({{ item.s2.avatar_hue|add:50 }},75%,72%))">
+              {{ item.s2.name|slice:":1"|lower }}
+            </div>
+            <div class="st-info">
+              <h3>{{ item.s2.name }}</h3>
+              <span>{{ item.s2.roll_no }} · the {{ item.s2.persona }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <span class="score-badge {% if item.score >= 75 %}high{% endif %}">
+            {{ item.score }}/100 Mutual Score
+          </span>
+          <span class="tag {% if item.pairing.status == 'ALLOTTED' %}done{% else %}wait{% endif %}" id="tag-{{ item.pairing.id }}">
+            {% if item.pairing.status == 'ALLOTTED' %}Allotted: Room {{ item.pairing.room.number }}{% else %}Awaiting Room Assignment{% endif %}
+          </span>
+          <span class="sm" style="color:var(--soft)">Method: {{ item.pairing.get_method_display }}</span>
+        </div>
+      </div>
+
+      <div>
+        <form class="allot-form" onsubmit="allotRoom(event, {{ item.pairing.id }})">
+          <input type="text" id="room-input-{{ item.pairing.id }}" placeholder="e.g. A-102" value="{% if item.pairing.room %}{{ item.pairing.room.number }}{% endif %}" required>
+          <button type="submit" class="btn">
+            {% if item.pairing.status == 'ALLOTTED' %}Override Room{% else %}Allot Room{% endif %}
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="card" style="text-align:center;padding:40px">
+      <h3 style="font-style:italic">No confirmed roommate pairs yet</h3>
+      <p class="sm" style="margin-top:8px">When two students accept mutual requests or when Blossom leftover matching runs, verified pairs appear here.</p>
+    </div>
+  {% endif %}
+
+  <h2>Unpaired Students Pool ({{ unpaired_students|length }})</h2>
+  <p class="sub">Students still searching for roommates or eligible for automated leftover Blossom matching.</p>
+  <div class="unpaired-grid">
+    {% for s in unpaired_students %}
+    <div class="unpaired-item">
+      <div class="av" style="background:linear-gradient(150deg,hsl({{ s.avatar_hue }},70%,78%),hsl({{ s.avatar_hue|add:50 }},75%,72%))">
+        {{ s.name|slice:":1"|lower }}
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:15px">{{ s.name }} ({{ s.roll_no }})</div>
+        <div class="sm">the {{ s.persona }}</div>
+        <div class="sm" style="opacity:.8">{{ s.gender }} · {{ s.branch }} · {{ s.block.name|default:"Main Block" }}</div>
+      </div>
+    </div>
+    {% empty %}
+    <p class="sm">All registered students are currently matched and paired!</p>
+    {% endfor %}
+  </div>
+
+  <h2>System Audit Trail</h2>
+  <p class="sub">Every mutual confirmation, room allotment, phase transition, and override is immutably logged with actor and reason.</p>
+  <div class="card" style="padding:14px 20px">
+    <table class="audit-table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Actor</th>
+          <th>Action</th>
+          <th>Target</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in audit_logs %}
+        <tr>
+          <td>{{ a.timestamp|date:"M d, H:i:s" }}</td>
+          <td><b>{{ a.actor }}</b></td>
+          <td><span class="tag" style="background:var(--lav);color:#35293f">{{ a.action }}</span></td>
+          <td>{{ a.target }}</td>
+          <td style="color:var(--soft)">{{ a.reason }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="sm">No audit logs recorded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+function getCookie(name) {
+  var cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+      var cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+function toast(msg) {
+  var t = document.createElement('div');
+  t.className = 'toast-msg';
+  t.textContent = msg;
+  document.getElementById('toast').appendChild(t);
+  setTimeout(function(){ t.style.opacity = '0'; setTimeout(function(){ t.remove() }, 300); }, 3000);
+}
+
+function setPhase(phaseName) {
+  fetch('/api/admin/set-phase/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken') || ''
+    },
+    body: JSON.stringify({ phase: phaseName })
+  }).then(function(r){ return r.json() }).then(function(res){
+    if(res.ok) {
+      toast(res.message);
+      setTimeout(function(){ location.reload() }, 600);
+    } else {
+      toast(res.error || 'Failed to update phase');
+    }
+  });
+}
+
+function runBlossomMatching() {
+  if(!confirm("Run NetworkX Blossom Maximum-Weight Matching across all remaining unpaired students?")) return;
+  fetch('/api/admin/run-blossom/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken') || ''
+    }
+  }).then(function(r){ return r.json() }).then(function(res){
+    toast(res.message);
+    setTimeout(function(){ location.reload() }, 1000);
+  });
+}
+
+function runAutoAllotment() {
+  fetch('/api/admin/auto-allot/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken') || ''
+    }
+  }).then(function(r){ return r.json() }).then(function(res){
+    toast(res.message);
+    setTimeout(function(){ location.reload() }, 1000);
+  });
+}
+
+function allotRoom(e, pairingId) {
+  e.preventDefault();
+  var room = document.getElementById('room-input-' + pairingId).value.trim();
+  if(!room) return;
+
+  fetch('/api/warden/allot/' + pairingId + '/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken') || ''
+    },
+    body: JSON.stringify({ room_number: room, reason: "Hostel Warden Room Allocation" })
+  }).then(function(r){ return r.json() }).then(function(res){
+    if(res.ok) {
+      toast(res.message);
+      var tag = document.getElementById('tag-' + pairingId);
+      if(tag) {
+        tag.className = 'tag done';
+        tag.textContent = 'Allotted: Room ' + res.room_number;
+      }
+      var card = document.getElementById('pair-' + pairingId);
+      if(card) card.classList.add('allotted');
+    } else {
+      toast(res.error || 'Failed to allot room');
+    }
+  }).catch(function(err){
+    toast('Error: ' + err.message);
+  });
+}
+</script>
+</body>
+</html>
