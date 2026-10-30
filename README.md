@@ -4,7 +4,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![NetworkX](https://img.shields.io/badge/NetworkX-Blossom_Algorithm-orange?style=for-the-badge)](https://networkx.org/)
 [![DPDP Act 2023](https://img.shields.io/badge/Privacy-DPDP_Act_2023_Compliant-blueviolet?style=for-the-badge)](https://www.meity.gov.in/)
-[![Tests Passing](https://img.shields.io/badge/Tests-29%2F29_Passing-emerald?style=for-the-badge)](file:///matcher/tests.py)
+[![Tests Passing](https://img.shields.io/badge/Tests-39%2F39_Passing-emerald?style=for-the-badge)](matcher/tests.py)
 
 > **Where compatibility meets community.**
 > Kindred transforms university hostel allocations from stressful, random lotteries into an autonomous, transparent, and fair matching experience. Combining academic roll number verification, an 8-dimensional lifestyle quiz, non-negotiable deal-breaker protection, mutual consent pairing, and Edmonds' Blossom maximum-weight matching, Kindred ensures every student finds their rhythm.
@@ -14,7 +14,7 @@
 ## Table of Contents
 
 - [1. System Overview](#1-system-overview)
-- [2. The 4 Dedicated Role Portals](#2-the-4-dedicated-role-portals)
+- [2. Dedicated Portals & User Experience](#2-dedicated-portals--user-experience)
 - [3. Mathematical & Algorithmic Foundations](#3-mathematical--algorithmic-foundations)
 - [4. Empirical Matching Simulation Benchmark](#4-empirical-matching-simulation-benchmark)
 - [5. Enterprise-Grade Security Architecture](#5-enterprise-grade-security-architecture)
@@ -24,9 +24,8 @@
 - [9. Demo Accounts Matrix](#9-demo-accounts-matrix)
 - [10. REST API Reference](#10-rest-api-reference)
 - [11. Design Aesthetics & Visual Philosophy](#11-design-aesthetics--visual-philosophy)
-- [12. Automated Test Suite (29 Tests)](#12-automated-test-suite-29-tests)
+- [12. Automated Test Suite (39 Tests)](#12-automated-test-suite-39-tests)
 - [13. License & Attribution](#13-license--attribution)
-
 
 ---
 
@@ -39,20 +38,21 @@ Traditional university hostel allotment faces recurring systemic challenges:
 4. **The Leftover Dilemma**: Students who do not form a pair by the deadline are arbitrarily thrown together, often creating the most volatile living situations.
 
 ### How Kindred Solves This:
-- **Academic Identity Verification**: Every account is strictly tied to a validated student roll number and official college email via cryptographically hashed 6-digit OTP codes.
+- **Academic Identity Verification**: Every account is strictly tied to a validated student roll number and official college email via cryptographically hashed 6-digit OTP codes or secure credentials.
 - **Privacy by Design**: Raw questionnaire responses are never shared. Peers only see mutual harmony scores, shared virtues, and potential clash warnings.
 - **Deal-Breaker Protection**: Critical dimensions (e.g., smoking, extreme late-night noise) can be marked as non-negotiable deal-breakers, automatically capping compatibility scores at 59% and alerting students before pairing.
 - **Edmonds' Blossom Algorithm**: Unpaired students are paired using graph-theoretic maximum-weight matching, maximizing the total global harmony across the entire cohort.
-- **End-to-End Operational Lifecycle**: From initial survey submission to warden approval and room allocation.
+- **End-to-End Operational Lifecycle**: From self-registration and survey submission to warden approval, room allocation, check-in, dispute ticketing, and post-stay feedback.
 
 ---
 
-## 2. The 3 Dedicated Role Portals
+## 2. Dedicated Portals & User Experience
 
-Kindred mirrors real-world residential campus governance across three distinct portals:
+Kindred mirrors real-world residential campus governance across specialized web portals:
 
-### 🎓 1. Student Roommate Matcher (`/student/`)
-- **Authentication**: College Roll Number or Email + 6-digit time-limited OTP.
+### 🎓 1. Student Roommate Matcher & Registration (`/student/`, `/register/`)
+- **Self-Registration & Onboarding**: Direct student enrollment validating unique college roll number, official email, department, graduation year, gender, and designated hostel block.
+- **Flexible Authentication**: College Roll Number or Email + 6-digit time-limited OTP (or password).
 - **8 Lifestyle Dimensions**:
   1. `Sleep`: Bedtime habits (Before 10 PM $\to$ 2 AM or later; circular time geometry).
   2. `Wake`: Morning routines (Before 6 AM $\to$ Late morning; circular time geometry).
@@ -64,13 +64,14 @@ Kindred mirrors real-world residential campus governance across three distinct p
   8. `Social`: Energy recharge habits (Alone $\to$ Close friend $\to$ Big group).
 - **Direct Friend Pairing**: Send instant pairing requests by roll number or student name with real-time transaction notifications and hostel block gender policy verification.
 - **Privacy Seal (DPDP Act 2023)**: Zero raw questionnaire responses exposed over student-facing APIs; lifestyle clashes redacted to generic labels (`"Major lifestyle rhythm mismatch"`).
+- **Profile Updates & Customization**: Self-service profile management for non-conflicting details with duplicate check constraints.
 - **Post-Stay Feedback Loop**: Evaluate lived roommate compatibility across harmony, sleep, and cleanliness after room allotment.
 
 ### 🛡️ 2. Hostel Warden Desk (`/warden/`)
 - **Authentication**: Official Staff ID + Staff Password.
 - **Live Allotment Queue**: Review confirmed pairs, view mutual compatibility scores, and inspect student branch/year details.
 - **Mandatory Re-Allocation Justifications**: Warden room re-assignments require a mandatory justification note, preventing arbitrary room swaps and maintaining a tamper-evident audit trail.
-- **Student Disputes & Maintenance Desk**: Ingest, review, and resolve student room change requests, noise complaints, and facility maintenance tickets.
+- **Student Disputes & Maintenance Desk**: Ingest, review, and resolve student room change requests, noise complaints, and facility maintenance tickets with resolution audit logs.
 - **Two-Pass Blossom Leftover Matching**: One-click execution of clash-aware maximum-weight leftover pairing with odd-cohort remainder isolation.
 
 ### ⚙️ 3. Administrator Governance (`/admin-portal/`)
@@ -88,7 +89,7 @@ Kindred mirrors real-world residential campus governance across three distinct p
   - *Guard 2:* Blocks advancing to `PUBLISHED` if confirmed pairs lack assigned rooms.
   - Supports administrative override (`force=True`) with mandatory audit logging.
 - **Master Roster & CSV Export**: Download the official allotment roster formatted for university administration (`/api/admin/export-csv/`).
-- **Audit Trail**: Real-time view of the last 30 system events.
+- **Audit Trail**: Real-time view of system security and governance events.
 
 ---
 
@@ -144,35 +145,35 @@ python manage.py run_benchmark --students=100
 
 ---
 
-## 5. Enterprise-Grade Security Architectureity Architecture
+## 5. Enterprise-Grade Security Architecture
 
 ```
                  Incoming Request
-                        │
-            ┌───────────┴───────────┐
-            │   CSRF Token Check    │
-            └───────────┬───────────┘
-                        ▼
-            ┌───────────────────────┐
-            │  Account Lockout Check│ ── (5 failures ➔ 423 Locked)
-            └───────────┬───────────┘
-                        ▼
-      ┌─────────────────┴─────────────────┐
-      │                                   │
-      ▼ (Role: Student)                   ▼ (Role: Staff)
-┌───────────────────────────┐   ┌───────────────────────────┐
-│  Hashed OTP Verification  │   │  PBKDF2 Password Check    │
-│  - 5-min expiration       │   │  - Salted PBKDF2-SHA256   │
-│  - Max 3 attempts         │   │  - Constant-time compare  │
-│  - 60s cooldown (429)     │   └─────────────┬─────────────┘
-└─────────────┬─────────────┘                 │
-              └───────────────┬───────────────┘
-                              ▼
-            ┌──────────────────────────────────┐
-            │ Session Fixation cycle_key()     │
-            │ Reset Failed Attempts            │
-            │ Write Immutable AuditLog         │
-            └──────────────────────────────────┘
+                         │
+             ┌───────────┴───────────┐
+             │   CSRF Token Check    │
+             └───────────┬───────────┘
+                         ▼
+             ┌───────────────────────┐
+             │  Account Lockout Check│ ── (5 failures ➔ 423 Locked)
+             └───────────┬───────────┘
+                         ▼
+       ┌─────────────────┴─────────────────┐
+       │                                   │
+       ▼ (Role: Student)                   ▼ (Role: Staff)
+ ┌───────────────────────────┐   ┌───────────────────────────┐
+ │  Hashed OTP / Password    │   │  PBKDF2 Password Check    │
+ │  - 5-min expiration       │   │  - Salted PBKDF2-SHA256   │
+ │  - Max 3 attempts         │   │  - Constant-time compare  │
+ │  - 60s cooldown (429)     │   └─────────────┬─────────────┘
+ └─────────────┬─────────────┘                 │
+               └───────────────┬───────────────┘
+                               ▼
+             ┌──────────────────────────────────┐
+             │ Session Fixation cycle_key()     │
+             │ Reset Failed Attempts            │
+             │ Write Immutable AuditLog         │
+             └──────────────────────────────────┘
 ```
 
 | Security Dimension | Implementation | Vulnerability Mitigated |
@@ -184,6 +185,7 @@ python manage.py run_benchmark --students=100
 | **Rate Limiting** | 60-second cooldown per student identity on OTP request | SMS/Email flooding & resource exhaustion |
 | **Account Lockout** | 5 consecutive bad credentials locks account for 15 minutes (HTTP 423) | Credential stuffing |
 | **Session Fixation** | `request.session.cycle_key()` called upon successful authentication | Session hijacking |
+| **CSRF Defense** | Strict Django CSRF token enforcement on all mutation requests | Cross-site request forgery |
 | **Data Protection** | Zero raw questionnaire response exposure; DPDP Act 2023 consent tracking | Privacy violations |
 | **Audit Logging** | Complete event tracking (`AUTH_LOGIN_SUCCESS`, `AUTH_LOGIN_FAILED_BAD_OTP`, `WARDEN_ALLOT`, etc.) | Non-repudiation & forensic accountability |
 
@@ -206,17 +208,18 @@ graph TD
 ## 7. Project Architecture & File Tree
 
 ```
-Project/
+Kindred/
 ├── db.sqlite3                                  # SQLite development database
 ├── manage.py                                   # Django management utility
 ├── requirements.txt                            # Python dependencies
 ├── seed_demo_data.py                           # Standalone database seeder
+├── .env.example                                # Sample environment variables configuration
 ├── .gitignore                                  # Git exclusion rules
 ├── README.md                                   # Comprehensive documentation
 ├── kindred_project/                            # Project configuration root
 │   ├── __init__.py
 │   ├── asgi.py
-│   ├── settings.py                             # Settings, installed apps, templates, auth
+│   ├── settings.py                             # Settings, installed apps, templates, auth, security
 │   ├── urls.py                                 # Main URL routing configuration
 │   └── wsgi.py
 ├── matcher/                                    # Kindred core allocation application
@@ -230,17 +233,20 @@ Project/
 │   ├── management/commands/
 │   │   ├── seed_data.py                        # Demo data management command
 │   │   └── run_benchmark.py                    # Benchmark simulation CLI runner
-│   ├── views.py                                # Home, Login, Role portals, APIs, tickets, feedback
+│   ├── views.py                                # Home, Login, Register, Role portals, APIs, tickets, feedback
 │   ├── urls.py                                 # Matcher URL patterns & aliases
-│   ├── tests.py                                # Comprehensive automated test suite (29 tests)
+│   ├── tests.py                                # Comprehensive automated test suite (39 tests)
 │   ├── migrations/                             # Database migrations
 │   │   ├── 0001_initial.py
 │   │   ├── 0002_allotment_checked_in_allotment_checked_in_at_and_more.py
 │   │   ├── 0003_studentuser_failed_login_attempts_and_more.py
-│   │   └── 0004_pairscore_algorithm_version_question_cycle_period_and_more.py
+│   │   ├── 0004_pairscore_algorithm_version_question_cycle_period_and_more.py
+│   │   ├── 0005_hostelblock_block_name_hostelblock_hostel_name_and_more.py
+│   │   └── 0006_alter_studentuser_role.py
 │   └── templates/matcher/                      # Glassmorphic responsive templates
 │       ├── home.html                           # Public landing page with animated wave & stats
 │       ├── login.html                          # Multi-role sign-in portal with OTP generation
+│       ├── register.html                       # Student self-registration portal
 │       ├── index.html                          # Student roommate matcher dashboard
 │       ├── warden.html                         # Warden allocation & dispute management portal
 │       └── admin.html                          # Administrative calendar & governance portal
@@ -258,8 +264,8 @@ Project/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/Prashant730/kindred-.git
-cd kindred-
+git clone https://github.com/Kabhi001/Kindred.git
+cd Kindred
 ```
 
 ### 2. Create and Activate Virtual Environment
@@ -278,24 +284,30 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Run Migrations & Seed Demo Data
+### 4. Configure Environment Variables
+```bash
+# Copy sample configuration
+cp .env.example .env
+```
+
+### 5. Run Migrations & Seed Demo Data
 ```bash
 python manage.py migrate
 python seed_demo_data.py
 ```
 
-### 5. Run the Automated Test Suite (29 Tests)
+### 6. Run the Automated Test Suite (39 Tests)
 ```bash
 python manage.py test
 ```
-*Expected output: `Ran 29 tests in ~4.6s ... OK`*
+*Expected output: `Ran 39 tests in ~12s ... OK`*
 
-### 6. Run the Empirical Simulation Benchmark
+### 7. Run the Empirical Simulation Benchmark
 ```bash
 python manage.py run_benchmark --students=100
 ```
 
-### 7. Start the Development Server
+### 8. Start the Development Server
 ```bash
 python manage.py runserver 127.0.0.1:8000
 ```
@@ -323,8 +335,10 @@ All portals feature **1-Click Quick Demo Login** buttons on the sign-in page:
 | Endpoint | Method | Role | Description |
 | :--- | :---: | :---: | :--- |
 | `/api/auth/send-otp/` | `POST` | Public | Generates and hashes 6-digit OTP; enforces 60s cooldown rate limit |
+| `/api/auth/register/` | `POST` | Public | Registers a new student with roll number, name, email, department, year, gender, and block |
 | `/api/auth/login/` | `POST` | Public | Multi-role authentication; verifies OTP or password, cycles session |
 | `/api/me/` | `GET` | Student | Returns current user profile, survey status, pairing info, notifications, and phase flags |
+| `/api/profile/update/` | `POST` | Student | Updates student profile details with unique roll number validation |
 | `/api/consent/agree/` | `POST` | Student | Records DPDP Act 2023 privacy consent |
 | `/api/students/` | `GET` | Student | Lists verified student directory with branch, year, block |
 | `/api/students/switch/`| `POST` | Demo | Switches active student session in demo mode |
@@ -365,51 +379,62 @@ Kindred is intentionally designed to evoke warmth, approachability, and editoria
 
 ---
 
-## 12. Automated Test Suite (29 Tests)
+## 12. Automated Test Suite (39 Tests)
 
-Kindred includes a rigorous 29-test unit testing suite in `matcher/tests.py`:
+Kindred includes a rigorous 39-test unit testing suite in [`matcher/tests.py`](matcher/tests.py):
 
 ```bash
 python manage.py test
 ```
 
 ### Test Coverage Breakdown:
-- **Core Operations & Authentication (16 tests)**:
+- **Core Operations, Auth & Security (14 tests)**:
   1. `test_home_page_renders_with_live_stats`
   2. `test_secure_otp_generation_and_verification`
   3. `test_account_lockout_after_consecutive_failures`
   4. `test_staff_hashed_password_success`
-  5. `test_student_login_with_otp`
-  6. `test_warden_login`
-  7. `test_admin_login_and_csv_export`
-  9. `test_role_mismatch_denied`
-  10. `test_logout`
-  11. `test_directional_and_dealbreaker_scoring`
-  12. `test_safe_request_concurrency_and_cancellation`
-  13. `test_outgoing_request_limit`
-  14. `test_phase_enforcement`
-  15. `test_blossom_leftover_matching`
-  16. `test_privacy_minimum_exposure`
-- **Algorithmic Hardening & Privacy Seal (7 tests)**:
-  17. `test_circular_time_distance_geometry`
-  18. `test_independent_dealbreaker_decoupling`
-  19. `test_capacity_aware_room_allotment`
-  20. `test_new_governance_models`
-  21. `test_two_pass_clash_aware_blossom`
-  22. `test_odd_student_cohort_remainder_handling`
+  5. `test_student_login_with_password`
+  6. `test_student_login_with_otp`
+  7. `test_student_registration_and_login`
+  8. `test_warden_login`
+  9. `test_admin_login_and_csv_export`
+  10. `test_role_mismatch_denied`
+  11. `test_logout`
+  12. `test_real_accounts_and_auth_guards`
+  13. `test_csrf_rejected_without_token`
+  14. `test_csrf_accepted_with_valid_token`
+- **Algorithmic Hardening, Geometry & Matching (7 tests)**:
+  15. `test_directional_and_dealbreaker_scoring`
+  16. `test_decoupled_dealbreaker_vs_importance_scoring`
+  17. `test_circular_distance_sleep_wake`
+  18. `test_two_pass_clash_aware_blossom`
+  19. `test_blossom_leftover_matching`
+  20. `test_odd_cohort_unmatched_handling`
+  21. `test_synthetic_matching_benchmark_suite`
+- **Privacy, DPDP Compliance & Governance (7 tests)**:
+  22. `test_privacy_minimum_exposure`
   23. `test_privacy_seal_in_api_matches`
-- **Governance Guards & Product Features (4 tests)**:
-  24. `test_direct_friend_pairing_by_roll_no`
-  25. `test_phase_transition_guards`
-  26. `test_warden_room_override_mandatory_reason`
-  27. `test_complaint_and_maintenance_tickets`
-- **Simulation Benchmark & Post-Stay Feedback (2 tests)**:
-  28. `test_feedback_submission_and_metrics`
-  29. `test_synthetic_matching_benchmark_suite`
+  24. `test_new_governance_and_compliance_entities`
+  25. `test_phase_enforcement`
+  26. `test_reordered_calendar_phases`
+  27. `test_phase_transition_guards`
+  28. `test_warden_room_override_mandatory_reason`
+- **Student Workflows, Pairing & Rooms (7 tests)**:
+  29. `test_safe_request_concurrency_and_cancellation`
+  30. `test_outgoing_request_limit`
+  31. `test_direct_friend_pairing_by_roll_no`
+  32. `test_registration_number_property_and_alias`
+  33. `test_hostel_block_and_room_dual_capacity`
+  34. `test_otp_and_login_with_registration_number`
+  35. `test_send_request_using_peer_registration_no`
+- **Profile Updates, Service & Feedback (4 tests)**:
+  36. `test_student_profile_update_success`
+  37. `test_student_profile_update_duplicate_roll_no`
+  38. `test_complaint_and_maintenance_tickets`
+  39. `test_feedback_submission_and_metrics`
 
 ---
 
 ## 13. License & Attribution
 
 Distributed under the **MIT License**. Developed for modern residential university campuses seeking algorithmic transparency, student compatibility, and streamlined operations.
-
