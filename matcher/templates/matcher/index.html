@@ -1,4 +1,4 @@
-﻿{% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -129,6 +129,10 @@ textarea{height:90px;font:13px/1.4 ui-monospace,Menlo,monospace}
 #toast{position:fixed;bottom:24px;right:24px;z-index:100;display:flex;flex-direction:column;gap:10px}
 .toast-msg{background:var(--ink);color:var(--bg);padding:12px 22px;border-radius:99px;font:600 14px var(--sans);box-shadow:0 12px 28px #00000028;animation:in .35s both}
 
+.modal-overlay{position:fixed;inset:0;background:#1a1424b8;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:999;display:none;align-items:center;justify-content:center;padding:16px;animation:in .2s ease both}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--surface);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--line);border-radius:28px;width:100%;max-width:540px;max-height:92vh;overflow-y:auto;padding:26px 28px;box-shadow:0 24px 60px #0000003b}
+.form-select{width:100%;padding:13px 18px;border-radius:20px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:500 15px var(--sans);margin-top:4px}
 </style>
 </head>
 <body>
@@ -144,37 +148,126 @@ textarea{height:90px;font:13px/1.4 ui-monospace,Menlo,monospace}
     <button data-go="requests">requests</button>
     <a href="{% url 'matcher:warden_dashboard' %}">warden</a>
     <div class="user-menu" id="user-menu-wrapper">
-      <button class="user-pill" id="user-menu-btn" type="button" title="Switch Student Perspective">
+      <button class="user-pill" id="user-menu-btn" type="button" title="My Student Profile">
         <span class="user-dot"></span>
-        <span id="nav-user-name">Student</span>
+        <span id="nav-user-name">{{ current_student.name }}</span>
         <span class="user-arrow">▾</span>
       </button>
       <div class="user-dropdown" id="user-dropdown">
-        <div class="dropdown-header">Active Student Perspective</div>
-        <div id="student-list-container">
-          <div style="padding:10px;font-size:12px;color:var(--soft)">Loading students...</div>
+        <div class="dropdown-header">Authenticated Student Profile</div>
+        <div style="padding:12px 14px;background:var(--butter);border-radius:16px;margin:4px 0 8px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <b style="font-size:14.5px;color:var(--ink)" id="profile-display-name">{{ current_student.name }}</b>
+            <span class="chip l" style="font-size:10.5px;padding:2px 8px;margin:0" id="profile-display-gender">{{ current_student.get_gender_display }}</span>
+          </div>
+          <div style="font-size:12px;color:var(--soft);margin-top:4px">Reg No: <b id="profile-display-roll">{{ current_student.roll_no }}</b></div>
+          <div style="font-size:12px;color:var(--soft)" id="profile-display-meta">{{ current_student.branch }} · {{ current_student.year }}</div>
+          <div style="font-size:12px;color:var(--soft)">Hostel: <b id="profile-display-hostel">{{ current_student.block.name|default:"Main Hostel" }}</b></div>
+          <div style="font-size:11.5px;font-weight:700;color:var(--lv);margin-top:4px" id="profile-display-persona">Persona: {{ current_student.persona }}</div>
+          <button type="button" class="btn gh" id="open-edit-profile-btn" style="width:100%;margin-top:10px;padding:7px 12px;font-size:12.5px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--surface);border-color:var(--line);color:var(--ink)">
+            ✏️ Edit Profile Details
+          </button>
         </div>
       
-        <div class="dropdown-header" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">Staff Portals</div>
+        <div class="dropdown-header" style="margin-top:6px;border-top:1px solid var(--line);padding-top:8px">Staff Portals (For Testing)</div>
         <a href="/warden/" class="dropdown-item" style="text-decoration:none">
           <div><b>🛡️ Warden Allotment</b><div class="dropdown-item-meta">Blossom algorithm & room assignments</div></div>
-        </a>
-        <a href="/caretaker/" class="dropdown-item" style="text-decoration:none">
-          <div><b>🔑 Caretaker Desk</b><div class="dropdown-item-meta">Bed occupancy & key handover</div></div>
         </a>
         <a href="/admin-portal/" class="dropdown-item" style="text-decoration:none">
           <div><b>⚙️ Admin Governance</b><div class="dropdown-item-meta">Calendar phases & master roster</div></div>
         </a>
         <a href="/logout/" class="dropdown-item" style="text-decoration:none;color:var(--warn);border-top:1px dashed var(--line);margin-top:6px;padding-top:10px">
-          <div><b>🚪 Sign Out / Switch Role</b><div class="dropdown-item-meta">Return to unified login portal</div></div>
+          <div><b>🚪 Sign Out</b><div class="dropdown-item-meta">Sign out of {{ current_student.name }}'s account</div></div>
         </a>
-</div>
+      </div>
     </div>
   </div>
 </nav>
 <main id="app"></main>
 </div>
-<script src="{% static 'matcher.js?v=202610200450' %}?v=202610200405"></script>
+
+<!-- Real-time Profile Edit Modal -->
+<div class="modal-overlay" id="profile-edit-modal" role="dialog" aria-modal="true" aria-labelledby="modal-profile-title">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div>
+        <span class="hand" style="font-size:20px;color:var(--lv)">student details</span>
+        <h2 id="modal-profile-title" style="font-size:28px;margin:0">edit your profile.</h2>
+      </div>
+      <button type="button" class="btn gh" id="close-profile-modal-btn" style="padding:6px 14px;border-radius:99px;font-size:13px;margin:0">✕</button>
+    </div>
+    <p class="sm" style="margin-bottom:18px">If any details were entered incorrectly, update them below. Changes save directly to the database in real time and refresh your hostel matching scores immediately.</p>
+
+    <form id="profile-edit-form" onsubmit="return false;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="grid-column:1/-1">
+          <label style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.05em">Full Name *</label>
+          <input type="text" id="edit-name" required value="{{ current_student.name }}" placeholder="e.g. Abhishek Kumar" style="margin-top:4px">
+        </div>
+
+        <div>
+          <label style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.05em">Registration Number *</label>
+          <input type="text" id="edit-roll" required value="{{ current_student.roll_no }}" placeholder="e.g. 12310266" style="margin-top:4px">
+        </div>
+
+        <div>
+          <label style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.05em">Gender *</label>
+          <select id="edit-gender" class="form-select">
+            <option value="M" {% if current_student.gender == 'M' %}selected{% endif %}>Boys Hostel (Male)</option>
+            <option value="F" {% if current_student.gender == 'F' %}selected{% endif %}>Girls Hostel (Female)</option>
+            <option value="O" {% if current_student.gender == 'O' %}selected{% endif %}>Other / Co-Ed</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.05em">Academic Year *</label>
+          <select id="edit-year" class="form-select">
+            <option value="1st Year" {% if current_student.year == '1st Year' %}selected{% endif %}>1st Year</option>
+            <option value="2nd Year" {% if current_student.year == '2nd Year' %}selected{% endif %}>2nd Year</option>
+            <option value="3rd Year" {% if current_student.year == '3rd Year' %}selected{% endif %}>3rd Year</option>
+            <option value="4th Year" {% if current_student.year == '4th Year' %}selected{% endif %}>4th Year</option>
+            <option value="Postgraduate" {% if current_student.year == 'Postgraduate' %}selected{% endif %}>Postgraduate</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.05em">Branch / Department *</label>
+          <input type="text" id="edit-branch" required value="{{ current_student.branch }}" placeholder="e.g. Computer Science" style="margin-top:4px">
+        </div>
+
+        <div style="grid-column:1/-1">
+          <label style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.05em">Hostel Block *</label>
+          <select id="edit-block" class="form-select">
+            {% for b in blocks %}
+              <option value="{{ b.id }}" {% if current_student.block_id == b.id %}selected{% endif %}>
+                {{ b.name }} ({{ b.get_gender_display }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.05em">Email Address</label>
+          <input type="email" id="edit-email" value="{{ current_student.email }}" placeholder="e.g. student@college.edu" style="margin-top:4px">
+        </div>
+
+        <div>
+          <label style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.05em">Contact Phone</label>
+          <input type="text" id="edit-phone" value="{{ current_student.phone }}" placeholder="e.g. +91 9876543210" style="margin-top:4px">
+        </div>
+      </div>
+
+      <div id="profile-edit-msg" style="min-height:22px;margin-top:12px;font-size:13.5px;font-weight:600"></div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+        <button type="button" class="btn gh" id="cancel-profile-modal-btn" style="margin-top:0">Cancel</button>
+        <button type="button" class="btn" id="save-profile-btn" style="margin-top:0">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="{% static 'matcher.js' %}?v=202610271520"></script>
 <div id="toast"></div>
 </body>
 </html>

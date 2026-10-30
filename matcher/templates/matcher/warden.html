@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -92,9 +92,14 @@ input[type=text]{padding:10px 16px;border-radius:16px;border:1px solid var(--lin
 
 <div class="wrap">
   <nav class="nv">
-    <a href="{% url 'matcher:home' %}" class="logo">kin<span>dred</span> · administration</a>
-    <div style="display:flex;gap:10px;align-items:center">
-      <a href="/" class="back-link">← Return to Student App</a>
+    <a href="{% url 'matcher:home' %}" class="logo">kin<span>dred</span> · warden desk</a>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:13.5px;font-weight:700;color:var(--ink);padding:6px 14px;background:var(--butter);border-radius:99px;border:1px solid rgba(0,0,0,0.06)">
+        🛡️ {{ current_user.name|default:"Dr. V. K. Sharma" }} (Chief Warden)
+      </span>
+      <a href="/admin-portal/" class="back-link">Admin Governance</a>
+      <a href="/student/" class="back-link">Student App</a>
+      <a href="{% url 'matcher:logout' %}" class="back-link" style="color:var(--warn);border-color:var(--warn)">Sign Out</a>
     </div>
   </nav>
 
@@ -119,8 +124,8 @@ input[type=text]{padding:10px 16px;border-radius:16px;border:1px solid var(--lin
       <button class="phase-btn {% if calendar.phase == 'SURVEY_OPEN' %}active{% endif %}" onclick="setPhase('SURVEY_OPEN')">2. Survey Open</button>
       <button class="phase-btn {% if calendar.phase == 'MATCHING_OPEN' %}active{% endif %}" onclick="setPhase('MATCHING_OPEN')">3. Matching Open</button>
       <button class="phase-btn {% if calendar.phase == 'FREEZE' %}active{% endif %}" onclick="setPhase('FREEZE')">4. Freeze</button>
-      <button class="phase-btn {% if calendar.phase == 'WARDEN_ALLOTMENT' %}active{% endif %}" onclick="setPhase('WARDEN_ALLOTMENT')">5. Warden Allotment</button>
-      <button class="phase-btn {% if calendar.phase == 'LEFTOVER_PAIRING' %}active{% endif %}" onclick="setPhase('LEFTOVER_PAIRING')">6. Leftover Pairing</button>
+      <button class="phase-btn {% if calendar.phase == 'LEFTOVER_PAIRING' %}active{% endif %}" onclick="setPhase('LEFTOVER_PAIRING')">5. Leftover Pairing</button>
+      <button class="phase-btn {% if calendar.phase == 'WARDEN_ALLOTMENT' %}active{% endif %}" onclick="setPhase('WARDEN_ALLOTMENT')">6. Warden Allotment</button>
       <button class="phase-btn {% if calendar.phase == 'PUBLISHED' %}active{% endif %}" onclick="setPhase('PUBLISHED')">7. Published</button>
     </div>
   </div>
@@ -129,7 +134,59 @@ input[type=text]{padding:10px 16px;border-radius:16px;border:1px solid var(--lin
     <div class="card stat"><b>{{ total_students_count }}</b><span>Enrolled Students</span></div>
     <div class="card stat"><b>{{ confirmed_pairs_count }}</b><span>Confirmed Pairs</span></div>
     <div class="card stat"><b>{{ allotted_count }}</b><span>Rooms Allotted</span></div>
-    <div class="card stat"><b>{{ pending_requests_count }}</b><span>Open 48h Requests</span></div>
+    <div class="card stat"><b>{{ open_tickets_count }}</b><span>Active Disputes</span></div>
+  </div>
+
+  <h2>Student Disputes & Maintenance Desk</h2>
+  <p class="sub">Review roommate conflicts, room change requests, and facility maintenance tickets logged by students.</p>
+  <div class="card" style="padding:14px 20px;margin-bottom:28px">
+    <table class="audit-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Student</th>
+          <th>Type</th>
+          <th>Subject & Description</th>
+          <th>Status</th>
+          <th>Date Logged</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tickets %}
+        <tr id="ticket-row-{{ t.id }}">
+          <td>#{{ t.id }}</td>
+          <td><b>{{ t.student.name }}</b><br><span style="font-size:12px;color:var(--soft)">{{ t.student.roll_no }}</span></td>
+          <td><span class="tag" style="background:var(--peach);color:#35293f">{{ t.get_ticket_type_display }}</span></td>
+          <td>
+            <b>{{ t.subject }}</b>
+            <div style="font-size:13px;color:var(--soft);margin-top:2px">{{ t.description|truncatewords:20 }}</div>
+            {% if t.resolution_notes %}
+            <div style="font-size:12px;color:var(--lv);margin-top:4px"><b>Resolution:</b> {{ t.resolution_notes }}</div>
+            {% endif %}
+          </td>
+          <td>
+            <span class="tag {% if t.status == 'RESOLVED' %}done{% elif t.status == 'IN_REVIEW' %}wait{% else %}{% endif %}" id="ticket-status-{{ t.id }}">
+              {{ t.get_status_display }}
+            </span>
+          </td>
+          <td style="font-size:12px;color:var(--soft)">{{ t.created_at|date:"M d, H:i" }}</td>
+          <td>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              {% if t.status != 'RESOLVED' %}
+              <button class="btn" style="padding:4px 12px;font-size:12px" onclick="updateTicket({{ t.id }}, 'IN_REVIEW')">Review</button>
+              <button class="btn action" style="padding:4px 12px;font-size:12px" onclick="updateTicket({{ t.id }}, 'RESOLVED')">Resolve</button>
+              {% else %}
+              <span style="font-size:12px;color:var(--soft)">Closed ✓</span>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="sm">No tickets or roommate complaints currently open.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 
   <h2>Confirmed Roommate Pairings</h2>
@@ -278,6 +335,25 @@ function setPhase(phaseName) {
     if(res.ok) {
       toast(res.message);
       setTimeout(function(){ location.reload() }, 600);
+    } else if (res.guard_triggered) {
+      if (confirm(res.error + "\n\nDo you want to proceed with an Administrative Override?")) {
+        var reason = prompt("Enter mandatory administrative override reason:") || "Administrative phase override";
+        fetch('/api/admin/set-phase/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken') || ''
+          },
+          body: JSON.stringify({ phase: phaseName, force: true, reason: reason })
+        }).then(function(r2){ return r2.json() }).then(function(res2){
+          if(res2.ok) {
+            toast(res2.message);
+            setTimeout(function(){ location.reload() }, 600);
+          } else {
+            toast(res2.error || 'Failed to override phase');
+          }
+        });
+      }
     } else {
       toast(res.error || 'Failed to update phase');
     }
@@ -316,13 +392,25 @@ function allotRoom(e, pairingId) {
   var room = document.getElementById('room-input-' + pairingId).value.trim();
   if(!room) return;
 
+  var card = document.getElementById('pair-' + pairingId);
+  var isOverride = card && card.classList.contains('allotted');
+  var reason = "Hostel Warden Room Allocation";
+
+  if (isOverride) {
+    reason = prompt("This room allocation is an override. Enter mandatory justification note:") || "";
+    if (!reason.trim()) {
+      toast("Room override cancelled: Justification note is required.");
+      return;
+    }
+  }
+
   fetch('/api/warden/allot/' + pairingId + '/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-CSRFToken': getCookie('csrftoken') || ''
     },
-    body: JSON.stringify({ room_number: room, reason: "Hostel Warden Room Allocation" })
+    body: JSON.stringify({ room_number: room, reason: reason })
   }).then(function(r){ return r.json() }).then(function(res){
     if(res.ok) {
       toast(res.message);
@@ -331,10 +419,30 @@ function allotRoom(e, pairingId) {
         tag.className = 'tag done';
         tag.textContent = 'Allotted: Room ' + res.room_number;
       }
-      var card = document.getElementById('pair-' + pairingId);
       if(card) card.classList.add('allotted');
     } else {
       toast(res.error || 'Failed to allot room');
+    }
+  }).catch(function(err){
+    toast('Error: ' + err.message);
+  });
+}
+
+function updateTicket(ticketId, newStatus) {
+  var notes = prompt("Enter resolution notes / comments:") || "";
+  fetch('/api/tickets/' + ticketId + '/update-status/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken') || ''
+    },
+    body: JSON.stringify({ status: newStatus, resolution_notes: notes })
+  }).then(function(r){ return r.json() }).then(function(res){
+    if(res.ok) {
+      toast(res.message);
+      setTimeout(function(){ location.reload() }, 600);
+    } else {
+      toast(res.error || 'Failed to update ticket status');
     }
   }).catch(function(err){
     toast('Error: ' + err.message);

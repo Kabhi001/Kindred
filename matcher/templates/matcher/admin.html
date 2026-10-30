@@ -104,12 +104,12 @@ tr:hover td{background:#00000005}
 
 <div class="wrap">
   <div class="nav">
-    <a href="{% url 'matcher:index' %}" class="logo">kin<span>dred</span></a>
+    <a href="{% url 'matcher:home' %}" class="logo">kin<span>dred</span> · governance</a>
     <div class="nav-links">
-      <span class="role-badge">⚙️ Admin Governance</span>
+      <span class="role-badge">⚙️ {{ current_user.name|default:"Prof. Anjali Verma" }} (Administrator)</span>
       <a href="{% url 'matcher:warden_dashboard' %}">Warden Portal</a>
-      <a href="{% url 'matcher:caretaker_dashboard' %}">Caretaker Desk</a>
-      <a href="{% url 'matcher:logout' %}" class="btn-logout">Sign Out</a>
+      <a href="/student/">Student App</a>
+      <a href="{% url 'matcher:logout' %}" class="btn-logout" style="color:var(--warn);border-color:var(--warn)">Sign Out</a>
     </div>
   </div>
 
@@ -168,7 +168,7 @@ tr:hover td{background:#00000005}
         <thead>
           <tr>
             <th>Student</th>
-            <th>Roll No</th>
+            <th>Registration No</th>
             <th>Branch & Year</th>
             <th>Block</th>
             <th>Survey Status</th>
@@ -245,11 +245,29 @@ function showToast(msg) {
   setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 300); }, 3000);
 }
 
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
 async function setPhase(phaseKey) {
   try {
     const res = await fetch("{% url 'matcher:api_set_calendar_phase' %}", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken") || ""
+      },
       body: JSON.stringify({phase: phaseKey})
     });
     const d = await res.json();

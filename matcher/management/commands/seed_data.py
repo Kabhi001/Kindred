@@ -1,4 +1,4 @@
-﻿from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand
 from django.utils import timezone
 from matcher.models import (
     HostelBlock, Room, StudentUser, AllotmentCalendar,
@@ -8,7 +8,7 @@ from matcher.matching import calculate_persona
 
 
 class Command(BaseCommand):
-    help = "Seed database with production hostel data, questions, calendar, and real students"
+    help = "Seed database with production hostel data (BH-1..6, GH-1..6, 3 blocks each, 10 floors, 30 dual rooms), questions, calendar, and real students with 8-digit registration numbers"
 
     def handle(self, *args, **options):
         self.stdout.write("Initializing Kindred production data...")
@@ -22,28 +22,55 @@ class Command(BaseCommand):
         calendar.save()
         self.stdout.write("  [OK] Calendar initialized to MATCHING_OPEN")
 
-        # 2. Hostel Blocks
-        block_b1, _ = HostelBlock.objects.get_or_create(
-            name="Mandakini Hall (Block A)",
-            defaults={'gender': 'M', 'total_floors': 4, 'campus': 'North Campus'}
-        )
-        block_g1, _ = HostelBlock.objects.get_or_create(
-            name="Cauvery Hall (Block B)",
-            defaults={'gender': 'F', 'total_floors': 4, 'campus': 'North Campus'}
-        )
+        # 2. Hostels & Blocks Specification
+        # BH-1 to BH-6 (Boys Hostels) and GH-1 to GH-6 (Girls Hostels)
+        # Each hostel has 3 blocks: Block-A, Block-B, Block-C
+        # Each block is a 10-floor tower containing 30 rooms (3 rooms per floor)
+        # Each room is strictly Dual student occupancy (capacity = 2)
+        hostel_specs = []
+        for i in range(1, 7):
+            hostel_specs.append((f"BH-{i}", 'M'))
+        for i in range(1, 7):
+            hostel_specs.append((f"GH-{i}", 'F'))
 
-        # 3. Rooms
-        for b in [block_b1, block_g1]:
-            for floor in [1, 2, 3]:
-                for num in [1, 2, 3, 4, 5]:
-                    Room.objects.get_or_create(
-                        block=b,
-                        number=f"{'A' if b == block_b1 else 'B'}-{floor}0{num}",
-                        defaults={'capacity': 2, 'floor': floor, 'is_accessible': (floor == 1 and num == 1)}
-                    )
-        self.stdout.write("  [OK] Hostel blocks and rooms generated")
+        block_letters = ['Block-A', 'Block-B', 'Block-C']
+        created_blocks = {}
+        total_rooms_created = 0
 
-        # 4. Versioned Questions
+        for h_name, gender in hostel_specs:
+            for b_letter in block_letters:
+                full_name = f"{h_name} - {b_letter}"
+                block_obj, _ = HostelBlock.objects.get_or_create(
+                    name=full_name,
+                    defaults={
+                        'hostel_name': h_name,
+                        'block_name': b_letter,
+                        'gender': gender,
+                        'total_floors': 10,
+                        'campus': 'Main Campus'
+                    }
+                )
+                created_blocks[full_name] = block_obj
+
+                # 30 rooms: 10 floors x 3 rooms per floor
+                for flr in range(1, 11):
+                    for rm in range(1, 4):
+                        rm_no = f"{flr}{rm:02d}"
+                        _, created = Room.objects.get_or_create(
+                            block=block_obj,
+                            number=rm_no,
+                            defaults={
+                                'capacity': 2,
+                                'floor': flr,
+                                'is_accessible': (flr == 1 and rm == 1)
+                            }
+                        )
+                        if created:
+                            total_rooms_created += 1
+
+        self.stdout.write(f"  [OK] Hostel blocks (36 total) and dual rooms initialized across BH-1..6 & GH-1..6")
+
+        # 3. Versioned Questions
         questions_spec = [
             ("sleep", "When does your day usually end?", 1, 4, 5.0),
             ("wake", "And when do you usually wake up?", 1, 4, 3.0),
@@ -56,6 +83,7 @@ class Command(BaseCommand):
         ]
         created_questions = {}
         for key, text, min_v, max_v, weight in questions_spec:
+            is_circ = key in ['sleep', 'wake']
             q, _ = Question.objects.update_or_create(
                 key=key,
                 defaults={
@@ -64,22 +92,67 @@ class Command(BaseCommand):
                     'max_val': max_v,
                     'base_weight': weight,
                     'version': 1,
+                    'is_circular': is_circ,
+                    'cycle_period': 4 if is_circ else 4,
                     'is_active': True
                 }
             )
             created_questions[key] = q
         self.stdout.write("  [OK] Version 1 core questions seeded")
 
-        # 5. Real Student Users
+        # 4. Staff Accounts
+        warden, _ = StudentUser.objects.get_or_create(
+            roll_no="WARDEN-01",
+            defaults={
+                'name': "Dr. V. K. Sharma",
+                'email': "warden.sharma@college.edu",
+                'gender': 'M',
+                'year': "Faculty",
+                'branch': "Administration",
+                'role': "warden",
+                'avatar_hue': 45,
+                'is_demo': False
+            }
+        )
+        warden.set_password("warden123")
+        warden.save()
+
+        admin, _ = StudentUser.objects.get_or_create(
+            roll_no="ADMIN-01",
+            defaults={
+                'name': "Prof. Anjali Verma",
+                'email': "allotment.admin@college.edu",
+                'gender': 'F',
+                'year': "Admin",
+                'branch': "Hostel Affairs Board",
+                'role': "admin",
+                'avatar_hue': 200,
+                'is_demo': False
+            }
+        )
+        admin.set_password("admin123")
+        admin.save()
+        self.stdout.write("  [OK] Seeded staff accounts (Warden, Admin)")
+
+        # 5. Real Student Users with 8-digit Registration Numbers
+        bh1_a = created_blocks.get("BH-1 - Block-A")
+        bh1_b = created_blocks.get("BH-1 - Block-B")
+        bh1_c = created_blocks.get("BH-1 - Block-C")
+        bh2_a = created_blocks.get("BH-2 - Block-A")
+
+        gh1_a = created_blocks.get("GH-1 - Block-A")
+        gh1_b = created_blocks.get("GH-1 - Block-B")
+        gh1_c = created_blocks.get("GH-1 - Block-C")
+
         students_spec = [
             {
-                "roll_no": "CS26B014",
+                "roll_no": "12310266",
                 "name": "Aarav Patel",
-                "email": "aarav.p@college.edu",
+                "email": "aarav.12310266@college.edu",
                 "gender": "M",
                 "year": "1st Year",
                 "branch": "Computer Science",
-                "block": block_b1,
+                "block": bh1_a,
                 "role": "student",
                 "avatar_hue": 270,
                 "is_demo": True,
@@ -87,13 +160,13 @@ class Command(BaseCommand):
                 "importance": {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 3, "noise": 2, "study": 2, "guests": 2, "social": 1}
             },
             {
-                "roll_no": "EE26B042",
+                "roll_no": "12310267",
                 "name": "Rohan Verma",
-                "email": "rohan.v@college.edu",
+                "email": "rohan.12310267@college.edu",
                 "gender": "M",
                 "year": "1st Year",
                 "branch": "Electrical Engineering",
-                "block": block_b1,
+                "block": bh1_a,
                 "role": "student",
                 "avatar_hue": 190,
                 "is_demo": True,
@@ -101,13 +174,13 @@ class Command(BaseCommand):
                 "importance": {"sleep": 3, "wake": 3, "smoke": 3, "tidy": 2, "noise": 3, "study": 2, "guests": 2, "social": 1}
             },
             {
-                "roll_no": "ME26B105",
+                "roll_no": "12310268",
                 "name": "Kabir Sharma",
-                "email": "kabir.s@college.edu",
+                "email": "kabir.12310268@college.edu",
                 "gender": "M",
                 "year": "1st Year",
                 "branch": "Mechanical Engineering",
-                "block": block_b1,
+                "block": bh1_b,
                 "role": "student",
                 "avatar_hue": 25,
                 "is_demo": True,
@@ -115,27 +188,13 @@ class Command(BaseCommand):
                 "importance": {"sleep": 1, "wake": 1, "smoke": 1, "tidy": 1, "noise": 1, "study": 1, "guests": 3, "social": 2}
             },
             {
-                "roll_no": "AR26B067",
-                "name": "Dev Dixit",
-                "email": "dev.d@college.edu",
-                "gender": "M",
-                "year": "1st Year",
-                "branch": "Architecture",
-                "block": block_b1,
-                "role": "student",
-                "avatar_hue": 45,
-                "is_demo": True,
-                "answers": {"sleep": 4, "wake": 3, "smoke": 1, "tidy": 2, "noise": 3, "study": 1, "guests": 3, "social": 2},
-                "importance": {"sleep": 2, "wake": 1, "smoke": 2, "tidy": 1, "noise": 1, "study": 2, "guests": 2, "social": 2}
-            },
-            {
-                "roll_no": "PH26B053",
+                "roll_no": "12310269",
                 "name": "Ishaan Gupta",
-                "email": "ishaan.g@college.edu",
+                "email": "ishaan.12310269@college.edu",
                 "gender": "M",
                 "year": "1st Year",
-                "branch": "Engineering Physics",
-                "block": block_b1,
+                "branch": "Physics",
+                "block": bh1_b,
                 "role": "student",
                 "avatar_hue": 210,
                 "is_demo": True,
@@ -143,13 +202,41 @@ class Command(BaseCommand):
                 "importance": {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 2}
             },
             {
-                "roll_no": "DS26B088",
+                "roll_no": "12310270",
+                "name": "Dev Dixit",
+                "email": "dev.12310270@college.edu",
+                "gender": "M",
+                "year": "1st Year",
+                "branch": "Architecture",
+                "block": bh1_c,
+                "role": "student",
+                "avatar_hue": 45,
+                "is_demo": True,
+                "answers": {"sleep": 4, "wake": 3, "smoke": 1, "tidy": 2, "noise": 3, "study": 1, "guests": 3, "social": 2},
+                "importance": {"sleep": 2, "wake": 1, "smoke": 2, "tidy": 1, "noise": 1, "study": 2, "guests": 2, "social": 2}
+            },
+            {
+                "roll_no": "12310271",
+                "name": "Siddharth Malhotra",
+                "email": "siddharth.12310271@college.edu",
+                "gender": "M",
+                "year": "1st Year",
+                "branch": "Civil Engineering",
+                "block": bh2_a,
+                "role": "student",
+                "avatar_hue": 210,
+                "is_demo": True,
+                "answers": {"sleep": 2, "wake": 2, "smoke": 1, "tidy": 3, "noise": 2, "study": 2, "guests": 2, "social": 2},
+                "importance": {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 2}
+            },
+            {
+                "roll_no": "12519174",
                 "name": "Meera Nair",
-                "email": "meera.n@college.edu",
+                "email": "meera.12519174@college.edu",
                 "gender": "F",
                 "year": "1st Year",
-                "branch": "Design",
-                "block": block_g1,
+                "branch": "Data Science",
+                "block": gh1_a,
                 "role": "student",
                 "avatar_hue": 330,
                 "is_demo": True,
@@ -157,32 +244,60 @@ class Command(BaseCommand):
                 "importance": {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 2}
             },
             {
-                "roll_no": "BT26B031",
+                "roll_no": "12519175",
                 "name": "Ananya Roy",
-                "email": "ananya.r@college.edu",
+                "email": "ananya.12519175@college.edu",
                 "gender": "F",
                 "year": "1st Year",
                 "branch": "Biotechnology",
-                "block": block_g1,
+                "block": gh1_a,
                 "role": "student",
                 "avatar_hue": 140,
                 "is_demo": True,
                 "answers": {"sleep": 2, "wake": 2, "smoke": 1, "tidy": 3, "noise": 2, "study": 3, "guests": 2, "social": 2},
-                "importance": {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 2}
+                "importance": {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 1}
             },
             {
-                "roll_no": "EC26B079",
-                "name": "Sanya Kapoor",
-                "email": "sanya.k@college.edu",
+                "roll_no": "12519176",
+                "name": "Diya Sharma",
+                "email": "diya.12519176@college.edu",
                 "gender": "F",
                 "year": "1st Year",
-                "branch": "Economics",
-                "block": block_g1,
+                "branch": "AI & Robotics",
+                "block": gh1_b,
                 "role": "student",
-                "avatar_hue": 310,
+                "avatar_hue": 290,
                 "is_demo": True,
-                "answers": {"sleep": 1, "wake": 1, "smoke": 1, "tidy": 4, "noise": 1, "study": 3, "guests": 1, "social": 2},
-                "importance": {"sleep": 3, "wake": 3, "smoke": 3, "tidy": 3, "noise": 3, "study": 2, "guests": 2, "social": 2}
+                "answers": {"sleep": 1, "wake": 1, "smoke": 1, "tidy": 3, "noise": 1, "study": 2, "guests": 1, "social": 1},
+                "importance": {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 1}
+            },
+            {
+                "roll_no": "12519177",
+                "name": "Riya Sen",
+                "email": "riya.12519177@college.edu",
+                "gender": "F",
+                "year": "1st Year",
+                "branch": "Chemical Engineering",
+                "block": gh1_b,
+                "role": "student",
+                "avatar_hue": 10,
+                "is_demo": True,
+                "answers": {"sleep": 3, "wake": 2, "smoke": 1, "tidy": 2, "noise": 2, "study": 2, "guests": 3, "social": 3},
+                "importance": {"sleep": 1, "wake": 1, "smoke": 3, "tidy": 2, "noise": 1, "study": 2, "guests": 2, "social": 2}
+            },
+            {
+                "roll_no": "12519178",
+                "name": "Tanvi Patel",
+                "email": "tanvi.12519178@college.edu",
+                "gender": "F",
+                "year": "1st Year",
+                "branch": "Mathematics",
+                "block": gh1_c,
+                "role": "student",
+                "avatar_hue": 80,
+                "is_demo": True,
+                "answers": {"sleep": 2, "wake": 2, "smoke": 1, "tidy": 4, "noise": 1, "study": 3, "guests": 1, "social": 1},
+                "importance": {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 3, "noise": 2, "study": 2, "guests": 1, "social": 1}
             }
         ]
 
@@ -199,48 +314,33 @@ class Command(BaseCommand):
                     "block": s["block"],
                     "role": s["role"],
                     "avatar_hue": s["avatar_hue"],
-                    "is_demo": s["is_demo"],
+                    "is_demo": False,
                     "consent_given": True,
                     "consent_at": timezone.now(),
                     "persona": calculate_persona(s["answers"])
                 }
             )
+            if not user.password_hash:
+                user.set_password("student123")
+                user.save(update_fields=['password_hash'])
             created_students[s["name"]] = user
 
             # Save responses
             for key, val in s["answers"].items():
+                imp_val = s["importance"].get(key, 2)
+                is_db = (imp_val == 3) or (key == 'smoke' and val == 1)
                 Response.objects.update_or_create(
                     user=user,
                     question=created_questions[key],
                     defaults={
                         'answer': val,
-                        'importance': s["importance"].get(key, 2)
+                        'importance': imp_val,
+                        'is_dealbreaker': is_db
                     }
                 )
             self.stdout.write(f"  [OK] Student {user.name} ({user.roll_no}) - the {user.persona}")
 
-        # 6. Seed a confirmed pair between Sanya and Ananya
-        sanya = created_students.get("Sanya Kapoor")
-        ananya = created_students.get("Ananya Roy")
-        if sanya and ananya:
-            u_min = min(sanya, ananya, key=lambda u: u.id)
-            u_max = max(sanya, ananya, key=lambda u: u.id)
-            room_b1 = Room.objects.filter(block=block_g1, floor=1).first()
-            pair, _ = Pair.objects.get_or_create(
-                user_a=u_min,
-                user_b=u_max,
-                defaults={
-                    'method': 'MUTUAL_REQUEST',
-                    'status': 'ALLOTTED',
-                    'room': room_b1
-                }
-            )
-            if room_b1:
-                Allotment.objects.get_or_create(room=room_b1, user=u_min)
-                Allotment.objects.get_or_create(room=room_b1, user=u_max)
-            self.stdout.write(f"  [OK] Confirmed Pair: {u_min.name} & {u_max.name} -> {room_b1}")
-
-        # 7. Seed an open request: Dev -> Kabir
+        # 6. Seed an open request: Dev Dixit -> Kabir Sharma
         dev = created_students.get("Dev Dixit")
         kabir = created_students.get("Kabir Sharma")
         if dev and kabir:

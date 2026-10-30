@@ -9,8 +9,10 @@ urlpatterns = [
 
     # Authentication & Access Portals
     path('login/', views.login_view, name='login'),
+    path('register/', views.register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),
     path('api/auth/send-otp/', views.api_send_otp, name='api_send_otp'),
+    path('api/auth/register/', views.api_register, name='api_register'),
     path('api/auth/login/', views.api_login, name='api_login'),
 
     # Student Matcher Portal
@@ -20,13 +22,12 @@ urlpatterns = [
 
     # Role Specific Portals
     path('warden/', views.warden_dashboard_view, name='warden_dashboard'),
-    path('caretaker/', views.caretaker_dashboard_view, name='caretaker_dashboard'),
-    path('api/caretaker/toggle/', views.api_caretaker_toggle, name='api_caretaker_toggle'),
     path('admin-portal/', views.admin_dashboard_view, name='admin_dashboard'),
     path('api/admin/export-csv/', views.api_admin_export_csv, name='api_admin_export_csv'),
 
     # Student & Matching APIs
     path('api/me/', views.api_me, name='api_me'),
+    path('api/profile/update/', views.api_update_profile, name='api_update_profile'),
     path('api/consent/agree/', views.api_consent_agree, name='api_consent_agree'),
     path('api/students/', views.api_students_list, name='api_students_list'),
     path('api/students/switch/', views.api_switch_student, name='api_switch_student'),
@@ -43,4 +44,14 @@ urlpatterns = [
     path('api/admin/set-phase/', views.api_set_calendar_phase, name='api_set_calendar_phase'),
     path('api/admin/run-blossom/', views.api_run_blossom_matching, name='api_run_blossom_matching'),
     path('api/admin/auto-allot/', views.api_auto_allot_rooms, name='api_auto_allot_rooms'),
+
+    # Dispute & Maintenance Tickets
+    path('api/tickets/', views.api_tickets_list, name='api_tickets_list'),
+    path('api/tickets/create/', views.api_create_ticket, name='api_create_ticket'),
+    path('api/tickets/<int:ticket_id>/update-status/', views.api_update_ticket_status, name='api_update_ticket_status'),
+
+    # Post-Stay Roommate Feedback Loop
+    path('api/feedback/submit/', views.api_submit_feedback, name='api_submit_feedback'),
+    path('api/feedback/summary/', views.api_feedback_summary, name='api_feedback_summary'),
 ]
+

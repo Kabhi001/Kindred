@@ -1,4 +1,4 @@
-﻿(function(){
+(function(){
 var $ = function(s){ return document.querySelector(s) };
 var $$ = function(s){ return document.querySelectorAll(s) };
 
@@ -331,6 +331,11 @@ function qnext(){
 /* MATCHES */
 function lines(me, pe){
   var pen = (pe && pe.n) ? pe.n : "roommate";
+  if (!pe || !pe.a || !Object.keys(pe.a).length) {
+    return "<div class='sm' style='margin:10px 0;padding:12px 14px;border-radius:12px;background:var(--card);color:var(--soft);border:1px dashed var(--line);text-align:left'>" +
+      "🔒 <b>Protected Under DPDP Act 2023:</b> Raw trait responses are never exposed publicly. Trait slider details unlock automatically after mutual pairing confirmation." +
+    "</div>";
+  }
   return "<div class='sm' style='margin-bottom:8px'>lavender is you, rose is " + esc(pen) + ". A bigger dot means it matters more to them.</div>" + KEYS.map(function(k){
     var myAns = (me && me.a && me.a[k] != null) ? me.a[k] : 2;
     var peAns = (pe && pe.a && pe.a[k] != null) ? pe.a[k] : 2;
@@ -349,7 +354,6 @@ function matches(){
   if (!me || !me.has_quiz) return h + empty("take the quiz first.", "Your matches are worked out from your own answers.", "<button class='btn' data-go='quiz'>take the quiz</button>");
 
   h += "<p class='sub'>Each student is scored on how closely your lifestyle lines up with theirs, weighted by both of your personal deal-breakers and priorities.</p>";
-  h += "<div class='g2'><div class='card'><h3>share your profile</h3><p class='sm'>Send this code to a student so they can compare with you.</p><code class='cd'>" + myCode() + "</code><button class='btn gh' data-cp='1'>copy my code</button></div><div class='card'><h3>add a student</h3><textarea id='pe' placeholder='paste a student’s profile code (KP-...)' aria-label='Student profile code'></textarea><button class='btn' data-add='1'>add student</button></div></div><div class='msg' id='msg' role='status'></div>";
 
   if (!S.pe.length) return h + empty("no students added yet.", "Ask a classmate to take the quiz, or switch perspective in the top menu.");
 
@@ -362,8 +366,13 @@ function matches(){
     var p = x.p, r = x.r, top = i === 0 && !r.clash.length && r.v >= 70, rq = reqOf(p.n);
     var ch = r.good.map(function(k){ return "<span class='chip g'>you " + (GOOD[k] || k) + "</span>" }).join("");
     if (r.bad && !r.clash.length) ch += "<span class='chip w'>" + (BAD[r.bad] || r.bad) + "</span>";
-    r.clash.forEach(function(k){ ch += "<span class='chip r'>clashes on " + (NM[k] || k) + "</span>" });
+    r.clash.forEach(function(k){
+      var label = NM[k] ? ("clashes on " + NM[k]) : k;
+      ch += "<span class='chip r'>" + esc(label) + "</span>";
+    });
     if (!ch) ch = "<span class='chip w'>few traits line up</span>";
+
+    var bandBadge = (p.harmony_band && p.harmony_band.title) ? "<span class='chip " + (p.harmony_band.code === "HARMONY" ? "g" : p.harmony_band.code === "ADAPTATION" ? "w" : "r") + "' style='font-size:11px;margin-left:6px'>" + esc(p.harmony_band.title) + "</span>" : "";
 
     var b = "";
     if (p.request_status === "confirmed" || (rq && (rq.status === "confirmed" || rq.status === "accepted"))) {
@@ -377,7 +386,7 @@ function matches(){
     }
 
     return "<article class='card pc" + (top ? " top" : "") + "' style='--i:" + i + "'>" + (top ? "<span class='rib'>best match</span>" : "") + bloom([{p: p, c: "fp"}, {p: me, c: "fm"}]) +
-    "<div><div class='tr'><div class='who'>" + tile(p.n, p.avatar_hue) + "<div><h3>" + p.n + "</h3><span class='hand' style='font-size:21px'>the " + p.p + "</span><div class='sm'>" + (p.roll_no || "") + " · " + (p.hostel || "Hostel") + " · " + (p.major || "Student") + "</div></div></div><div class='sc'>" + r.v + "<small>/100</small></div></div><div class='chips'>" + ch + "</div>" +
+    "<div><div class='tr'><div class='who'>" + tile(p.n, p.avatar_hue) + "<div><h3>" + p.n + bandBadge + "</h3><span class='hand' style='font-size:21px'>the " + p.p + "</span><div class='sm'>" + (p.roll_no || "") + " · " + (p.hostel || "Hostel") + " · " + (p.major || "Student") + "</div></div></div><div class='sc'>" + r.v + "<small>/100</small></div></div><div class='chips'>" + ch + "</div>" +
     (r.clash.length ? "<p class='err sm' style='font-weight:600;margin:10px 0 0'>This pairing breaks a deal-breaker you set.</p>" : "") +
     (p.bio ? "<p class='sm' style='margin:10px 0 0;font-style:italic'>“" + esc(p.bio) + "”</p>" : "") +
     "<div class='row'>" + b + "<button class='btn gh' data-t='1'>trait lines</button><button class='btn gh' data-d='" + p.id + "'>remove</button></div></div><div class='xp'>" + lines(me, p) + "</div></article>";
@@ -445,7 +454,7 @@ function requests(){
   h += pairBanner;
   h += "<p class='sub'>When two students both say yes, their mutual pair is confirmed and queued for the hostel warden to assign a room.</p>";
   h += "<div class='stats'>" + [["received", receivedCount], ["sent", sentCount], ["paired", confirmedCount || (S.me.is_paired ? 1 : 0)]].map(function(x){ return "<div class='card stat'><b>" + x[1] + "</b><span>" + x[0] + "</span></div>" }).join("") + "</div>";
-  h += "<div class='g2'><div class='card'><h3>send a request</h3><input type='text' id='pn' maxlength='60' placeholder='classmate name or roll number (e.g. Rohan)' aria-label='Their name or roll number'><input type='text' id='pm' maxlength='150' placeholder='a short note (optional)' aria-label='Note'><button class='btn' data-mk='1'>create request</button></div><div class='card'><h3>paste an exchange code</h3><textarea id='cd' placeholder='a request (KR-) or reply code from another student' aria-label='Code'></textarea><button class='btn' data-rd='1'>read code</button></div></div><div class='msg' id='msg' role='status'></div>";
+  h += "<div class='g2'><div class='card'><h3>send a request</h3><input type='text' id='pn' maxlength='60' placeholder='classmate name or registration number (e.g. 12310266)' aria-label='Their name or registration number'><input type='text' id='pm' maxlength='150' placeholder='a short note (optional)' aria-label='Note'><button class='btn' data-mk='1'>create request</button></div><div class='card'><h3>paste an exchange code</h3><textarea id='cd' placeholder='a request (KR-) or reply code from another student' aria-label='Code'></textarea><button class='btn' data-rd='1'>read code</button></div></div><div class='msg' id='msg' role='status'></div>";
 
   var l = S.rq.slice().sort(function(a, b){ return b.ts - a.ts });
   return h + (l.length ? l.map(rcard).join("") : empty("no requests yet.", "Create one above, or send one from your matches!"));
@@ -467,8 +476,14 @@ function refreshBackend(cb){
       n: me.name,
       p: me.persona,
       roll_no: me.roll_no,
-      block: me.block,
+      email: me.email,
+      gender: me.gender,
+      gender_code: me.gender_code,
+      phone: me.phone,
+      year: me.year,
       major: me.branch,
+      block: me.block,
+      block_id: me.block_id,
       avatar_hue: me.avatar_hue,
       has_quiz: me.has_quiz,
       a: me.answers,
@@ -477,9 +492,23 @@ function refreshBackend(cb){
       is_paired: me.is_paired,
       pairing: me.pairing
     };
+    S.all_blocks = me.all_blocks || [];
 
     var navName = $("#nav-user-name");
     if (navName) navName.textContent = me.name;
+
+    var pName = $("#profile-display-name");
+    if (pName) pName.textContent = me.name;
+    var pRoll = $("#profile-display-roll");
+    if (pRoll) pRoll.textContent = me.roll_no;
+    var pMeta = $("#profile-display-meta");
+    if (pMeta) pMeta.textContent = me.branch + " · " + me.year;
+    var pHostel = $("#profile-display-hostel");
+    if (pHostel) pHostel.textContent = me.block;
+    var pPersona = $("#profile-display-persona");
+    if (pPersona) pPersona.textContent = "Persona: " + me.persona;
+    var pGen = $("#profile-display-gender");
+    if (pGen) pGen.textContent = me.gender;
 
     if (Z.scr === "intro" && me.has_quiz){
       Z.name = me.name;
@@ -515,6 +544,7 @@ function refreshBackend(cb){
         a: m.peer_answers || {},
         i: m.peer_importance || {},
         serverScore: m.score,
+        harmony_band: m.harmony_band,
         clashes: m.clashes || [],
         good: m.good || [],
         friction: m.friction,
@@ -617,7 +647,7 @@ document.addEventListener("click", function(e){
   }
   else if (d.mk){
     var pn = esc($("#pn").value).trim(), pm = esc($("#pm").value).trim();
-    if (!pn) return toast("Enter classmate name or roll number", true);
+    if (!pn) return toast("Enter classmate name or registration number", true);
     if (same(pn, S.me.n) || same(pn, S.me.roll_no)) return toast("That is your own identity", true);
     api("/api/requests/send/", "POST", {peer_name: pn, note: pm}).then(function(res){
       toast(res.message);
@@ -656,8 +686,151 @@ document.addEventListener("click", function(e){
   }
 });
 
-// User menu dropdown toggle and student perspective switch
+// Profile Edit Modal Controls
+function openProfileModal(){
+  var userDropdown = $("#user-dropdown");
+  if (userDropdown) userDropdown.classList.remove("open");
+  var userMenuWrapper = $("#user-menu-wrapper");
+  if (userMenuWrapper) userMenuWrapper.classList.remove("open");
+
+  if (S.me) {
+    var nIn = $("#edit-name"); if (nIn) nIn.value = S.me.n || "";
+    var rIn = $("#edit-roll"); if (rIn) rIn.value = S.me.roll_no || "";
+    var gIn = $("#edit-gender"); if (gIn && S.me.gender_code) gIn.value = S.me.gender_code;
+    var yIn = $("#edit-year"); if (yIn && S.me.year) yIn.value = S.me.year;
+    var bIn = $("#edit-branch"); if (bIn && S.me.major) bIn.value = S.me.major;
+    var kIn = $("#edit-block"); if (kIn && S.me.block_id) kIn.value = S.me.block_id;
+    var eIn = $("#edit-email"); if (eIn) eIn.value = S.me.email || "";
+    var pIn = $("#edit-phone"); if (pIn) pIn.value = S.me.phone || "";
+  }
+  var msg = $("#profile-edit-msg");
+  if (msg) { msg.textContent = ""; msg.className = ""; }
+  var modal = $("#profile-edit-modal");
+  if (modal) modal.classList.add("open");
+}
+
+function closeProfileModal(){
+  var modal = $("#profile-edit-modal");
+  if (modal) modal.classList.remove("open");
+}
+
+function saveProfileDetails(){
+  var nameEl = $("#edit-name");
+  var rollEl = $("#edit-roll");
+  var genderEl = $("#edit-gender");
+  var yearEl = $("#edit-year");
+  var branchEl = $("#edit-branch");
+  var blockEl = $("#edit-block");
+  var emailEl = $("#edit-email");
+  var phoneEl = $("#edit-phone");
+  var msgEl = $("#profile-edit-msg");
+  var saveBtn = $("#save-profile-btn");
+
+  var name = nameEl ? nameEl.value.trim() : "";
+  var roll = rollEl ? rollEl.value.trim() : "";
+  var gender = genderEl ? genderEl.value : "M";
+  var year = yearEl ? yearEl.value : "1st Year";
+  var branch = branchEl ? branchEl.value.trim() : "";
+  var block_id = blockEl ? blockEl.value : null;
+  var email = emailEl ? emailEl.value.trim() : "";
+  var phone = phoneEl ? phoneEl.value.trim() : "";
+
+  if (!name) {
+    if (msgEl) { msgEl.textContent = "Please enter your full name."; msgEl.className = "err"; }
+    if (nameEl) nameEl.focus();
+    return;
+  }
+  if (!roll) {
+    if (msgEl) { msgEl.textContent = "Please enter your university registration number."; msgEl.className = "err"; }
+    if (rollEl) rollEl.focus();
+    return;
+  }
+
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Saving...";
+  }
+  if (msgEl) {
+    msgEl.textContent = "Saving to database in real time...";
+    msgEl.className = "";
+  }
+
+  api("/api/profile/update/", "POST", {
+    name: name,
+    roll_no: roll,
+    gender: gender,
+    year: year,
+    branch: branch,
+    block_id: block_id,
+    email: email,
+    phone: phone
+  }).then(function(res){
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.textContent = "Save Changes";
+    }
+    closeProfileModal();
+    toast(res.message || "Profile updated successfully!");
+
+    var u = res.user;
+    if (u) {
+      if (S.me) {
+        S.me.n = u.name;
+        S.me.roll_no = u.roll_no;
+        S.me.gender = u.gender;
+        S.me.gender_code = u.gender_code;
+        S.me.year = u.year;
+        S.me.major = u.branch;
+        S.me.block = u.block;
+        S.me.block_id = u.block_id;
+        S.me.email = u.email;
+        S.me.phone = u.phone;
+      }
+      var navName = $("#nav-user-name");
+      if (navName) navName.textContent = u.name;
+
+      var pName = $("#profile-display-name");
+      if (pName) pName.textContent = u.name;
+      var pRoll = $("#profile-display-roll");
+      if (pRoll) pRoll.textContent = u.roll_no;
+      var pMeta = $("#profile-display-meta");
+      if (pMeta) pMeta.textContent = u.branch + " · " + u.year;
+      var pHostel = $("#profile-display-hostel");
+      if (pHostel) pHostel.textContent = u.block;
+      var pGen = $("#profile-display-gender");
+      if (pGen) pGen.textContent = u.gender;
+    }
+
+    refreshBackend(function(){
+      draw();
+    });
+  }).catch(function(err){
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.textContent = "Save Changes";
+    }
+    if (msgEl) {
+      msgEl.textContent = err.message || "Failed to update profile";
+      msgEl.className = "err";
+    }
+  });
+}
+
+// User menu dropdown toggle, modal controls, and student perspective switch
 document.addEventListener("click", function(e){
+  if (e.target.closest("#open-edit-profile-btn")) {
+    openProfileModal();
+    return;
+  }
+  if (e.target.closest("#close-profile-modal-btn") || e.target.closest("#cancel-profile-modal-btn") || e.target.id === "profile-edit-modal") {
+    closeProfileModal();
+    return;
+  }
+  if (e.target.closest("#save-profile-btn")) {
+    saveProfileDetails();
+    return;
+  }
+
   var switchBtn = e.target.closest("[data-switch-student]");
   if (switchBtn) {
     var stId = switchBtn.dataset.switchStudent;
@@ -684,6 +857,14 @@ document.addEventListener("click", function(e){
   } else if (userDropdown && !e.target.closest("#user-dropdown")) {
     userDropdown.classList.remove("open");
     if (userMenuWrapper) userMenuWrapper.classList.remove("open");
+  }
+});
+
+document.addEventListener("keydown", function(e){
+  if (e.key === "Escape") closeProfileModal();
+  if (e.key === "Enter" && e.target.closest("#profile-edit-form") && e.target.tagName !== "TEXTAREA") {
+    e.preventDefault();
+    saveProfileDetails();
   }
 });
 

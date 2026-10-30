@@ -57,7 +57,7 @@ body::after{
 
 /* Role Selector Tabs */
 .role-tabs{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:6px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:6px;
   background:var(--line);padding:5px;border-radius:99px;margin-bottom:26px;
 }
 .role-tab{
@@ -82,13 +82,21 @@ input[type=text],input[type=email],input[type=password]{
 }
 input:focus{border-color:var(--lv);box-shadow:0 0 0 4px #8566d125}
 
-.otp-row{display:grid;grid-template-columns:1fr auto;gap:10px}
-.btn-otp{
-  background:var(--butter);color:#35293f;border:1px solid transparent;
-  padding:0 18px;border-radius:18px;font:600 13.5px var(--sans);cursor:pointer;
-  white-space:nowrap;transition:all .25s;height:49px;
+.pwd-wrap{position:relative;display:flex;align-items:center}
+.pwd-wrap input{padding-right:45px}
+.pwd-toggle{position:absolute;right:12px;background:none;border:none;cursor:pointer;font-size:16px;opacity:.65;padding:4px}
+.pwd-toggle:hover{opacity:1}
+
+.register-callout{
+  margin-top:16px;padding:12px 16px;border-radius:18px;
+  background:var(--butter);border:1px solid rgba(0,0,0,0.06);
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:13.5px;color:#35293f;
 }
-.btn-otp:hover{background:#ffe393;transform:translateY(-1px)}
+.register-callout a{
+  color:var(--lv);font-weight:700;text-decoration:none;
+}
+.register-callout a:hover{text-decoration:underline}
 
 .btn-primary{
   width:100%;padding:14px;border-radius:999px;background:var(--ink);color:var(--bg);
@@ -99,22 +107,28 @@ input:focus{border-color:var(--lv);box-shadow:0 0 0 4px #8566d125}
 
 .helper-text{font-size:12.5px;color:var(--soft);margin-top:6px}
 
-/* Quick Demo Selectors */
-.demo-section{margin-top:28px;padding-top:22px;border-top:1px dashed var(--line)}
-.demo-title{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);margin-bottom:12px;text-align:center}
-.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.demo-btn{
-  background:transparent;border:1px solid var(--line);border-radius:16px;
-  padding:10px 12px;text-align:left;cursor:pointer;transition:all .2s;
-  display:flex;align-items:center;gap:10px;color:var(--ink);
+/* Testing Credentials Box */
+.testing-section{
+  margin-top:24px;padding-top:20px;border-top:1px dashed var(--line);
 }
-.demo-btn:hover{background:var(--butter);border-color:transparent;transform:translateY(-1px)}
-.demo-avatar{
-  width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
-  font:italic 600 16px var(--serif);color:#fffe;flex:none;
+.testing-title{
+  font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--soft);text-align:center;margin-bottom:10px;
 }
-.demo-meta b{display:block;font-size:13px;line-height:1.2}
-.demo-meta span{font-size:11px;color:var(--soft)}
+.testing-card{
+  background:var(--butter);border:1px solid #e8d085;border-radius:20px;
+  padding:14px 18px;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;box-shadow:0 4px 14px rgba(0,0,0,0.04);
+}
+.testing-meta b{display:block;font-size:14px;color:#2c1e33;line-height:1.2}
+.testing-meta span{font-size:12px;color:#5a4962}
+.testing-meta small{display:block;font-size:11px;color:var(--soft);margin-top:2px}
+.btn-use-test{
+  background:var(--ink);color:var(--bg);border:none;border-radius:99px;
+  padding:8px 16px;font:700 12.5px var(--sans);cursor:pointer;
+  white-space:nowrap;transition:all .2s;flex-shrink:0;
+}
+.btn-use-test:hover{transform:translateY(-1px);box-shadow:0 6px 16px #00000025}
 
 #toast{position:fixed;bottom:24px;right:24px;z-index:100;display:flex;flex-direction:column;gap:10px}
 .toast-msg{
@@ -145,7 +159,6 @@ input:focus{border-color:var(--lv);box-shadow:0 0 0 4px #8566d125}
     <div class="role-tabs">
       <button class="role-tab active" data-role="student">🎓 Student</button>
       <button class="role-tab" data-role="warden">🛡️ Warden</button>
-      <button class="role-tab" data-role="caretaker">🔑 Caretaker</button>
       <button class="role-tab" data-role="admin">⚙️ Admin</button>
     </div>
 
@@ -153,42 +166,37 @@ input:focus{border-color:var(--lv);box-shadow:0 0 0 4px #8566d125}
     <div class="pane active" id="pane-student">
       <form id="form-student" onsubmit="handleLogin(event, 'student')">
         <div class="form-group">
-          <label>Roll Number or College Email</label>
-          <input type="text" id="student-identity" placeholder="e.g. CS26B014 or aarav.p@college.edu" required autofocus>
-          <div class="helper-text">Verified against registered university enrollment records</div>
+          <label>Registration Number or College Email</label>
+          <input type="text" id="student-identity" placeholder="e.g. 12310266 or aarav.12310266@college.edu" value="{{ registered_roll }}" required autofocus>
+          <div class="helper-text">Official university student registration number</div>
         </div>
 
         <div class="form-group">
-          <label>One-Time Passcode (OTP)</label>
-          <div class="otp-row">
-            <input type="text" id="student-otp" maxlength="6" placeholder="6-digit code" required>
-            <button type="button" class="btn-otp" onclick="requestOtp()">Send OTP</button>
+          <label>Account Password</label>
+          <div class="pwd-wrap">
+            <input type="password" id="student-password" placeholder="••••••••" required>
+            <button type="button" class="pwd-toggle" onclick="togglePwd('student-password', this)">👁️</button>
           </div>
-          <div class="helper-text">Enter OTP sent to your registered college email (demo: click 'Send OTP')</div>
+          <div class="helper-text">Enter the password you created during account registration</div>
         </div>
 
         <button type="submit" class="btn-primary">Sign In as Student →</button>
       </form>
 
-      <div class="demo-section">
-        <div class="demo-title">Quick Demo Student Login</div>
-        <div class="demo-grid">
-          <button type="button" class="demo-btn" onclick="quickFill('student', 'CS26B014', '123456', 'Aarav Patel')">
-            <div class="demo-avatar" style="background:hsl(270,70%,70%)">a</div>
-            <div class="demo-meta"><b>Aarav Patel</b><span>CS26B014 · Block A</span></div>
-          </button>
-          <button type="button" class="demo-btn" onclick="quickFill('student', 'EE26B042', '123456', 'Rohan Verma')">
-            <div class="demo-avatar" style="background:hsl(190,70%,70%)">r</div>
-            <div class="demo-meta"><b>Rohan Verma</b><span>EE26B042 · Block A</span></div>
-          </button>
-          <button type="button" class="demo-btn" onclick="quickFill('student', 'ME26B105', '123456', 'Kabir Sharma')">
-            <div class="demo-avatar" style="background:hsl(35,70%,70%)">k</div>
-            <div class="demo-meta"><b>Kabir Sharma</b><span>ME26B105 · Block A</span></div>
-          </button>
-          <button type="button" class="demo-btn" onclick="quickFill('student', 'DS26B088', '123456', 'Meera Nair')">
-            <div class="demo-avatar" style="background:hsl(320,70%,70%)">m</div>
-            <div class="demo-meta"><b>Meera Nair</b><span>DS26B088 · Block B</span></div>
-          </button>
+      <div class="register-callout">
+        <span>New student without an account?</span>
+        <a href="{% url 'matcher:register' %}">Register Here First →</a>
+      </div>
+
+      <div class="testing-section">
+        <div class="testing-title">Active Database Student Account</div>
+        <div class="testing-card">
+          <div class="testing-meta">
+            <b>{{ test_student.name }} (Student)</b>
+            <span>Registration No: <b>{{ test_student.roll_no }}</b></span>
+            <small>{{ test_student.block.name|default:"Main Campus" }} · {{ test_student.branch }} · {{ test_student.year }}</small>
+          </div>
+          <button type="button" class="btn-use-test" onclick="fillTest('student', '{{ test_student.roll_no }}', '{{ test_student.name }}')">Select Student</button>
         </div>
       </div>
     </div>
@@ -199,69 +207,65 @@ input:focus{border-color:var(--lv);box-shadow:0 0 0 4px #8566d125}
         <div class="form-group">
           <label>Warden Staff ID or Email</label>
           <input type="text" id="warden-identity" placeholder="e.g. WARDEN-01 or warden.sharma@college.edu" required>
+          <div class="helper-text">Official warden staff identifier</div>
         </div>
         <div class="form-group">
           <label>Staff Security Password</label>
-          <input type="password" id="warden-password" placeholder="••••••••" value="warden123" required>
+          <div class="pwd-wrap">
+            <input type="password" id="warden-password" placeholder="••••••••" required>
+            <button type="button" class="pwd-toggle" onclick="togglePwd('warden-password', this)">👁️</button>
+          </div>
+          <div class="helper-text">Verified staff portal security credentials</div>
         </div>
         <button type="submit" class="btn-primary">Access Warden Allotment Portal →</button>
       </form>
 
-      <div class="demo-section">
-        <div class="demo-title">Quick Demo Warden Login</div>
-        <button type="button" class="demo-btn" style="width:100%" onclick="quickFill('warden', 'WARDEN-01', 'warden123', 'Dr. V. K. Sharma')">
-          <div class="demo-avatar" style="background:hsl(220,70%,65%)">w</div>
-          <div class="demo-meta"><b>Dr. V. K. Sharma</b><span>Chief Warden · Mandakini & Cauvery Halls</span></div>
-        </button>
+      <div class="testing-section">
+        <div class="testing-title">Active Database Warden Account</div>
+        <div class="testing-card">
+          <div class="testing-meta">
+            <b>{{ test_warden.name }} (Warden)</b>
+            <span>Staff ID: <b>{{ test_warden.roll_no }}</b></span>
+            <small>{{ test_warden.branch }} · Room Allotment & Review Desk</small>
+          </div>
+          <button type="button" class="btn-use-test" onclick="fillTest('warden', '{{ test_warden.roll_no }}', '{{ test_warden.name }}')">Select Warden</button>
+        </div>
       </div>
     </div>
 
-    <!-- 3. CARETAKER PANE -->
-    <div class="pane" id="pane-caretaker">
-      <form id="form-caretaker" onsubmit="handleLogin(event, 'caretaker')">
-        <div class="form-group">
-          <label>Caretaker Staff ID or Email</label>
-          <input type="text" id="caretaker-identity" placeholder="e.g. CARETAKER-01 or ramesh.caretaker@college.edu" required>
-        </div>
-        <div class="form-group">
-          <label>Passcode</label>
-          <input type="password" id="caretaker-password" placeholder="••••••••" value="caretaker123" required>
-        </div>
-        <button type="submit" class="btn-primary">Access Caretaker Facility Desk →</button>
-      </form>
-
-      <div class="demo-section">
-        <div class="demo-title">Quick Demo Caretaker Login</div>
-        <button type="button" class="demo-btn" style="width:100%" onclick="quickFill('caretaker', 'CARETAKER-01', 'caretaker123', 'Ramesh Kumar')">
-          <div class="demo-avatar" style="background:hsl(145,65%,65%)">c</div>
-          <div class="demo-meta"><b>Ramesh Kumar</b><span>Senior Caretaker · Bed Check-in & Key Handover</span></div>
-        </button>
-      </div>
-    </div>
-
-    <!-- 4. ADMIN PANE -->
+    <!-- 3. ADMIN PANE -->
     <div class="pane" id="pane-admin">
       <form id="form-admin" onsubmit="handleLogin(event, 'admin')">
         <div class="form-group">
           <label>Administrator Email or ID</label>
           <input type="text" id="admin-identity" placeholder="e.g. ADMIN-01 or allotment.admin@college.edu" required>
+          <div class="helper-text">Hostel Affairs Board master administrator</div>
         </div>
         <div class="form-group">
-          <label>Master Security Key</label>
-          <input type="password" id="admin-password" placeholder="••••••••" value="admin123" required>
+          <label>Master Security Key / Password</label>
+          <div class="pwd-wrap">
+            <input type="password" id="admin-password" placeholder="••••••••" required>
+            <button type="button" class="pwd-toggle" onclick="togglePwd('admin-password', this)">👁️</button>
+          </div>
+          <div class="helper-text">Master governance access key</div>
         </div>
         <button type="submit" class="btn-primary">Access Allotment Administration →</button>
       </form>
 
-      <div class="demo-section">
-        <div class="demo-title">Quick Demo Admin Login</div>
-        <button type="button" class="demo-btn" style="width:100%" onclick="quickFill('admin', 'ADMIN-01', 'admin123', 'Prof. Anjali Verma')">
-          <div class="demo-avatar" style="background:hsl(310,70%,65%)">a</div>
-          <div class="demo-meta"><b>Prof. Anjali Verma</b><span>Dean of Student Affairs · Master Roster & Rules</span></div>
-        </button>
+      <div class="testing-section">
+        <div class="testing-title">Active Database Admin Account</div>
+        <div class="testing-card">
+          <div class="testing-meta">
+            <b>{{ test_admin.name }} (Admin)</b>
+            <span>Admin ID: <b>{{ test_admin.roll_no }}</b></span>
+            <small>{{ test_admin.branch }} · Calendar Phases & Master Governance</small>
+          </div>
+          <button type="button" class="btn-use-test" onclick="fillTest('admin', '{{ test_admin.roll_no }}', '{{ test_admin.name }}')">Select Admin</button>
+        </div>
       </div>
     </div>
   </div>
+
 
   <div class="footer">
     Hostel Roommate Allotment System · Protected by DPDP Act 2023 Guidelines
@@ -295,73 +299,53 @@ function showToast(msg, type = "ok") {
   }, 4000);
 }
 
-// Request OTP from backend API
-async function requestOtp() {
-  const identity = document.getElementById("student-identity").value.trim();
-  if (!identity) {
-    showToast("Please enter your Roll Number or Email first", "err");
-    document.getElementById("student-identity").focus();
-    return;
-  }
-  try {
-    const res = await fetch("{% url 'matcher:api_send_otp' %}", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({identity, role: "student"})
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      showToast(data.error || "Failed to generate OTP", "err");
-      return;
-    }
-    if (data.demo_otp) {
-      document.getElementById("student-otp").value = data.demo_otp;
-      showToast("OTP generated: " + data.demo_otp + " (valid 5 min)", "ok");
-    } else {
-      showToast(data.message || "OTP sent to registered email", "ok");
-    }
-  } catch (err) {
-    showToast("Network error requesting OTP", "err");
+function togglePwd(id, btn) {
+  const inp = document.getElementById(id);
+  if (inp.type === "password") {
+    inp.type = "text";
+    btn.textContent = "🙈";
+  } else {
+    inp.type = "password";
+    btn.textContent = "👁️";
   }
 }
 
-// Quick Fill Demo helper
-function quickFill(role, identity, secret, name) {
+// Real Testing Account Helper (fills identifier only, never leaks password)
+function fillTest(role, identity, name) {
   // Switch to role tab
   const tab = document.querySelector(`.role-tab[data-role='${role}']`);
   if (tab) tab.click();
 
   if (role === "student") {
     document.getElementById("student-identity").value = identity;
-    document.getElementById("student-otp").value = secret;
-    // Call server to generate real active OTP record
-    fetch("{% url 'matcher:api_send_otp' %}", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({identity, role: "student"})
-    }).then(r => r.json()).then(data => {
-      if (data.demo_otp) {
-        document.getElementById("student-otp").value = data.demo_otp;
-        showToast("Demo OTP loaded: " + data.demo_otp, "ok");
-      } else {
-        showToast("Loaded credentials for " + name, "ok");
-      }
-    }).catch(() => {
-      showToast("Demo profile loaded for " + name, "ok");
-    });
+    document.getElementById("student-password").value = "";
+    document.getElementById("student-password").focus();
+    showToast("Selected " + name + " (" + identity + "). Enter password to sign in.", "ok");
   } else if (role === "warden") {
     document.getElementById("warden-identity").value = identity;
-    document.getElementById("warden-password").value = secret;
-    showToast("Warden credentials loaded for " + name, "ok");
-  } else if (role === "caretaker") {
-    document.getElementById("caretaker-identity").value = identity;
-    document.getElementById("caretaker-password").value = secret;
-    showToast("Caretaker credentials loaded for " + name, "ok");
+    document.getElementById("warden-password").value = "";
+    document.getElementById("warden-password").focus();
+    showToast("Selected " + name + " (" + identity + "). Enter password to sign in.", "ok");
   } else if (role === "admin") {
     document.getElementById("admin-identity").value = identity;
-    document.getElementById("admin-password").value = secret;
-    showToast("Admin credentials loaded for " + name, "ok");
+    document.getElementById("admin-password").value = "";
+    document.getElementById("admin-password").focus();
+    showToast("Selected " + name + " (" + identity + "). Enter password to sign in.", "ok");
   }
+}
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
 }
 
 // Form Submission & API call
@@ -372,13 +356,10 @@ async function handleLogin(e, role) {
 
   if (role === "student") {
     identity = document.getElementById("student-identity").value.trim();
-    secret = document.getElementById("student-otp").value.trim();
+    secret = document.getElementById("student-password").value.trim();
   } else if (role === "warden") {
     identity = document.getElementById("warden-identity").value.trim();
     secret = document.getElementById("warden-password").value.trim();
-  } else if (role === "caretaker") {
-    identity = document.getElementById("caretaker-identity").value.trim();
-    secret = document.getElementById("caretaker-password").value.trim();
   } else if (role === "admin") {
     identity = document.getElementById("admin-identity").value.trim();
     secret = document.getElementById("admin-password").value.trim();
@@ -387,7 +368,10 @@ async function handleLogin(e, role) {
   try {
     const res = await fetch("{% url 'matcher:api_login' %}", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken") || ""
+      },
       body: JSON.stringify({role, identity, secret})
     });
     const data = await res.json();
@@ -415,6 +399,14 @@ if (reqRole) {
 const msg = params.get("msg");
 if (msg === "logged_out") {
   showToast("You have been signed out safely.", "ok");
+}
+if (params.get("registered") === "1") {
+  showToast("🎉 Account created! Please sign in with your password.", "ok");
+  const r = params.get("roll");
+  if (r) {
+    document.getElementById("student-identity").value = r;
+    document.getElementById("student-password").focus();
+  }
 }
 </script>
 

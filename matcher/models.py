@@ -1,4 +1,4 @@
-﻿import time
+import time
 from datetime import timedelta
 from django.db import models
 from django.utils import timezone
@@ -7,13 +7,15 @@ from django.db.models import Q, F, CheckConstraint, UniqueConstraint
 
 class HostelBlock(models.Model):
     GENDER_CHOICES = [
-        ('M', 'Boys Hostel'),
-        ('F', 'Girls Hostel'),
+        ('M', 'Boys Hostel (BH)'),
+        ('F', 'Girls Hostel (GH)'),
         ('COED', 'Co-Ed Hostel'),
     ]
-    name = models.CharField(max_length=80, unique=True)
-    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='COED')
-    total_floors = models.PositiveSmallIntegerField(default=4)
+    name = models.CharField(max_length=80, unique=True, help_text="e.g. BH-1 - Block A")
+    hostel_name = models.CharField(max_length=30, blank=True, default="", help_text="e.g. BH-1, GH-2")
+    block_name = models.CharField(max_length=20, blank=True, default="", help_text="e.g. Block A, Block B, Block C")
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='M')
+    total_floors = models.PositiveSmallIntegerField(default=10, help_text="Standard 10-floor hostel tower")
     campus = models.CharField(max_length=80, default="Main Campus")
 
     def __str__(self):
@@ -23,16 +25,17 @@ class HostelBlock(models.Model):
 class Room(models.Model):
     block = models.ForeignKey(HostelBlock, on_delete=models.CASCADE, related_name='rooms')
     number = models.CharField(max_length=20)
-    capacity = models.PositiveSmallIntegerField(default=2)
+    capacity = models.PositiveSmallIntegerField(default=2, help_text="Dual student room: strictly 2 students")
     floor = models.PositiveSmallIntegerField(default=1)
     is_accessible = models.BooleanField(default=False, help_text="Priority for students with accessibility needs")
+    amenities = models.JSONField(default=list, blank=True, help_text="List of room amenities")
 
     class Meta:
         unique_together = ('block', 'number')
         ordering = ['block', 'floor', 'number']
 
     def __str__(self):
-        return f"{self.block.name} - Room {self.number} (Cap: {self.capacity})"
+        return f"{self.block.name} - Room {self.number} (Dual Occupancy)"
 
     @property
     def occupied_count(self):
@@ -47,7 +50,6 @@ class StudentUser(models.Model):
     ROLE_CHOICES = [
         ('student', 'Student'),
         ('warden', 'Hostel Warden'),
-        ('caretaker', 'Hostel Caretaker'),
         ('admin', 'Allotment Admin'),
     ]
     GENDER_CHOICES = [
@@ -55,7 +57,11 @@ class StudentUser(models.Model):
         ('F', 'Female'),
         ('O', 'Other'),
     ]
-    roll_no = models.CharField(max_length=30, unique=True)
+    roll_no = models.CharField(
+        max_length=30, unique=True,
+        verbose_name="Registration Number",
+        help_text="University registration number (e.g. 12310266, 12519174)"
+    )
     name = models.CharField(max_length=80)
     email = models.EmailField(unique=True)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='M')
@@ -113,6 +119,14 @@ class StudentUser(models.Model):
             self.last_login_ip = ip_address
         self.save(update_fields=['failed_login_attempts', 'locked_until', 'last_login_at', 'last_login_ip'])
 
+    @property
+    def registration_no(self):
+        return self.roll_no
+
+    @registration_no.setter
+    def registration_no(self, value):
+        self.roll_no = value
+
     def __str__(self):
         return f"{self.name} ({self.roll_no}) - {self.role.capitalize()}"
 
@@ -129,7 +143,9 @@ class StudentUser(models.Model):
 
     @property
     def has_completed_survey(self):
-        return self.responses.count() >= 8
+        active_count = Question.objects.filter(is_active=True).count()
+        threshold = min(8, active_count) if active_count > 0 else 8
+        return self.responses.count() >= threshold
 
 
 class AllotmentCalendar(models.Model):
@@ -138,8 +154,8 @@ class AllotmentCalendar(models.Model):
         ('SURVEY_OPEN', '2. Survey Open (Students Fill/Edit Quiz)'),
         ('MATCHING_OPEN', '3. Matching Open (Ranked Matches & Requests)'),
         ('FREEZE', '4. Freeze (Quiz & Requests Locked)'),
-        ('WARDEN_ALLOTMENT', '5. Warden Allotment (Confirmed Pairs Assigned Rooms)'),
-        ('LEFTOVER_PAIRING', '6. Leftover Pairing (Automated Blossom Matching)'),
+        ('LEFTOVER_PAIRING', '5. Leftover Pairing (Automated Blossom Matching)'),
+        ('WARDEN_ALLOTMENT', '6. Warden Allotment (Confirmed Pairs Assigned Rooms)'),
         ('PUBLISHED', '7. Published (Students View Final Room & Roommate)'),
     ]
 
@@ -166,6 +182,8 @@ class Question(models.Model):
     min_val = models.IntegerField(default=1)
     max_val = models.IntegerField(default=4)
     base_weight = models.FloatField(default=3.0)
+    is_circular = models.BooleanField(default=False, help_text="True if values wrap circularly, e.g. sleep/wake clock")
+    cycle_period = models.PositiveSmallIntegerField(default=4, help_text="Number of distinct intervals in the cycle")
     version = models.PositiveIntegerField(default=1)
     is_active = models.BooleanField(default=True)
 
@@ -180,7 +198,8 @@ class Response(models.Model):
     user = models.ForeignKey(StudentUser, on_delete=models.CASCADE, related_name='responses')
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='responses')
     answer = models.IntegerField()
-    importance = models.PositiveSmallIntegerField(default=2, help_text="1: a little, 2: it matters, 3: deal-breaker")
+    importance = models.PositiveSmallIntegerField(default=2, help_text="1: a little, 2: it matters, 3: essential weight")
+    is_dealbreaker = models.BooleanField(default=False, help_text="Strict veto: mismatch causes hard clash")
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -188,7 +207,7 @@ class Response(models.Model):
         ordering = ['user', 'question']
 
     def __str__(self):
-        return f"{self.user.name} - {self.question.key}: {self.answer} (Imp: {self.importance})"
+        return f"{self.user.name} - {self.question.key}: {self.answer} (Weight: {self.importance}, Dealbreaker: {self.is_dealbreaker})"
 
 
 class PairScore(models.Model):
@@ -200,6 +219,7 @@ class PairScore(models.Model):
     good_reasons = models.JSONField(default=list, blank=True)
     frictions = models.JSONField(default=list, blank=True)
     clashes = models.JSONField(default=list, blank=True)
+    algorithm_version = models.CharField(max_length=20, default="2.1.0")
     computed_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -348,3 +368,86 @@ class OTPVerification(models.Model):
 
     def __str__(self):
         return f"OTP for {self.user.roll_no} (Expires: {self.expires_at.strftime('%H:%M:%S')}, Used: {self.is_used})"
+
+
+class GuardianConsent(models.Model):
+    student = models.OneToOneField(StudentUser, on_delete=models.CASCADE, related_name='guardian_consent')
+    is_minor = models.BooleanField(default=False)
+    guardian_name = models.CharField(max_length=100, blank=True, default="")
+    guardian_email = models.EmailField(blank=True, default="")
+    guardian_phone = models.CharField(max_length=20, blank=True, default="")
+    consent_verified = models.BooleanField(default=False)
+    consent_token = models.CharField(max_length=64, blank=True, default="")
+    verified_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Guardian Consent"
+        verbose_name_plural = "Guardian Consents"
+
+    def __str__(self):
+        return f"Guardian Consent: {self.student.roll_no} (Minor: {self.is_minor}, Verified: {self.consent_verified})"
+
+
+class Ticket(models.Model):
+    TICKET_TYPES = [
+        ('ROOM_CHANGE', 'Room Change Request'),
+        ('COMPLAINT', 'Roommate Conflict Complaint'),
+        ('MAINTENANCE', 'Facility / Room Maintenance'),
+        ('OTHER', 'General Inquiry'),
+    ]
+    STATUS_CHOICES = [
+        ('OPEN', 'Open'),
+        ('IN_REVIEW', 'Under Warden Review'),
+        ('RESOLVED', 'Resolved'),
+        ('REJECTED', 'Rejected'),
+    ]
+
+    student = models.ForeignKey(StudentUser, on_delete=models.CASCADE, related_name='tickets')
+    ticket_type = models.CharField(max_length=30, choices=TICKET_TYPES, default='COMPLAINT')
+    subject = models.CharField(max_length=150)
+    description = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='OPEN')
+    resolution_notes = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.get_ticket_type_display()}] {self.student.roll_no}: {self.subject} ({self.status})"
+
+
+class Feedback(models.Model):
+    allotment = models.ForeignKey(Allotment, on_delete=models.CASCADE, related_name='feedbacks')
+    student = models.ForeignKey(StudentUser, on_delete=models.CASCADE, related_name='feedbacks')
+    roommate_harmony_rating = models.PositiveSmallIntegerField(default=5, help_text="Rating 1-5")
+    sleep_compatibility_rating = models.PositiveSmallIntegerField(default=5, help_text="Rating 1-5")
+    cleanliness_rating = models.PositiveSmallIntegerField(default=5, help_text="Rating 1-5")
+    would_recommend_partner = models.BooleanField(default=True)
+    comments = models.TextField(blank=True, default="")
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-submitted_at']
+        unique_together = ('allotment', 'student')
+
+    def __str__(self):
+        return f"Feedback from {self.student.roll_no} (Harmony: {self.roommate_harmony_rating}/5)"
+
+
+class Notification(models.Model):
+    student = models.ForeignKey(StudentUser, on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=120)
+    message = models.TextField()
+    category = models.CharField(max_length=30, default='INFO')  # e.g., 'REQUEST', 'SYSTEM', 'ALLOTMENT', 'TICKET'
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Notification for {self.student.roll_no}: {self.title} (Read: {self.is_read})"
+

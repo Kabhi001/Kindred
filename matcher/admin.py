@@ -1,7 +1,8 @@
-﻿from django.contrib import admin
+from django.contrib import admin
 from .models import (
     HostelBlock, Room, StudentUser, AllotmentCalendar,
-    Question, Response, PairScore, Request, Pair, Allotment, AuditLog
+    Question, Response, PairScore, Request, Pair, Allotment, AuditLog,
+    GuardianConsent, Ticket, Feedback, Notification
 )
 
 
@@ -75,3 +76,31 @@ class AuditLogAdmin(admin.ModelAdmin):
     list_display = ('timestamp', 'actor', 'action', 'target', 'reason')
     list_filter = ('action', 'timestamp')
     search_fields = ('actor', 'target', 'reason')
+
+
+@admin.register(GuardianConsent)
+class GuardianConsentAdmin(admin.ModelAdmin):
+    list_display = ('student', 'is_minor', 'guardian_name', 'guardian_email', 'consent_verified', 'verified_at')
+    list_filter = ('is_minor', 'consent_verified')
+    search_fields = ('student__name', 'student__roll_no', 'guardian_name', 'guardian_email')
+
+
+@admin.register(Ticket)
+class TicketAdmin(admin.ModelAdmin):
+    list_display = ('student', 'ticket_type', 'subject', 'status', 'created_at')
+    list_filter = ('ticket_type', 'status', 'created_at')
+    search_fields = ('student__name', 'student__roll_no', 'subject', 'description')
+
+
+@admin.register(Feedback)
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ('student', 'roommate_harmony_rating', 'cleanliness_rating', 'would_recommend_partner', 'submitted_at')
+    list_filter = ('roommate_harmony_rating', 'would_recommend_partner')
+    search_fields = ('student__name', 'student__roll_no', 'comments')
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('student', 'title', 'category', 'is_read', 'created_at')
+    list_filter = ('category', 'is_read', 'created_at')
+    search_fields = ('student__name', 'student__roll_no', 'title', 'message')
