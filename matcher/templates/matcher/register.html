@@ -188,18 +188,26 @@ input:focus,select:focus{border-color:var(--lv);box-shadow:0 0 0 4px #8566d125}
           </select>
         </div>
 
-        <!-- Preferred Hostel Tower -->
-        <div class="form-group col-span-2">
-          <label>Assigned / Preferred Hostel Block</label>
-          <select id="reg-block">
-            {% for b in blocks %}
-              <option value="{{ b.id }}" data-gender="{{ b.gender }}">
-                {{ b.name }} ({{ b.get_gender_display }})
-              </option>
-            {% endfor %}
+        <!-- Selection of BH / GH Hostel -->
+        <div class="form-group">
+          <label id="hostel-label">Hostel Building (BH) <span class="req">*</span></label>
+          <select id="reg-hostel" onchange="updateBlockOptions()" required>
+            <!-- Dynamically populated based on Gender -->
           </select>
-          <div class="helper-text">Roommates will be paired within the same residential block</div>
+          <div class="helper-text" id="hostel-helper">Select residential hostel building</div>
         </div>
+
+        <!-- Selection of Block / Wing -->
+        <div class="form-group">
+          <label>Hostel Block / Wing <span class="req">*</span></label>
+          <select id="reg-block-letter" onchange="syncBlockSelection()" required>
+            <!-- Dynamically populated based on Hostel -->
+          </select>
+          <div class="helper-text">Roommates are matched within your block</div>
+        </div>
+
+        <!-- Hidden input for resolved block ID -->
+        <input type="hidden" id="reg-block" name="block_id" value="">
 
         <!-- Password -->
         <div class="form-group">
@@ -245,6 +253,14 @@ input:focus,select:focus{border-color:var(--lv);box-shadow:0 0 0 4px #8566d125}
 
 <div id="toast"></div>
 
+<script id="blocks-json" type="application/json">
+[
+  {% for b in blocks %}
+  {"id": {{ b.id }}, "hostel": "{{ b.hostel_name|escapejs }}", "block": "{{ b.block_name|escapejs }}", "gender": "{{ b.gender|escapejs }}", "name": "{{ b.name|escapejs }}"}{% if not forloop.last %},{% endif %}
+  {% endfor %}
+]
+</script>
+
 <script>
 function showToast(msg, type = "ok") {
   const container = document.getElementById("toast");
@@ -269,20 +285,102 @@ function togglePwd(id, btn) {
   }
 }
 
+let BLOCKS_DATA = [];
+try {
+  BLOCKS_DATA = JSON.parse(document.getElementById("blocks-json").textContent);
+} catch (e) {
+  BLOCKS_DATA = [];
+}
+
 function filterHostelBlocks() {
-  const g = document.getElementById("reg-gender").value;
-  const select = document.getElementById("reg-block");
-  let firstValid = null;
-  Array.from(select.options).forEach(opt => {
-    const bg = opt.dataset.gender;
-    if (bg === g || bg === "COED") {
-      opt.style.display = "";
-      if (!firstValid) firstValid = opt.value;
-    } else {
-      opt.style.display = "none";
+  const gender = document.getElementById("reg-gender").value;
+  const hostelSelect = document.getElementById("reg-hostel");
+  const hostelLabel = document.getElementById("hostel-label");
+  const hostelHelper = document.getElementById("hostel-helper");
+
+  if (gender === "M") {
+    hostelLabel.innerHTML = 'Hostel Building (BH) <span class="req">*</span>';
+    hostelHelper.textContent = 'Boys Hostel residential building';
+  } else if (gender === "F") {
+    hostelLabel.innerHTML = 'Hostel Building (GH) <span class="req">*</span>';
+    hostelHelper.textContent = 'Girls Hostel residential building';
+  } else {
+    hostelLabel.innerHTML = 'Hostel Building <span class="req">*</span>';
+    hostelHelper.textContent = 'Select residential building';
+  }
+
+  // Filter blocks matching selected gender (or COED)
+  const matching = BLOCKS_DATA.filter(b => b.gender === gender || b.gender === "COED");
+  const hostels = [];
+  matching.forEach(b => {
+    if (b.hostel && !hostels.includes(b.hostel)) {
+      hostels.push(b.hostel);
     }
   });
-  if (firstValid) select.value = firstValid;
+
+  const prevHostel = hostelSelect.value;
+  hostelSelect.innerHTML = "";
+  hostels.forEach(h => {
+    const opt = document.createElement("option");
+    opt.value = h;
+    opt.textContent = h;
+    hostelSelect.appendChild(opt);
+  });
+
+  if (hostels.includes(prevHostel)) {
+    hostelSelect.value = prevHostel;
+  } else if (hostels.length > 0) {
+    hostelSelect.value = hostels[0];
+  }
+
+  updateBlockOptions();
+}
+
+function updateBlockOptions() {
+  const gender = document.getElementById("reg-gender").value;
+  const hostel = document.getElementById("reg-hostel").value;
+  const blockSelect = document.getElementById("reg-block-letter");
+
+  const matching = BLOCKS_DATA.filter(b => (b.gender === gender || b.gender === "COED") && b.hostel === hostel);
+  const blocks = [];
+  matching.forEach(b => {
+    if (b.block && !blocks.includes(b.block)) {
+      blocks.push(b.block);
+    }
+  });
+
+  const prevBlock = blockSelect.value;
+  blockSelect.innerHTML = "";
+  blocks.forEach(blk => {
+    const opt = document.createElement("option");
+    opt.value = blk;
+    opt.textContent = blk.replace("-", " ");
+    blockSelect.appendChild(opt);
+  });
+
+  if (blocks.includes(prevBlock)) {
+    blockSelect.value = prevBlock;
+  } else if (blocks.length > 0) {
+    blockSelect.value = blocks[0];
+  }
+
+  syncBlockSelection();
+}
+
+function syncBlockSelection() {
+  const gender = document.getElementById("reg-gender").value;
+  const hostel = document.getElementById("reg-hostel").value;
+  const blockLetter = document.getElementById("reg-block-letter").value;
+  const hiddenInput = document.getElementById("reg-block");
+
+  const match = BLOCKS_DATA.find(b => (b.gender === gender || b.gender === "COED") && b.hostel === hostel && b.block === blockLetter)
+             || BLOCKS_DATA.find(b => b.hostel === hostel && b.block === blockLetter);
+
+  if (match) {
+    hiddenInput.value = match.id;
+  } else {
+    hiddenInput.value = "";
+  }
 }
 filterHostelBlocks();
 
@@ -313,6 +411,11 @@ async function handleRegister(e) {
   const password = document.getElementById("reg-password").value;
   const confirm_password = document.getElementById("reg-confirm").value;
   const consent_given = document.getElementById("reg-consent").checked;
+
+  if (!block_id) {
+    showToast("Please select your Hostel Building and Block.", "err");
+    return;
+  }
 
   if (password.length < 6) {
     showToast("Password must be at least 6 characters long", "err");

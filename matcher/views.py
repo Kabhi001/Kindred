@@ -282,7 +282,14 @@ def api_me(request):
         'block': user.block.name if user.block else "Main Hostel",
         'block_id': user.block_id if user.block else None,
         'all_blocks': [
-            {'id': b.id, 'name': b.name, 'gender': b.gender, 'gender_display': b.get_gender_display()}
+            {
+                'id': b.id,
+                'name': b.name,
+                'hostel': b.hostel_name,
+                'block': b.block_name,
+                'gender': b.gender,
+                'gender_display': b.get_gender_display(),
+            }
             for b in HostelBlock.objects.all().order_by('name')
         ],
         'consent_given': user.consent_given,
