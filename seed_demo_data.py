@@ -126,11 +126,11 @@ def run():
     warden.save()
 
     admin, _ = StudentUser.objects.get_or_create(
-        roll_no="ADMIN-01",
+        roll_no="10266",
         defaults={
-            'name': "Prof. Anjali Verma",
-            'email': "allotment.admin@college.edu",
-            'gender': 'F',
+            'name': "Kindred Administrator",
+            'email': "admin10266@college.edu",
+            'gender': 'M',
             'year': "Admin",
             'branch': "Hostel Affairs Board",
             'role': "admin",
@@ -138,7 +138,7 @@ def run():
             'is_demo': False
         }
     )
-    admin.set_password("admin123")
+    admin.set_password("kindred10266")
     admin.save()
     print("[*] Seeded staff accounts (Warden, Administrator)")
 

@@ -89,6 +89,9 @@ class StudentUser(models.Model):
 
     class Meta:
         ordering = ['name']
+        indexes = [
+            models.Index(fields=['role', 'gender', 'block'], name='student_role_gender_block_idx'),
+        ]
 
     def set_password(self, raw_password):
         from django.contrib.auth.hashers import make_password
@@ -225,6 +228,9 @@ class PairScore(models.Model):
     class Meta:
         unique_together = ('user_a', 'user_b')
         ordering = ['-final_score']
+        indexes = [
+            models.Index(fields=['user_a', 'user_b', 'final_score'], name='pairscore_lookup_score_idx'),
+        ]
 
     def __str__(self):
         return f"Score {self.user_a.name} <-> {self.user_b.name}: {self.final_score:.0f}%"
@@ -251,6 +257,10 @@ class Request(models.Model):
         ordering = ['-created_at']
         constraints = [
             CheckConstraint(condition=~Q(from_user=F('to_user')), name='prevent_self_request'),
+        ]
+        indexes = [
+            models.Index(fields=['from_user', 'status'], name='request_from_status_idx'),
+            models.Index(fields=['to_user', 'status'], name='request_to_status_idx'),
         ]
 
     def save(self, *args, **kwargs):

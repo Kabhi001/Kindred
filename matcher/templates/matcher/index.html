@@ -146,7 +146,7 @@ textarea{height:90px;font:13px/1.4 ui-monospace,Menlo,monospace}
     <button data-go="quiz">quiz</button>
     <button data-go="matches">matches</button>
     <button data-go="requests">requests</button>
-    <a href="{% url 'matcher:warden_dashboard' %}">warden</a>
+
     <div class="user-menu" id="user-menu-wrapper">
       <button class="user-pill" id="user-menu-btn" type="button" title="My Student Profile">
         <span class="user-dot"></span>
@@ -169,13 +169,7 @@ textarea{height:90px;font:13px/1.4 ui-monospace,Menlo,monospace}
           </button>
         </div>
       
-        <div class="dropdown-header" style="margin-top:6px;border-top:1px solid var(--line);padding-top:8px">Staff Portals (For Testing)</div>
-        <a href="/warden/" class="dropdown-item" style="text-decoration:none">
-          <div><b>🛡️ Warden Allotment</b><div class="dropdown-item-meta">Blossom algorithm & room assignments</div></div>
-        </a>
-        <a href="/admin-portal/" class="dropdown-item" style="text-decoration:none">
-          <div><b>⚙️ Admin Governance</b><div class="dropdown-item-meta">Calendar phases & master roster</div></div>
-        </a>
+
         <a href="/logout/" class="dropdown-item" style="text-decoration:none;color:var(--warn);border-top:1px dashed var(--line);margin-top:6px;padding-top:10px">
           <div><b>🚪 Sign Out</b><div class="dropdown-item-meta">Sign out of {{ current_student.name }}'s account</div></div>
         </a>

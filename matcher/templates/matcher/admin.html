@@ -64,7 +64,58 @@ h1{font-size:clamp(36px,5vw,52px);margin-top:6px}
 h2{font-size:28px;margin-bottom:14px}
 .hand{font-family:var(--hand);font-size:23px;color:var(--lv)}
 
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:24px 0}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin:24px 0}
+.btn-sm-promote{
+  padding:5px 12px;border-radius:99px;font:600 12px var(--sans);
+  background:transparent;border:1px solid var(--lv);color:var(--lv);
+  cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.btn-sm-promote:hover{background:var(--lv);color:#fff;transform:translateY(-1px);box-shadow:0 4px 10px #8566d133}
+.btn-sm-danger{
+  padding:5px 12px;border-radius:99px;font:600 12px var(--sans);
+  background:transparent;border:1px solid var(--warn);color:var(--warn);
+  cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.btn-sm-danger:hover{background:var(--warn);color:#fff;transform:translateY(-1px);box-shadow:0 4px 10px #c2410c33}
+.quick-assign-bar{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:var(--bg);padding:14px 18px;border-radius:20px;border:1px solid var(--line);
+  margin-bottom:18px;
+}
+.quick-input{
+  flex:1;min-width:180px;padding:9px 14px;border-radius:12px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);font:500 13.5px var(--sans);outline:none;
+}
+.quick-input:focus{border-color:var(--lv);box-shadow:0 0 0 3px #8566d120}
+.quick-select{
+  padding:9px 14px;border-radius:12px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);font:500 13.5px var(--sans);outline:none;
+}
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(20,14,29,0.7);backdrop-filter:blur(8px);
+  z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.modal-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:28px;
+  padding:32px 30px;width:100%;max-width:580px;box-shadow:0 24px 60px rgba(0,0,0,0.3);
+  animation:pop .25s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes pop{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.form-group{text-align:left}
+.modal-label{display:block;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);margin-bottom:6px}
+.modal-input{
+  width:100%;padding:10px 14px;border-radius:14px;border:1px solid var(--line);
+  background:var(--bg);color:var(--ink);font:600 13.5px var(--sans);outline:none;transition:all .2s;
+}
+.modal-input:focus{border-color:var(--lv);box-shadow:0 0 0 3px #8566d125}
+.btn-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--soft);padding:4px}
+.btn-close:hover{color:var(--ink)}
+.btn-cancel{
+  padding:9px 20px;border-radius:99px;border:1px solid var(--line);
+  background:transparent;color:var(--soft);font:600 13.5px var(--sans);cursor:pointer;
+}
+.btn-cancel:hover{color:var(--ink);background:var(--line)}
 .stat-box{text-align:center;padding:20px 14px}
 .stat-box b{display:block;font:italic 500 48px/1 var(--serif);color:var(--ink)}
 .stat-box span{font-size:13.5px;color:var(--soft);font-weight:600}
@@ -106,9 +157,8 @@ tr:hover td{background:#00000005}
   <div class="nav">
     <a href="{% url 'matcher:home' %}" class="logo">kin<span>dred</span> · governance</a>
     <div class="nav-links">
-      <span class="role-badge">⚙️ {{ current_user.name|default:"Prof. Anjali Verma" }} (Administrator)</span>
+      <span class="role-badge">⚙️ {{ current_user.name|default:"Kindred Administrator" }} (Administrator)</span>
       <a href="{% url 'matcher:warden_dashboard' %}">Warden Portal</a>
-      <a href="/student/">Student App</a>
       <a href="{% url 'matcher:logout' %}" class="btn-logout" style="color:var(--warn);border-color:var(--warn)">Sign Out</a>
     </div>
   </div>
@@ -124,6 +174,10 @@ tr:hover td{background:#00000005}
     <div class="card stat-box">
       <b>{{ total_students }}</b>
       <span>Registered Students</span>
+    </div>
+    <div class="card stat-box">
+      <b style="color:var(--lv)">{{ total_wardens }}</b>
+      <span>Active Wardens</span>
     </div>
     <div class="card stat-box">
       <b>{{ confirmed_pairs }}</b>
@@ -160,6 +214,88 @@ tr:hover td{background:#00000005}
     </div>
   </div>
 
+  <!-- Warden Governance & Access Control -->
+  <div class="card" id="warden-management-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+      <div>
+        <h2>Hostel Wardens & Governance Staff</h2>
+        <p style="color:var(--soft);font-size:13.5px;margin-top:4px">Appoint hostel wardens, create new staff profiles, or elevate any university person to warden privileges.</p>
+      </div>
+      <div>
+        <button class="btn-action" onclick="openAddWardenModal()" style="background:var(--lv);border-color:var(--lv)">
+          ➕ Add New Warden
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Elevation Bar -->
+    <div class="quick-assign-bar">
+      <span style="font-size:13px;font-weight:700;color:var(--soft);white-space:nowrap">Elevate User:</span>
+      <input type="text" id="quick-warden-id" class="quick-input" placeholder="Registration No or Email (e.g. 12310266)">
+      <select id="quick-warden-block" class="quick-select">
+        <option value="">-- Assign Hostel Block (Optional) --</option>
+        {% for b in blocks %}
+        <option value="{{ b.id }}">{{ b.name }} ({{ b.get_gender_display }})</option>
+        {% endfor %}
+      </select>
+      <button type="button" class="btn-action" onclick="submitQuickAssignWarden()" style="padding:9px 18px;font-size:13px">
+        Grant Warden Access 🛡️
+      </button>
+    </div>
+
+    <!-- Wardens Roster Table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Staff Member</th>
+            <th>Staff / Reg ID</th>
+            <th>Email</th>
+            <th>Assigned Block</th>
+            <th>Role Access</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="wardens-tbody">
+          {% for w in wardens %}
+          <tr id="warden-row-{{ w.id }}">
+            <td>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:34px;height:34px;border-radius:50%;background:hsl(45,80%,50%);color:#fff;display:grid;place-items:center;font-size:14px;font-weight:700">🛡️</div>
+                <div>
+                  <b>{{ w.name }}</b>
+                  <div style="font-size:11.5px;color:var(--soft)">{{ w.branch }} · {{ w.year }}</div>
+                </div>
+              </div>
+            </td>
+            <td><code>{{ w.roll_no }}</code></td>
+            <td>{{ w.email }}</td>
+            <td>
+              {% if w.block %}
+                <span class="chip yes">{{ w.block.name }}</span>
+              {% else %}
+                <span class="chip no" style="background:var(--lav);color:#35293f">All Campus Blocks</span>
+              {% endif %}
+            </td>
+            <td><span class="chip yes" style="background:#e0e7ff;color:#3730a3">Warden Access</span></td>
+            <td>
+              <button class="btn-sm-danger" onclick="revokeWarden({{ w.id }}, '{{ w.name|escapejs }}')">
+                Revoke Role
+              </button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" style="text-align:center;padding:24px;color:var(--soft)">
+              No active warden accounts found. Click "Add New Warden" or elevate a user above.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- Student Master Roster -->
   <div class="card">
     <h2>Student Master Roster</h2>
@@ -173,13 +309,14 @@ tr:hover td{background:#00000005}
             <th>Block</th>
             <th>Survey Status</th>
             <th>Pairing Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {% for s in students %}
           <tr>
             <td><b>{{ s.name }}</b></td>
-            <td>{{ s.roll_no }}</td>
+            <td><code>{{ s.roll_no }}</code></td>
             <td>{{ s.branch }} · {{ s.year }}</td>
             <td>{{ s.block.name|default:"Unassigned" }}</td>
             <td>
@@ -195,6 +332,11 @@ tr:hover td{background:#00000005}
               {% else %}
                 <span class="chip no">Searching</span>
               {% endif %}
+            </td>
+            <td>
+              <button class="btn-sm-promote" onclick="promoteStudentToWarden({{ s.id }}, '{{ s.name|escapejs }}', '{{ s.roll_no|escapejs }}')">
+                Make Warden 🛡️
+              </button>
             </td>
           </tr>
           {% endfor %}
@@ -233,6 +375,66 @@ tr:hover td{background:#00000005}
   </div>
 </div>
 
+<!-- Add New Warden Modal -->
+<div id="add-warden-modal" class="modal-backdrop" style="display:none">
+  <div class="modal-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <h2 style="font-size:24px">➕ Add New Hostel Warden</h2>
+      <button type="button" class="btn-close" onclick="closeAddWardenModal()">✕</button>
+    </div>
+    <p style="font-size:13px;color:var(--soft);margin-bottom:20px">Create an official hostel staff warden account with room allotment and dispute resolution authority.</p>
+
+    <form id="create-warden-form" onsubmit="submitCreateWarden(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="modal-label">Staff Full Name</label>
+          <input type="text" id="warden-name" class="modal-input" placeholder="e.g. Dr. Rajesh Sen" required>
+        </div>
+        <div class="form-group">
+          <label class="modal-label">Staff ID / Reg Number</label>
+          <input type="text" id="warden-roll" class="modal-input" placeholder="e.g. WARDEN-02" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="modal-label">Official College Email</label>
+          <input type="email" id="warden-email" class="modal-input" placeholder="e.g. warden.sen@college.edu" required>
+        </div>
+        <div class="form-group">
+          <label class="modal-label">Gender</label>
+          <select id="warden-gender" class="modal-input">
+            <option value="M">Male (Boys Hostels)</option>
+            <option value="F">Female (Girls Hostels)</option>
+            <option value="O">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="modal-label">Assigned Hostel Block</label>
+          <select id="warden-block" class="modal-input">
+            <option value="">All Campus Hostels (Universal)</option>
+            {% for b in blocks %}
+            <option value="{{ b.id }}">{{ b.name }} ({{ b.get_gender_display }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="modal-label">Staff Password</label>
+          <input type="password" id="warden-password" class="modal-input" placeholder="Default: warden123" value="warden123">
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:22px">
+        <button type="button" class="btn-cancel" onclick="closeAddWardenModal()">Cancel</button>
+        <button type="submit" class="btn-action" style="background:var(--lv);border-color:var(--lv)">Create Warden Profile →</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -258,6 +460,122 @@ function getCookie(name) {
     }
   }
   return cookieValue;
+}
+
+function openAddWardenModal() {
+  document.getElementById('add-warden-modal').style.display = 'flex';
+  document.getElementById('warden-name').focus();
+}
+function closeAddWardenModal() {
+  document.getElementById('add-warden-modal').style.display = 'none';
+}
+
+async function submitCreateWarden(e) {
+  e.preventDefault();
+  const name = document.getElementById('warden-name').value.trim();
+  const roll_no = document.getElementById('warden-roll').value.trim();
+  const email = document.getElementById('warden-email').value.trim();
+  const gender = document.getElementById('warden-gender').value;
+  const block_id = document.getElementById('warden-block').value || null;
+  const password = document.getElementById('warden-password').value.trim() || 'warden123';
+
+  try {
+    const res = await fetch("{% url 'matcher:api_admin_create_warden' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken") || ""
+      },
+      body: JSON.stringify({ name, roll_no, email, gender, block_id, password })
+    });
+    const d = await res.json();
+    if (d.ok) {
+      showToast(d.message);
+      closeAddWardenModal();
+      setTimeout(() => location.reload(), 600);
+    } else {
+      showToast("Error: " + (d.error || "Failed to create warden"));
+    }
+  } catch (err) {
+    showToast("Network error: " + err.message);
+  }
+}
+
+async function promoteStudentToWarden(studentId, studentName, studentRoll) {
+  if (!confirm(`Are you sure you want to appoint ${studentName} (${studentRoll}) as Hostel Warden? They will receive full warden authority.`)) {
+    return;
+  }
+  try {
+    const res = await fetch("{% url 'matcher:api_admin_assign_warden' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken") || ""
+      },
+      body: JSON.stringify({ user_id: studentId })
+    });
+    const d = await res.json();
+    if (d.ok) {
+      showToast(d.message);
+      setTimeout(() => location.reload(), 600);
+    } else {
+      showToast("Error: " + (d.error || "Failed to promote user"));
+    }
+  } catch (err) {
+    showToast("Network error: " + err.message);
+  }
+}
+
+async function submitQuickAssignWarden() {
+  const roll_no = document.getElementById('quick-warden-id').value.trim();
+  const block_id = document.getElementById('quick-warden-block').value || null;
+  if (!roll_no) {
+    showToast("Please enter a Registration Number or Email.");
+    return;
+  }
+  try {
+    const res = await fetch("{% url 'matcher:api_admin_assign_warden' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken") || ""
+      },
+      body: JSON.stringify({ roll_no, block_id })
+    });
+    const d = await res.json();
+    if (d.ok) {
+      showToast(d.message);
+      setTimeout(() => location.reload(), 600);
+    } else {
+      showToast("Error: " + (d.error || "Failed to assign warden"));
+    }
+  } catch (err) {
+    showToast("Network error: " + err.message);
+  }
+}
+
+async function revokeWarden(wardenId, wardenName) {
+  if (!confirm(`Are you sure you want to revoke Warden privileges for ${wardenName}? They will be reverted to a student role.`)) {
+    return;
+  }
+  try {
+    const res = await fetch(`/api/admin/wardens/${wardenId}/revoke/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken") || ""
+      }
+    });
+    const d = await res.json();
+    if (d.ok) {
+      showToast(d.message);
+      setTimeout(() => location.reload(), 600);
+    } else {
+      showToast("Error: " + (d.error || "Failed to revoke warden"));
+    }
+  } catch (err) {
+    showToast("Network error: " + err.message);
+  }
 }
 
 async function setPhase(phaseKey) {

@@ -16,9 +16,22 @@ try:
 except ImportError:
     pass
 
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-kindred-hostel-roommate-matcher-key-2026')
+from django.core.exceptions import ImproperlyConfigured
 
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
+IS_PRODUCTION = os.environ.get('DJANGO_ENV', '').lower() == 'production'
+
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    if IS_PRODUCTION:
+        raise ImproperlyConfigured("DJANGO_SECRET_KEY environment variable is required in production.")
+    SECRET_KEY = 'django-insecure-kindred-hostel-roommate-matcher-key-2026'
+elif IS_PRODUCTION and SECRET_KEY == 'django-insecure-kindred-hostel-roommate-matcher-key-2026':
+    raise ImproperlyConfigured("Insecure default SECRET_KEY cannot be used in production.")
+
+if IS_PRODUCTION:
+    DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() in ('true', '1', 'yes')
+else:
+    DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
 
 allowed_hosts_raw = os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,testserver')
 ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_raw.split(',') if h.strip()]
@@ -40,6 +53,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -67,12 +81,47 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'kindred_project.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Database Configuration
+# In production, use PostgreSQL for multi-user concurrency and row-level locking.
+# Supports DATABASE_URL or individual environment variables (POSTGRES_DB, etc.).
+# Falls back to SQLite for local development and test suite isolation.
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    import urllib.parse as urlparse
+    url = urlparse.urlparse(DATABASE_URL)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': url.path[1:],
+            'USER': url.username or '',
+            'PASSWORD': url.password or '',
+            'HOST': url.hostname or 'localhost',
+            'PORT': str(url.port or 5432),
+            'CONN_MAX_AGE': int(os.environ.get('CONN_MAX_AGE', 600)),
+        }
     }
-}
+elif os.environ.get('DJANGO_DB_ENGINE') == 'postgresql' or (IS_PRODUCTION and os.environ.get('POSTGRES_DB')):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('POSTGRES_DB', 'kindred'),
+            'USER': os.environ.get('POSTGRES_USER', 'postgres'),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
+            'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+            'PORT': str(os.environ.get('POSTGRES_PORT', 5432)),
+            'CONN_MAX_AGE': int(os.environ.get('CONN_MAX_AGE', 600)),
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+            'OPTIONS': {
+                'timeout': 20,
+            }
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 6}},
@@ -87,6 +136,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT.mkdir(parents=True, exist_ok=True)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

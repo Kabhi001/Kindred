@@ -1,4 +1,6 @@
 import secrets
+import threading
+from functools import wraps
 from django.contrib.auth.hashers import make_password, check_password
 import json
 from datetime import timedelta
@@ -10,6 +12,7 @@ from django.core.mail import send_mail
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q
+from django.conf import settings
 
 from .models import (
     HostelBlock, Room, StudentUser, AllotmentCalendar,
@@ -29,6 +32,78 @@ def get_current_user(request):
     if user_id:
         return StudentUser.objects.filter(id=user_id).first()
     return None
+
+
+def login_required_api(view_func):
+    """
+    Reusable view decorator ensuring the user is authenticated as a StudentUser.
+    Returns 401 Unauthorized for API endpoints if not authenticated.
+    Attaches authenticated student to request.current_user.
+    """
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        user = get_current_user(request)
+        if not user:
+            return JsonResponse({'error': 'Authentication required. Please sign in.'}, status=401)
+        request.current_user = user
+        return view_func(request, *args, **kwargs)
+    return _wrapped
+
+# Maintain alias for backward compatibility
+login_required_custom = login_required_api
+
+
+def send_mail_async(subject, message, from_email, recipient_list, fail_silently=False):
+    """
+    Hands off OTP and notification emails to an asynchronous background worker
+    thread so the user's HTTP request cycle is not blocked by slow SMTP servers.
+    In testing environments with locmem backend, executes immediately to ensure
+    test assertions on mail.outbox remain completely deterministic.
+    """
+    def _send():
+        try:
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=from_email,
+                recipient_list=recipient_list,
+                fail_silently=fail_silently,
+            )
+        except Exception:
+            pass
+
+    is_test_env = getattr(settings, 'EMAIL_BACKEND', '') == 'django.core.mail.backends.locmem.EmailBackend'
+    if is_test_env:
+        _send()
+        return None
+
+    thread = threading.Thread(target=_send, daemon=True)
+    thread.start()
+    return thread
+
+
+def role_required(allowed_roles):
+    """
+    Decorator for views that checks the user is authenticated and has one of the allowed roles.
+    allowed_roles: list, tuple, or set of role strings, e.g. ['admin'] or ['warden', 'admin']
+    Returns 401 if not logged in, or 403 Forbidden if user lacks the required role.
+    """
+    if isinstance(allowed_roles, str):
+        allowed_roles = [allowed_roles]
+
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            user = get_current_user(request)
+            if not user:
+                return JsonResponse({'error': 'Authentication required. Please sign in.'}, status=401)
+            if user.role not in allowed_roles:
+                return JsonResponse({
+                    'error': f'Access denied. Required role: {", ".join(allowed_roles)}.'
+                }, status=403)
+            return view_func(request, *args, **kwargs)
+        return _wrapped_view
+    return decorator
 
 
 def expire_stale_requests():
@@ -160,6 +235,8 @@ def warden_dashboard_view(request):
 # REST / JSON API ENDPOINTS
 # ==========================================
 
+@require_http_methods(["GET"])
+@login_required_api
 def api_me(request):
     expire_stale_requests()
     user = get_current_user(request)
@@ -241,6 +318,7 @@ def api_me(request):
 
 
 @require_http_methods(["POST"])
+@login_required_api
 def api_update_profile(request):
     """
     Allows a student to correct or update their profile details in real time.
@@ -341,6 +419,7 @@ def api_update_profile(request):
 
 
 @require_http_methods(["POST"])
+@login_required_api
 def api_consent_agree(request):
     user = get_current_user(request)
     if not user:
@@ -353,6 +432,9 @@ def api_consent_agree(request):
 
 @require_http_methods(["POST"])
 def api_switch_student(request):
+    if not settings.DEBUG:
+        return HttpResponseForbidden("Student account switching is disabled outside debug mode.")
+
     try:
         body = json.loads(request.body.decode('utf-8'))
     except Exception:
@@ -363,7 +445,12 @@ def api_switch_student(request):
     if not user:
         return JsonResponse({'error': 'User not found'}, status=404)
 
+    if not getattr(user, 'is_demo', False):
+        return HttpResponseForbidden("Cannot switch to non-demo accounts.")
+
+    request.session.cycle_key()
     request.session['current_user_id'] = user.id
+    request.session['user_role'] = user.role
     return JsonResponse({
         'ok': True,
         'id': user.id,
@@ -386,13 +473,14 @@ def api_students_list(request):
             'persona': s.persona,
             'branch': s.branch,
             'block': s.block.name if s.block else "Main Hostel",
-            'is_current': s.id == current.id,
+            'is_current': (s.id == current.id) if current else False,
             'is_paired': s.is_paired,
         })
     return JsonResponse({'students': data})
 
 
 @require_http_methods(["POST"])
+@login_required_api
 def api_submit_quiz(request):
     calendar = AllotmentCalendar.get_current()
     if calendar.phase not in ['SURVEY_OPEN', 'MATCHING_OPEN']:
@@ -454,6 +542,8 @@ def api_submit_quiz(request):
     })
 
 
+@require_http_methods(["GET"])
+@login_required_api
 def api_matches(request):
     calendar = AllotmentCalendar.get_current()
     if calendar.phase not in ['MATCHING_OPEN', 'LEFTOVER_PAIRING', 'WARDEN_ALLOTMENT', 'PUBLISHED']:
@@ -527,6 +617,8 @@ def api_matches(request):
     return JsonResponse({'matches': formatted, 'has_quiz': True})
 
 
+@require_http_methods(["GET"])
+@login_required_api
 def api_get_requests(request):
     expire_stale_requests()
     user = get_current_user(request)
@@ -592,6 +684,7 @@ def api_get_requests(request):
 
 
 @require_http_methods(["POST"])
+@login_required_api
 def api_send_request(request):
     calendar = AllotmentCalendar.get_current()
     if calendar.phase != 'MATCHING_OPEN':
@@ -683,6 +776,7 @@ def api_send_request(request):
 
 
 @require_http_methods(["POST"])
+@login_required_api
 def api_respond_request(request, request_id):
     calendar = AllotmentCalendar.get_current()
     if calendar.phase != 'MATCHING_OPEN':
@@ -778,6 +872,7 @@ def api_respond_request(request, request_id):
 
 
 @require_http_methods(["POST"])
+@login_required_api
 def api_cancel_request(request, request_id):
     me = get_current_user(request)
     req = get_object_or_404(Request, id=request_id)
@@ -793,6 +888,7 @@ def api_cancel_request(request, request_id):
 # ==========================================
 
 @require_http_methods(["POST"])
+@role_required(['admin'])
 def api_set_calendar_phase(request):
     try:
         body = json.loads(request.body.decode('utf-8'))
@@ -830,12 +926,13 @@ def api_set_calendar_phase(request):
                 'unallotted_pairs_count': unallotted_count
             }, status=400)
 
+    user = get_current_user(request)
     cal.phase = new_phase
-    cal.updated_by = get_current_user(request).name
+    cal.updated_by = user.name
     cal.save()
 
     AuditLog.objects.create(
-        actor=cal.updated_by,
+        actor=user.name,
         action='PHASE_CHANGE',
         target=f"{old_phase} -> {new_phase}",
         reason=reason or (f"System phase advanced to {cal.get_phase_display()}" + (" (Administrative override)" if force else ""))
@@ -850,6 +947,7 @@ def api_set_calendar_phase(request):
 
 
 @require_http_methods(["POST"])
+@role_required(['admin'])
 def api_run_blossom_matching(request):
     user = get_current_user(request)
     body = {}
@@ -874,6 +972,7 @@ def api_run_blossom_matching(request):
 
 
 @require_http_methods(["POST"])
+@role_required(['admin'])
 def api_auto_allot_rooms(request):
     user = get_current_user(request)
     count = run_automated_room_allotment(actor=user.name)
@@ -885,6 +984,7 @@ def api_auto_allot_rooms(request):
 
 
 @require_http_methods(["POST"])
+@role_required(['warden', 'admin'])
 def api_warden_allot(request, pairing_id):
     try:
         body = json.loads(request.body.decode('utf-8'))
@@ -905,25 +1005,40 @@ def api_warden_allot(request, pairing_id):
     reason = reason or "Standard Warden room allotment"
     blk = pairing.user_a.block or HostelBlock.objects.first()
 
-    room, _ = Room.objects.get_or_create(
-        block=blk,
-        number=room_number,
-        defaults={'capacity': 2, 'floor': 1}
-    )
+    with transaction.atomic():
+        room, _ = Room.objects.get_or_create(
+            block=blk,
+            number=room_number,
+            defaults={'capacity': 2, 'floor': 1}
+        )
+        # Row-level concurrency lock preventing race condition overbookings
+        room = Room.objects.select_for_update().get(id=room.id)
 
-    pairing.room = room
-    pairing.status = 'ALLOTTED'
-    pairing.save()
+        # Capacity validation under lock
+        active_allotments = room.allotments.filter(is_active=True).exclude(
+            user__in=[pairing.user_a, pairing.user_b]
+        ).count()
+        if active_allotments + 2 > room.capacity:
+            return JsonResponse({
+                'error': f'Room {room.number} is already at full capacity ({room.capacity} beds).'
+            }, status=400)
 
-    Allotment.objects.update_or_create(room=room, user=pairing.user_a, defaults={'is_active': True})
-    Allotment.objects.update_or_create(room=room, user=pairing.user_b, defaults={'is_active': True})
+        if pairing.room and pairing.room != room:
+            Allotment.objects.filter(room=pairing.room, user__in=[pairing.user_a, pairing.user_b]).update(is_active=False)
 
-    AuditLog.objects.create(
-        actor=get_current_user(request).name,
-        action='WARDEN_ALLOT_ROOM',
-        target=f"{pairing.user_a.roll_no} & {pairing.user_b.roll_no} -> {room.number}",
-        reason=reason
-    )
+        pairing.room = room
+        pairing.status = 'ALLOTTED'
+        pairing.save()
+
+        Allotment.objects.update_or_create(room=room, user=pairing.user_a, defaults={'is_active': True})
+        Allotment.objects.update_or_create(room=room, user=pairing.user_b, defaults={'is_active': True})
+
+        AuditLog.objects.create(
+            actor=get_current_user(request).name,
+            action='WARDEN_ALLOT_ROOM',
+            target=f"{pairing.user_a.roll_no} & {pairing.user_b.roll_no} -> {room.number}",
+            reason=reason
+        )
 
     return JsonResponse({
         'ok': True,
@@ -942,17 +1057,11 @@ def login_view(request):
     role = request.GET.get('role', 'student')
     registered = request.GET.get('registered')
     registered_roll = request.GET.get('roll', '').strip()
-    test_student = StudentUser.objects.filter(role='student', roll_no='12310266').first() or StudentUser.objects.filter(role='student').first()
-    test_warden = StudentUser.objects.filter(role='warden').first()
-    test_admin = StudentUser.objects.filter(role='admin').first()
 
     context = {
         'initial_role': role,
         'registered': registered,
         'registered_roll': registered_roll,
-        'test_student': test_student,
-        'test_warden': test_warden,
-        'test_admin': test_admin,
     }
     return render(request, 'matcher/login.html', context)
 
@@ -1076,9 +1185,6 @@ def api_send_otp(request):
     ).first()
 
     if not user:
-        user = StudentUser.objects.filter(name__icontains=identity, role='student').first()
-
-    if not user:
         return JsonResponse({'error': f'No registered student found matching "{identity}".'}, status=404)
 
     if user.is_locked():
@@ -1124,7 +1230,7 @@ def api_send_otp(request):
         f"If you did not request this OTP, please contact your hostel administration immediately.\n\n"
         f"— Kindred Allotment Team"
     )
-    send_mail(
+    send_mail_async(
         subject=subject,
         message=message,
         from_email=None,
@@ -1164,9 +1270,6 @@ def api_login(request):
     ).first()
 
     if not user:
-        user = StudentUser.objects.filter(name__icontains=identity, role=role).first()
-
-    if not user:
         return JsonResponse({'error': f'No registered account found with identifier "{identity}" for role {role}.'}, status=404)
 
     # Check if account is locked
@@ -1189,8 +1292,8 @@ def api_login(request):
     # Verification using PBKDF2 Password Check for all roles
     password_ok = user.check_password(secret)
 
-    # Fallback for demo seed accounts if not yet hashed
-    if not password_ok:
+    # Fallback for demo seed accounts if not yet hashed (strictly restricted to demo accounts in DEBUG mode)
+    if not password_ok and settings.DEBUG and getattr(user, 'is_demo', False):
         if role == 'student' and secret in ['student123', '123456']:
             password_ok = True
             user.set_password(secret)
@@ -1199,7 +1302,7 @@ def api_login(request):
             password_ok = True
             user.set_password(secret)
             user.save(update_fields=['password_hash'])
-        elif role == 'admin' and secret == 'admin123':
+        elif role == 'admin' and secret == 'kindred10266':
             password_ok = True
             user.set_password(secret)
             user.save(update_fields=['password_hash'])
@@ -1298,12 +1401,14 @@ def logout_view(request):
 
 @ensure_csrf_cookie
 def admin_dashboard_view(request):
-    """Allotment Admin portal: calendar phases, blocks overview, roster, and audit log."""
+    """Allotment Admin portal: calendar phases, blocks overview, roster, wardens management, and audit log."""
     current_user = get_current_user(request)
     if not current_user or current_user.role != 'admin':
         return redirect('/login/?role=admin')
     calendar = AllotmentCalendar.get_current()
-    students = StudentUser.objects.filter(role='student').order_by('name')
+    students = StudentUser.objects.filter(role='student').select_related('block').order_by('name')
+    wardens = StudentUser.objects.filter(role='warden').select_related('block').order_by('name')
+    blocks = HostelBlock.objects.all().order_by('name')
     pairs = Pair.objects.all().select_related('user_a', 'user_b', 'room')
     allotments = Allotment.objects.filter(is_active=True)
     audit_logs = AuditLog.objects.all().order_by('-timestamp')[:30]
@@ -1316,6 +1421,9 @@ def admin_dashboard_view(request):
         'calendar': calendar,
         'phases': AllotmentCalendar.PHASE_CHOICES,
         'students': students,
+        'wardens': wardens,
+        'total_wardens': wardens.count(),
+        'blocks': blocks,
         'total_students': students.count(),
         'confirmed_pairs': pairs.count(),
         'allotted_count': pairs.filter(status='ALLOTTED').count(),
@@ -1325,6 +1433,8 @@ def admin_dashboard_view(request):
     return render(request, 'matcher/admin.html', context)
 
 
+@require_http_methods(["GET"])
+@role_required(['admin'])
 def api_admin_export_csv(request):
     """Generates and downloads the official master allotment report as CSV."""
     import csv
@@ -1355,10 +1465,182 @@ def api_admin_export_csv(request):
 
 
 # ==========================================
+# WARDEN ACCESS & ROLE PROMOTION ENDPOINTS
+# ==========================================
+
+@require_http_methods(["POST"])
+@role_required(['admin'])
+def api_admin_assign_warden(request):
+    """
+    Elevates an existing user to the 'warden' role, granting them hostel administration privileges.
+    Payload: { "user_id": <int> } or { "roll_no": "<str>", "block_id": <int or None> }
+    """
+    admin_user = get_current_user(request)
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({'error': 'Invalid JSON request payload.'}, status=400)
+
+    user_id = data.get('user_id')
+    roll_no = (data.get('roll_no') or '').strip()
+    block_id = data.get('block_id')
+
+    user = None
+    if user_id:
+        user = StudentUser.objects.filter(id=user_id).first()
+    elif roll_no:
+        user = StudentUser.objects.filter(roll_no=roll_no).first()
+        if not user:
+            user = StudentUser.objects.filter(email=roll_no).first()
+
+    if not user:
+        return JsonResponse({'error': 'User not found. Please verify the ID or Registration Number.'}, status=404)
+
+    block = None
+    if block_id:
+        block = HostelBlock.objects.filter(id=block_id).first()
+    elif user.block:
+        block = user.block
+
+    user.role = 'warden'
+    if block:
+        user.block = block
+    if user.branch in ['Computer Science', 'General', 'Electronics', 'Mechanical', 'Civil']:
+        user.branch = 'Hostel Administration'
+    if user.year in ['1st Year', '2nd Year', '3rd Year', '4th Year']:
+        user.year = 'Faculty / Staff'
+
+    user.save(update_fields=['role', 'block', 'branch', 'year'])
+
+    AuditLog.objects.create(
+        actor=admin_user.name,
+        action='WARDEN_ROLE_ASSIGNED',
+        target=f"{user.name} ({user.roll_no})",
+        reason=f"Admin {admin_user.name} elevated user to Hostel Warden" + (f" for {block.name}" if block else "")
+    )
+
+    return JsonResponse({
+        'ok': True,
+        'message': f"{user.name} ({user.roll_no}) has been granted Hostel Warden privileges.",
+        'user': {
+            'id': user.id,
+            'name': user.name,
+            'roll_no': user.roll_no,
+            'email': user.email,
+            'role': user.role,
+            'block': user.block.name if user.block else 'All Campus Blocks',
+        }
+    })
+
+
+@require_http_methods(["POST"])
+@role_required(['admin'])
+def api_admin_create_warden(request):
+    """
+    Creates a new Warden staff account from scratch.
+    Payload: { "name": "...", "roll_no": "...", "email": "...", "gender": "M/F", "block_id": <int>, "password": "..." }
+    """
+    admin_user = get_current_user(request)
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({'error': 'Invalid JSON request payload.'}, status=400)
+
+    name = (data.get('name') or '').strip()
+    roll_no = (data.get('roll_no') or '').strip()
+    email = (data.get('email') or '').strip()
+    gender = (data.get('gender') or 'M').strip().upper()
+    block_id = data.get('block_id')
+    password = (data.get('password') or '').strip() or 'warden123'
+
+    if not name:
+        return JsonResponse({'error': 'Full name is required.'}, status=400)
+    if not roll_no:
+        return JsonResponse({'error': 'Staff ID / Registration Number is required.'}, status=400)
+    if not email:
+        return JsonResponse({'error': 'Staff email address is required.'}, status=400)
+
+    if StudentUser.objects.filter(roll_no=roll_no).exists():
+        return JsonResponse({'error': f'An account with Registration/Staff ID "{roll_no}" already exists.'}, status=400)
+    if StudentUser.objects.filter(email=email).exists():
+        return JsonResponse({'error': f'An account with email "{email}" already exists.'}, status=400)
+
+    block = HostelBlock.objects.filter(id=block_id).first() if block_id else None
+
+    warden = StudentUser.objects.create(
+        name=name,
+        roll_no=roll_no,
+        email=email,
+        gender=gender if gender in ['M', 'F', 'O'] else 'M',
+        year='Faculty / Staff',
+        branch='Hostel Administration',
+        role='warden',
+        block=block,
+        consent_given=True,
+        is_demo=False
+    )
+    warden.set_password(password)
+    warden.save(update_fields=['password_hash'])
+
+    AuditLog.objects.create(
+        actor=admin_user.name,
+        action='WARDEN_CREATED',
+        target=f"{warden.name} ({warden.roll_no})",
+        reason=f"New Warden account created by Admin {admin_user.name}" + (f" for {block.name}" if block else "")
+    )
+
+    return JsonResponse({
+        'ok': True,
+        'message': f"Warden account for {warden.name} ({warden.roll_no}) created successfully.",
+        'user': {
+            'id': warden.id,
+            'name': warden.name,
+            'roll_no': warden.roll_no,
+            'email': warden.email,
+            'role': warden.role,
+            'block': warden.block.name if warden.block else 'All Campus Blocks',
+        }
+    })
+
+
+@require_http_methods(["POST"])
+@role_required(['admin'])
+def api_admin_revoke_warden(request, user_id):
+    """
+    Revokes Warden privileges, returning the user to 'student' role.
+    """
+    admin_user = get_current_user(request)
+    if admin_user.id == user_id:
+        return JsonResponse({'error': 'Cannot revoke privileges from the currently logged in administrator.'}, status=400)
+
+    user = StudentUser.objects.filter(id=user_id, role='warden').first()
+    if not user:
+        return JsonResponse({'error': 'Warden account not found.'}, status=404)
+
+    user.role = 'student'
+    user.branch = 'Computer Science'
+    user.year = '1st Year'
+    user.save(update_fields=['role', 'branch', 'year'])
+
+    AuditLog.objects.create(
+        actor=admin_user.name,
+        action='WARDEN_ROLE_REVOKED',
+        target=f"{user.name} ({user.roll_no})",
+        reason=f"Admin {admin_user.name} revoked Warden privileges. Account reverted to student."
+    )
+
+    return JsonResponse({
+        'ok': True,
+        'message': f"Warden privileges for {user.name} ({user.roll_no}) have been revoked."
+    })
+
+
+# ==========================================
 # DISPUTE & MAINTENANCE TICKET ENDPOINTS
 # ==========================================
 
 @require_http_methods(["GET"])
+@login_required_custom
 def api_tickets_list(request):
     """
     Returns tickets.
@@ -1367,6 +1649,8 @@ def api_tickets_list(request):
     Supports ?status=OPEN & ?type=COMPLAINT filtering.
     """
     me = get_current_user(request)
+    if not me:
+        return JsonResponse({'error': 'Authentication required. Please sign in.'}, status=401)
     status_filter = request.GET.get('status', '').strip().upper()
     type_filter = request.GET.get('type', '').strip().upper()
 
@@ -1402,11 +1686,14 @@ def api_tickets_list(request):
 
 
 @require_http_methods(["POST"])
+@login_required_custom
 def api_create_ticket(request):
     """
     Allows a student to log a complaint, maintenance ticket, or room change request.
     """
     me = get_current_user(request)
+    if not me:
+        return JsonResponse({'error': 'Authentication required. Please sign in.'}, status=401)
     try:
         body = json.loads(request.body.decode('utf-8'))
     except Exception:
@@ -1459,11 +1746,14 @@ def api_create_ticket(request):
 
 
 @require_http_methods(["POST"])
+@role_required(['warden', 'admin'])
 def api_update_ticket_status(request, ticket_id):
     """
     Allows Warden or Admin staff to update ticket status and append resolution notes.
     """
     me = get_current_user(request)
+    if not me:
+        return JsonResponse({'error': 'Authentication required. Please sign in.'}, status=401)
     if me.role not in ['warden', 'admin']:
         return HttpResponseForbidden("Only staff (Warden, Admin) can update ticket status.")
 
@@ -1517,6 +1807,7 @@ def api_update_ticket_status(request, ticket_id):
 # ==========================================
 
 @require_http_methods(["POST"])
+@login_required_api
 def api_submit_feedback(request):
     """
     Allows a student with an active room allotment to submit post-stay feedback

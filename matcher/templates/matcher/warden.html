@@ -95,10 +95,11 @@ input[type=text]{padding:10px 16px;border-radius:16px;border:1px solid var(--lin
     <a href="{% url 'matcher:home' %}" class="logo">kin<span>dred</span> · warden desk</a>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <span style="font-size:13.5px;font-weight:700;color:var(--ink);padding:6px 14px;background:var(--butter);border-radius:99px;border:1px solid rgba(0,0,0,0.06)">
-        🛡️ {{ current_user.name|default:"Dr. V. K. Sharma" }} (Chief Warden)
+        🛡️ {{ current_user.name }} (Hostel Warden)
       </span>
-      <a href="/admin-portal/" class="back-link">Admin Governance</a>
-      <a href="/student/" class="back-link">Student App</a>
+      {% if current_user.role == 'admin' %}
+      <a href="{% url 'matcher:admin_dashboard' %}" class="back-link">Admin Portal →</a>
+      {% endif %}
       <a href="{% url 'matcher:logout' %}" class="back-link" style="color:var(--warn);border-color:var(--warn)">Sign Out</a>
     </div>
   </nav>

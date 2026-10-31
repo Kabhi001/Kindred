@@ -340,6 +340,185 @@ body::after {
   color: var(--soft);
 }
 
+/* Hero Call-to-Action Buttons */
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+.btn-hero-primary {
+  padding: 14px 28px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--ink);
+  box-shadow: 0 10px 24px -6px var(--lv);
+  transition: all .25s ease;
+}
+.btn-hero-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -6px var(--lv);
+}
+.btn-hero-secondary {
+  padding: 14px 26px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+  transition: all .25s ease;
+}
+.btn-hero-secondary:hover {
+  background: var(--line);
+  transform: translateY(-2px);
+}
+
+/* Roommate Compatibility & Rhythm Showcase Card */
+.showcase-card {
+  background: var(--surface);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--line-strong);
+  border-radius: 32px;
+  padding: 30px 28px;
+  box-shadow: 0 24px 60px -15px rgba(43, 31, 56, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+  position: relative;
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+.showcase-card:hover {
+  box-shadow: 0 32px 70px -15px rgba(124, 87, 206, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+}
+.showcase-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.showcase-eyebrow {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+.compatibility-badge {
+  background: linear-gradient(135deg, var(--lv), var(--rd));
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 5px 14px;
+  border-radius: 999px;
+  letter-spacing: .02em;
+  box-shadow: 0 4px 12px -2px var(--lv);
+}
+.pair-showcase {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.peer-mini {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface-alt);
+  padding: 10px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  flex: 1;
+}
+.peer-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  background: linear-gradient(135deg, var(--lv), #6b43b5);
+  color: #fff;
+  flex-shrink: 0;
+}
+.peer-meta b {
+  display: block;
+  font-size: 13.5px;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.peer-meta span {
+  font-size: 11px;
+  color: var(--soft);
+}
+.pair-connector {
+  font-size: 20px;
+  color: var(--lv);
+  font-weight: bold;
+}
+.showcase-card .rhythm-card {
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 16px 18px 12px;
+  box-shadow: none;
+  margin-bottom: 0;
+}
+.showcase-traits {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 18px;
+}
+.trait-chip {
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 9px 12px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--soft);
+}
+.trait-chip b {
+  color: var(--ink);
+  font-weight: 700;
+}
+.showcase-footer {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--soft);
+}
+.showcase-footer-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+  margin-right: 6px;
+}
+
 /* Feature Badges Grid */
 .trust-badges {
   display: flex;
@@ -866,7 +1045,6 @@ body::after {
       <a href="#how-it-works">How It Works</a>
       <a href="#campus-hostels">Hostels & Rooms</a>
       <a href="#algorithm">Blossom Algorithm</a>
-      <a href="{% url 'matcher:login' %}">Full Portal</a>
     </div>
 
     <div class="nav-actions">
@@ -884,7 +1062,7 @@ body::after {
         <a href="{% url 'matcher:logout' %}" style="color: var(--rd); font-size: 13px; text-decoration: none; font-weight: 700; margin-left: 10px;">Sign Out</a>
       {% else %}
         <a href="{% url 'matcher:register' %}" style="font-size: 13.5px; color: var(--ink); font-weight: 700; text-decoration: none; margin-right: 14px;">Register as Student</a>
-        <a href="#login-portal" class="btn-nav">Sign In →</a>
+        <a href="{% url 'matcher:login' %}" class="btn-nav">Sign In →</a>
       {% endif %}
     </div>
   </nav>
@@ -895,10 +1073,7 @@ body::after {
 
       <!-- Left Column: The Value & Interactive Frequency -->
       <div class="hero-left">
-        <div class="hero-pill">
-          <span class="hero-pill-dot"></span>
-          <span>Autonomous Roommate Matching · DPDP Act 2023 Compliant</span>
-        </div>
+
 
         <h1 class="hero-title">
           find the roommate<br>who fits your <span class="gradient-text">rhythm.</span>
@@ -908,22 +1083,15 @@ body::after {
           Replace random lotteries with behavioral harmony. Kindred matches university residents across an 8-factor lifestyle survey, strict same-gender policies, and non-negotiable deal-breakers.
         </p>
 
-        <!-- Compact Interactive Rhythm Visualizer -->
-        <div class="rhythm-card" id="rh">
-          <div class="rhythm-header">
-            <span>Rhythm Synchronization Curve</span>
-            <span class="rhythm-badge">
-              <span>●</span> Harmonic Resonance
-            </span>
-          </div>
-          <svg viewBox="0 0 1000 240" preserveAspectRatio="none" aria-hidden="true">
-            <path id="wa"/>
-            <path id="wb"/>
-          </svg>
-          <div class="rhythm-status">
-            <div class="rhythm-tag" id="cap">finding each other</div>
-            <div class="rhythm-pair-note">Aarav Patel & Rohan Verma · Dual Room BH-1</div>
-          </div>
+        <!-- Primary Call-to-Action Buttons -->
+        <div class="hero-actions">
+          <a href="{% url 'matcher:login' %}" class="btn-hero-primary">
+            <span>Sign In to Portal</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+          </a>
+          <a href="{% url 'matcher:register' %}" class="btn-hero-secondary">
+            <span>Register as Student</span>
+          </a>
         </div>
 
         <!-- Trust Badges -->
@@ -940,94 +1108,78 @@ body::after {
         </div>
       </div>
 
-      <!-- Right Column: Portal Sign-In Card (Above The Fold!) -->
-      <div class="hero-right" id="login-portal">
-        <div class="portal-card">
+      <!-- Right Column: Roommate Compatibility & Rhythm Showcase Card -->
+      <div class="hero-right">
+        <div class="showcase-card">
 
-          <div class="portal-header">
-            <span class="portal-eyebrow">welcome to kindred</span>
-            <h2 class="portal-title">sign in to your portal.</h2>
-            <p class="portal-sub">Select your university role to enter your dedicated dashboard.</p>
+          <div class="showcase-header">
+            <span class="showcase-eyebrow">Harmonic Resonance Preview</span>
+            <span class="compatibility-badge">96% Compatibility</span>
           </div>
 
-          <!-- 4 Role Selector Tabs -->
-          <div class="role-tabs">
-            <button type="button" class="rtab active" data-role="student" onclick="selectRole('student')">
-              <i>🎓</i><span>Student</span>
-            </button>
-            <button type="button" class="rtab" data-role="warden" onclick="selectRole('warden')">
-              <i>🛡️</i><span>Warden</span>
-            </button>
-            <button type="button" class="rtab" data-role="admin" onclick="selectRole('admin')">
-              <i>⚙️</i><span>Admin</span>
-            </button>
-          </div>
-
-          <!-- Active Form -->
-          <form id="portal-login-form" onsubmit="submitLogin(event)">
-            <div class="form-group">
-              <label class="form-label" id="identity-label">Registration Number or College Email</label>
-              <div class="form-input-wrap">
-                <input type="text" class="form-input" id="login-identity" placeholder="e.g. 12310266 or 12310266@college.edu" required autofocus>
+          <!-- Matched Resident Avatars -->
+          <div class="pair-showcase">
+            <div class="peer-mini">
+              <div class="peer-avatar">🎓</div>
+              <div class="peer-meta">
+                <b>Aarav Patel</b>
+                <span>CSE · BH-1 Block A</span>
               </div>
-              <div class="form-hint" id="identity-hint">Verified against official university enrollment database</div>
             </div>
-
-            <!-- Account Password Field -->
-            <div class="form-group" id="password-group">
-              <label class="form-label" id="password-label">Student Account Password</label>
-              <input type="password" class="form-input" id="login-password" placeholder="••••••••" required>
-              <div class="form-hint">Enter your verified account password</div>
+            <div class="pair-connector">⇄</div>
+            <div class="peer-mini">
+              <div class="peer-avatar" style="background: linear-gradient(135deg, var(--rd), #ab326d);">🎓</div>
+              <div class="peer-meta">
+                <b>Rohan Verma</b>
+                <span>ECE · BH-1 Block A</span>
+              </div>
             </div>
+          </div>
 
-            <button type="submit" class="btn-submit" id="login-submit-btn">
-              Sign In as Student →
-            </button>
-
-            <!-- Registration Link Callout -->
-            <div style="margin-top:16px;padding:12px 16px;border-radius:18px;background:var(--butter);border:1px solid rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#35293f">
-              <span>New student? Make your account first:</span>
-              <a href="{% url 'matcher:register' %}" style="color:var(--lv);font-weight:700;text-decoration:none">Register Here →</a>
+          <!-- Interactive Rhythm Visualizer -->
+          <div class="rhythm-card" id="rh">
+            <div class="rhythm-header">
+              <span>Sleep & Activity Rhythm Wave</span>
+              <span class="rhythm-badge">
+                <span>●</span> Synchronized
+              </span>
             </div>
-          </form>
-
-          <!-- Verified Real Accounts (from Database) -->
-          <div class="testing-box">
-            <div class="testing-title">Active Database Accounts (Verified Cohort)</div>
-            <div class="testing-pill-grid">
-              <button type="button" class="testing-pill-btn" onclick="quickFill('student', '{{ sample_student.roll_no }}', '{{ sample_student.name }}')">
-                <div style="display:flex;align-items:center;gap:10px">
-                  <div class="testing-pill-avatar" style="background:hsl(270,70%,60%)">🎓</div>
-                  <div class="testing-pill-meta">
-                    <b>{{ sample_student.name }} (Student)</b>
-                    <span>{{ sample_student.roll_no }} · {{ sample_student.branch }}</span>
-                  </div>
-                </div>
-                <span style="font-size:11px;font-weight:700;color:var(--lv)">Select →</span>
-              </button>
-
-              <button type="button" class="testing-pill-btn" onclick="quickFill('warden', '{{ sample_warden.roll_no }}', '{{ sample_warden.name }}')">
-                <div style="display:flex;align-items:center;gap:10px">
-                  <div class="testing-pill-avatar" style="background:hsl(45,80%,50%)">🛡️</div>
-                  <div class="testing-pill-meta">
-                    <b>{{ sample_warden.name }} (Warden)</b>
-                    <span>{{ sample_warden.roll_no }} · {{ sample_warden.branch }}</span>
-                  </div>
-                </div>
-                <span style="font-size:11px;font-weight:700;color:var(--lv)">Select →</span>
-              </button>
-
-              <button type="button" class="testing-pill-btn" onclick="quickFill('admin', '{{ sample_admin.roll_no }}', '{{ sample_admin.name }}')">
-                <div style="display:flex;align-items:center;gap:10px">
-                  <div class="testing-pill-avatar" style="background:hsl(200,80%,50%)">⚙️</div>
-                  <div class="testing-pill-meta">
-                    <b>{{ sample_admin.name }} (Admin)</b>
-                    <span>{{ sample_admin.roll_no }} · {{ sample_admin.branch }}</span>
-                  </div>
-                </div>
-                <span style="font-size:11px;font-weight:700;color:var(--lv)">Select →</span>
-              </button>
+            <svg viewBox="0 0 1000 240" preserveAspectRatio="none" aria-hidden="true">
+              <path id="wa"/>
+              <path id="wb"/>
+            </svg>
+            <div class="rhythm-status">
+              <div class="rhythm-tag" id="cap">finding each other</div>
+              <div class="rhythm-pair-note">Dual Room BH-1 · Room 104</div>
             </div>
+          </div>
+
+          <!-- Lifestyle Trait Compatibility Breakdown -->
+          <div class="showcase-traits">
+            <div class="trait-chip">
+              <span>🌙 Sleep Window</span>
+              <b>1 AM – 8 AM</b>
+            </div>
+            <div class="trait-chip">
+              <span>📚 Study Style</span>
+              <b>Quiet Focus</b>
+            </div>
+            <div class="trait-chip">
+              <span>🧹 Cleanliness</span>
+              <b>Tidy & Organized</b>
+            </div>
+            <div class="trait-chip">
+              <span>❄️ AC Comfort</span>
+              <b>23°C Mutual</b>
+            </div>
+          </div>
+
+          <div class="showcase-footer">
+            <div style="display:flex;align-items:center;">
+              <span class="showcase-footer-dot"></span>
+              <span>Zero Deal-Breaker Conflicts</span>
+            </div>
+            <span>Cohort Block BH-1</span>
           </div>
 
         </div>
@@ -1095,7 +1247,7 @@ body::after {
         </div>
       </div>
 
-      <div class="step-card">
+      <div class="step-card" id="algorithm">
         <div class="step-num">03</div>
         <h3 class="step-title">Blossom & Warden Allotment</h3>
         <p class="step-desc">
@@ -1196,8 +1348,12 @@ body::after {
       <a href="{% url 'matcher:home' %}" class="footer-logo">kin<span>dred</span></a>
       <span style="margin-left: 10px;">· Autonomous University Hostel Allotment Platform</span>
     </div>
-    <div>
-      <span>DPDP Act 2023 Compliant · PBKDF2 Cryptography · Edmonds' Blossom Matching</span>
+    <div style="display: flex; gap: 16px; align-items: center; font-size: 13px;">
+      <a href="{% url 'matcher:login' %}" style="color: var(--soft); text-decoration: none; font-weight: 600;">Sign In</a>
+      <span>·</span>
+      <a href="{% url 'matcher:register' %}" style="color: var(--soft); text-decoration: none; font-weight: 600;">Student Registration</a>
+      <span>·</span>
+      <span>© 2026 Kindred</span>
     </div>
   </footer>
 
@@ -1207,45 +1363,6 @@ body::after {
 <div class="toast-box" id="toast-box"></div>
 
 <script>
-// State
-var activeRole = "student";
-
-// Role Switcher
-function selectRole(role) {
-  activeRole = role;
-  document.querySelectorAll(".rtab").forEach(function(tab) {
-    tab.classList.toggle("active", tab.dataset.role === role);
-  });
-
-  var identityLabel = document.getElementById("identity-label");
-  var identityInput = document.getElementById("login-identity");
-  var identityHint = document.getElementById("identity-hint");
-  var otpGroup = document.getElementById("otp-group");
-  var passwordGroup = document.getElementById("password-group");
-  var passwordLabel = document.getElementById("password-label");
-  var submitBtn = document.getElementById("login-submit-btn");
-
-  if (role === "student") {
-    identityLabel.textContent = "Registration Number or College Email";
-    identityInput.placeholder = "e.g. 12310266 or student@college.edu";
-    identityHint.textContent = "Verified against registered student accounts";
-    passwordLabel.textContent = "Student Account Password";
-    submitBtn.textContent = "Sign In as Student →";
-  } else if (role === "warden") {
-    identityLabel.textContent = "Hostel Warden Staff ID or Email";
-    identityInput.placeholder = "e.g. WARDEN-01 or warden.sharma@college.edu";
-    identityHint.textContent = "Authorised personnel only · Master allotment authority";
-    passwordLabel.textContent = "Warden Staff Security Password";
-    submitBtn.textContent = "Access Warden Desk →";
-  } else if (role === "admin") {
-    identityLabel.textContent = "Administrator ID or Email";
-    identityInput.placeholder = "e.g. ADMIN-01 or allotment.admin@college.edu";
-    identityHint.textContent = "Hostel Affairs Board & Allotment Calendar Controller";
-    passwordLabel.textContent = "Master Governance Security Key";
-    submitBtn.textContent = "Access Governance Portal →";
-  }
-}
-
 // Toast Notification
 function showToast(msg, type) {
   var box = document.getElementById("toast-box");
@@ -1257,69 +1374,6 @@ function showToast(msg, type) {
     el.style.opacity = "0";
     setTimeout(function() { el.remove(); }, 300);
   }, 4000);
-}
-
-// Quick Account Selection Helper (Name & ID only - password entered securely)
-function quickFill(role, identity, optName) {
-  selectRole(role);
-  document.getElementById("login-identity").value = identity;
-  document.getElementById("login-password").value = "";
-  document.getElementById("login-password").focus();
-  showToast("Selected " + (optName || role) + " (" + identity + "). Enter password to sign in.", "ok");
-}
-
-function getCookie(name) {
-  var cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    var cookies = document.cookie.split(';');
-    for (var i = 0; i < cookies.length; i++) {
-      var cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  return cookieValue;
-}
-
-// Handle Login Submission
-async function submitLogin(e) {
-  e.preventDefault();
-  var identity = document.getElementById("login-identity").value.trim();
-  var secret = document.getElementById("login-password").value.trim();
-
-  if (!identity) {
-    showToast("Please enter your Registration Number or Email", "err");
-    return;
-  }
-  if (!secret) {
-    showToast("Please enter your account password", "err");
-    return;
-  }
-
-  try {
-    var res = await fetch("{% url 'matcher:api_login' %}", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": getCookie("csrftoken") || ""
-      },
-      body: JSON.stringify({ role: activeRole, identity: identity, secret: secret })
-    });
-    var data = await res.json();
-    if (!res.ok) {
-      showToast(data.error || "Login failed. Check your credentials.", "err");
-      return;
-    }
-
-    showToast("Welcome, " + data.name + "!", "ok");
-    setTimeout(function() {
-      window.location.href = data.redirect_url || "/";
-    }, 500);
-  } catch (err) {
-    showToast("Connection error: " + err.message, "err");
-  }
 }
 
 // Sine Wave Animation Loop

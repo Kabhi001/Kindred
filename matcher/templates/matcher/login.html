@@ -107,28 +107,7 @@ input:focus{border-color:var(--lv);box-shadow:0 0 0 4px #8566d125}
 
 .helper-text{font-size:12.5px;color:var(--soft);margin-top:6px}
 
-/* Testing Credentials Box */
-.testing-section{
-  margin-top:24px;padding-top:20px;border-top:1px dashed var(--line);
-}
-.testing-title{
-  font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
-  color:var(--soft);text-align:center;margin-bottom:10px;
-}
-.testing-card{
-  background:var(--butter);border:1px solid #e8d085;border-radius:20px;
-  padding:14px 18px;display:flex;align-items:center;justify-content:space-between;
-  gap:12px;box-shadow:0 4px 14px rgba(0,0,0,0.04);
-}
-.testing-meta b{display:block;font-size:14px;color:#2c1e33;line-height:1.2}
-.testing-meta span{font-size:12px;color:#5a4962}
-.testing-meta small{display:block;font-size:11px;color:var(--soft);margin-top:2px}
-.btn-use-test{
-  background:var(--ink);color:var(--bg);border:none;border-radius:99px;
-  padding:8px 16px;font:700 12.5px var(--sans);cursor:pointer;
-  white-space:nowrap;transition:all .2s;flex-shrink:0;
-}
-.btn-use-test:hover{transform:translateY(-1px);box-shadow:0 6px 16px #00000025}
+
 
 #toast{position:fixed;bottom:24px;right:24px;z-index:100;display:flex;flex-direction:column;gap:10px}
 .toast-msg{
@@ -188,17 +167,7 @@ input:focus{border-color:var(--lv);box-shadow:0 0 0 4px #8566d125}
         <a href="{% url 'matcher:register' %}">Register Here First →</a>
       </div>
 
-      <div class="testing-section">
-        <div class="testing-title">Active Database Student Account</div>
-        <div class="testing-card">
-          <div class="testing-meta">
-            <b>{{ test_student.name }} (Student)</b>
-            <span>Registration No: <b>{{ test_student.roll_no }}</b></span>
-            <small>{{ test_student.block.name|default:"Main Campus" }} · {{ test_student.branch }} · {{ test_student.year }}</small>
-          </div>
-          <button type="button" class="btn-use-test" onclick="fillTest('student', '{{ test_student.roll_no }}', '{{ test_student.name }}')">Select Student</button>
-        </div>
-      </div>
+
     </div>
 
     <!-- 2. WARDEN PANE -->
@@ -220,17 +189,7 @@ input:focus{border-color:var(--lv);box-shadow:0 0 0 4px #8566d125}
         <button type="submit" class="btn-primary">Access Warden Allotment Portal →</button>
       </form>
 
-      <div class="testing-section">
-        <div class="testing-title">Active Database Warden Account</div>
-        <div class="testing-card">
-          <div class="testing-meta">
-            <b>{{ test_warden.name }} (Warden)</b>
-            <span>Staff ID: <b>{{ test_warden.roll_no }}</b></span>
-            <small>{{ test_warden.branch }} · Room Allotment & Review Desk</small>
-          </div>
-          <button type="button" class="btn-use-test" onclick="fillTest('warden', '{{ test_warden.roll_no }}', '{{ test_warden.name }}')">Select Warden</button>
-        </div>
-      </div>
+
     </div>
 
     <!-- 3. ADMIN PANE -->
@@ -238,7 +197,7 @@ input:focus{border-color:var(--lv);box-shadow:0 0 0 4px #8566d125}
       <form id="form-admin" onsubmit="handleLogin(event, 'admin')">
         <div class="form-group">
           <label>Administrator Email or ID</label>
-          <input type="text" id="admin-identity" placeholder="e.g. ADMIN-01 or allotment.admin@college.edu" required>
+          <input type="text" id="admin-identity" placeholder="e.g. 10266 or admin10266@college.edu" required>
           <div class="helper-text">Hostel Affairs Board master administrator</div>
         </div>
         <div class="form-group">
@@ -252,23 +211,13 @@ input:focus{border-color:var(--lv);box-shadow:0 0 0 4px #8566d125}
         <button type="submit" class="btn-primary">Access Allotment Administration →</button>
       </form>
 
-      <div class="testing-section">
-        <div class="testing-title">Active Database Admin Account</div>
-        <div class="testing-card">
-          <div class="testing-meta">
-            <b>{{ test_admin.name }} (Admin)</b>
-            <span>Admin ID: <b>{{ test_admin.roll_no }}</b></span>
-            <small>{{ test_admin.branch }} · Calendar Phases & Master Governance</small>
-          </div>
-          <button type="button" class="btn-use-test" onclick="fillTest('admin', '{{ test_admin.roll_no }}', '{{ test_admin.name }}')">Select Admin</button>
-        </div>
-      </div>
+
     </div>
   </div>
 
 
   <div class="footer">
-    Hostel Roommate Allotment System · Protected by DPDP Act 2023 Guidelines
+    Kindred · University Residential Allotment Platform
   </div>
 </div>
 
@@ -310,29 +259,7 @@ function togglePwd(id, btn) {
   }
 }
 
-// Real Testing Account Helper (fills identifier only, never leaks password)
-function fillTest(role, identity, name) {
-  // Switch to role tab
-  const tab = document.querySelector(`.role-tab[data-role='${role}']`);
-  if (tab) tab.click();
 
-  if (role === "student") {
-    document.getElementById("student-identity").value = identity;
-    document.getElementById("student-password").value = "";
-    document.getElementById("student-password").focus();
-    showToast("Selected " + name + " (" + identity + "). Enter password to sign in.", "ok");
-  } else if (role === "warden") {
-    document.getElementById("warden-identity").value = identity;
-    document.getElementById("warden-password").value = "";
-    document.getElementById("warden-password").focus();
-    showToast("Selected " + name + " (" + identity + "). Enter password to sign in.", "ok");
-  } else if (role === "admin") {
-    document.getElementById("admin-identity").value = identity;
-    document.getElementById("admin-password").value = "";
-    document.getElementById("admin-password").focus();
-    showToast("Selected " + name + " (" + identity + "). Enter password to sign in.", "ok");
-  }
-}
 function getCookie(name) {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {

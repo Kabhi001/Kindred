@@ -44,6 +44,9 @@ urlpatterns = [
     path('api/admin/set-phase/', views.api_set_calendar_phase, name='api_set_calendar_phase'),
     path('api/admin/run-blossom/', views.api_run_blossom_matching, name='api_run_blossom_matching'),
     path('api/admin/auto-allot/', views.api_auto_allot_rooms, name='api_auto_allot_rooms'),
+    path('api/admin/wardens/assign/', views.api_admin_assign_warden, name='api_admin_assign_warden'),
+    path('api/admin/wardens/create/', views.api_admin_create_warden, name='api_admin_create_warden'),
+    path('api/admin/wardens/<int:user_id>/revoke/', views.api_admin_revoke_warden, name='api_admin_revoke_warden'),
 
     # Dispute & Maintenance Tickets
     path('api/tickets/', views.api_tickets_list, name='api_tickets_list'),

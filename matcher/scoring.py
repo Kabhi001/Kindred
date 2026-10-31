@@ -3,7 +3,7 @@ from typing import Dict, Any, List, Optional
 import networkx as nx
 from django.db import transaction
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, F, Count
 
 from .models import (
     StudentUser, Question, Response, PairScore, Pair,
@@ -75,13 +75,20 @@ def calculate_directional_score(answers_a, importance_a, dealbreakers_or_answers
     return raw_score, sims, clashes
 
 
-def calculate_mutual_score(user_a: StudentUser, user_b: StudentUser, questions=None):
+def calculate_mutual_score(user_a: StudentUser, user_b: StudentUser, questions=None, responses_cache=None):
     if questions is None:
         questions = list(Question.objects.filter(is_active=True))
     q_dict = {q.key: q for q in questions}
 
-    ans_a, imp_a, db_a = get_user_responses_dict(user_a)
-    ans_b, imp_b, db_b = get_user_responses_dict(user_b)
+    if responses_cache and user_a.id in responses_cache:
+        ans_a, imp_a, db_a = responses_cache[user_a.id]
+    else:
+        ans_a, imp_a, db_a = get_user_responses_dict(user_a)
+
+    if responses_cache and user_b.id in responses_cache:
+        ans_b, imp_b, db_b = responses_cache[user_b.id]
+    else:
+        ans_b, imp_b, db_b = get_user_responses_dict(user_b)
 
     score_a_to_b, sims_a, clashes_a = calculate_directional_score(ans_a, imp_a, db_a, ans_b, q_dict)
     score_b_to_a, sims_b, clashes_b = calculate_directional_score(ans_b, imp_b, db_b, ans_a, q_dict)
@@ -122,43 +129,91 @@ class BlossomResult(tuple):
 
 
 def compute_ranked_matches_for_student(student: StudentUser):
-    if student.is_paired:
+    paired_ids = set()
+    for u_a, u_b in Pair.objects.values_list('user_a_id', 'user_b_id'):
+        paired_ids.add(u_a)
+        paired_ids.add(u_b)
+
+    if student.id in paired_ids:
         return []
 
-    paired_ids = set(Pair.objects.values_list('user_a_id', flat=True)) | set(Pair.objects.values_list('user_b_id', flat=True))
-
-    candidates = StudentUser.objects.filter(
+    candidates_qs = StudentUser.objects.filter(
         role='student',
         gender=student.gender,
-    ).exclude(id=student.id).exclude(id__in=paired_ids)
+    ).exclude(id=student.id).exclude(id__in=paired_ids).select_related('block')
 
     if student.block_id:
-        candidates = candidates.filter(Q(block=student.block) | Q(block__isnull=True))
+        candidates_qs = candidates_qs.filter(Q(block=student.block) | Q(block__isnull=True))
+
+    candidates = list(candidates_qs)
+    if not candidates:
+        return []
+
+    candidate_ids = [c.id for c in candidates]
+    all_user_ids = [student.id] + candidate_ids
 
     questions = list(Question.objects.filter(is_active=True))
+    active_count = len(questions)
+    threshold = min(8, active_count) if active_count > 0 else 8
+
+    # Batch pre-fetch all active responses into a dictionary in memory in 1 query
+    from collections import defaultdict
+    cached_responses = defaultdict(lambda: ({}, {}, {}))
+    responses_qs = Response.objects.filter(
+        user_id__in=all_user_ids,
+        question__is_active=True
+    ).select_related('question')
+
+    for r in responses_qs:
+        ans_d, imp_d, db_d = cached_responses[r.user_id]
+        k = r.question.key
+        ans_d[k] = r.answer
+        imp_d[k] = r.importance
+        db_d[k] = getattr(r, 'is_dealbreaker', False) or (r.importance == 3)
+
+    # Filter candidate peers that have completed the survey using in-memory response counts
+    eligible_peers = [
+        peer for peer in candidates
+        if len(cached_responses[peer.id][0]) >= threshold
+    ]
+    if not eligible_peers:
+        return []
+
+    eligible_peer_ids = [p.id for p in eligible_peers]
+
+    # Query all relevant PairScore records in 1 query with user_a/user_b filters
+    pair_scores_qs = PairScore.objects.filter(
+        Q(user_a=student, user_b_id__in=eligible_peer_ids) |
+        Q(user_b=student, user_a_id__in=eligible_peer_ids)
+    )
+    pair_scores_map = {
+        (min(ps.user_a_id, ps.user_b_id), max(ps.user_a_id, ps.user_b_id)): ps
+        for ps in pair_scores_qs
+    }
+
     results = []
+    new_pair_scores = []
 
-    for peer in candidates:
-        if not peer.has_completed_survey:
-            continue
-
+    for peer in eligible_peers:
         u1, u2 = (student, peer) if student.id < peer.id else (peer, student)
-        ps = PairScore.objects.filter(user_a=u1, user_b=u2).first()
+        pair_key = (u1.id, u2.id)
+        ps = pair_scores_map.get(pair_key)
+
         if not ps:
-            res = calculate_mutual_score(u1, u2, questions)
-            ps, _ = PairScore.objects.update_or_create(
+            res = calculate_mutual_score(u1, u2, questions, responses_cache=cached_responses)
+            ps = PairScore(
                 user_a=u1,
                 user_b=u2,
-                defaults={
-                    'score_a_to_b': res['score_a_to_b'],
-                    'score_b_to_a': res['score_b_to_a'],
-                    'final_score': res['final_score'],
-                    'good_reasons': res['good_reasons'],
-                    'frictions': res['frictions'],
-                    'clashes': res['clashes'],
-                    'algorithm_version': '2.1.0'
-                }
+                score_a_to_b=res['score_a_to_b'],
+                score_b_to_a=res['score_b_to_a'],
+                final_score=res['final_score'],
+                good_reasons=res['good_reasons'],
+                frictions=res['frictions'],
+                clashes=res['clashes'],
+                algorithm_version='2.1.0'
             )
+            new_pair_scores.append(ps)
+            pair_scores_map[pair_key] = ps
 
         score_for_me = ps.score_a_to_b if student == u1 else ps.score_b_to_a
         score_for_peer = ps.score_b_to_a if student == u1 else ps.score_a_to_b
@@ -181,6 +236,9 @@ def compute_ranked_matches_for_student(student: StudentUser):
             'good_reasons': ps.good_reasons,
             'frictions': ps.frictions,
         })
+
+    if new_pair_scores:
+        PairScore.objects.bulk_create(new_pair_scores, ignore_conflicts=True)
 
     results.sort(key=lambda x: x['final_score'], reverse=True)
     return results
@@ -362,27 +420,22 @@ def run_automated_room_allotment(actor="System"):
         if not blk:
             continue
 
-        # Capacity-aware room search
-        vacant_room = None
-        candidate_rooms = Room.objects.filter(block=blk).order_by('floor', 'number')
-        for rm in candidate_rooms:
-            if rm.occupied_count + 2 <= rm.capacity:
-                vacant_room = rm
-                break
+        with transaction.atomic():
+            # Capacity-aware room search using bulk annotation and select_for_update() row locks
+            vacant_room = Room.objects.select_for_update().filter(block=blk).annotate(
+                occupied=Count('allotments', filter=Q(allotments__is_active=True))
+            ).filter(occupied__lte=F('capacity') - 2).order_by('floor', 'number').first()
 
-        if not vacant_room:
-            # Fallback search respecting student gender policy
-            student_gender = pair.user_a.gender
-            fallback_rooms = Room.objects.filter(
-                Q(block__gender=student_gender) | Q(block__gender='COED')
-            ).order_by('block', 'floor', 'number')
-            for rm in fallback_rooms:
-                if rm.occupied_count + 2 <= rm.capacity:
-                    vacant_room = rm
-                    break
+            if not vacant_room:
+                # Fallback search respecting student gender policy
+                student_gender = pair.user_a.gender
+                vacant_room = Room.objects.select_for_update().filter(
+                    Q(block__gender=student_gender) | Q(block__gender='COED')
+                ).annotate(
+                    occupied=Count('allotments', filter=Q(allotments__is_active=True))
+                ).filter(occupied__lte=F('capacity') - 2).order_by('block', 'floor', 'number').first()
 
-        if vacant_room:
-            with transaction.atomic():
+            if vacant_room:
                 pair.room = vacant_room
                 pair.status = 'ALLOTTED'
                 pair.save()
