@@ -7,6 +7,7 @@ from datetime import timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponse
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.cache import never_cache
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q
@@ -1032,6 +1033,7 @@ def api_bulk_generate_rooms(request):
 
 @require_http_methods(["GET"])
 @login_required_api
+@never_cache
 def api_floor_map(request):
     """
     Interactive visual floor matrix:

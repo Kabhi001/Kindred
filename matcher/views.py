@@ -8,6 +8,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.cache import never_cache
 from django.core.mail import send_mail
 from django.utils import timezone
 from django.db import transaction
@@ -186,6 +187,7 @@ def index_view(request):
 
 
 @ensure_csrf_cookie
+@never_cache
 def warden_dashboard_view(request):
     current_user = get_current_user(request)
     if not current_user or current_user.role not in ['warden', 'admin']:
@@ -1114,6 +1116,8 @@ def api_warden_allot(request, pairing_id):
 
         Allotment.objects.update_or_create(room=room, user=pairing.user_a, defaults={'is_active': True})
         Allotment.objects.update_or_create(room=room, user=pairing.user_b, defaults={'is_active': True})
+        room.status = 'OCCUPIED'
+        room.save()
 
         AuditLog.objects.create(
             actor=get_current_user(request).name,
