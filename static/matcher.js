@@ -81,14 +81,14 @@ function empty(h, p, b){
   return "<div class='card empty'><svg viewBox='0 0 200 120'><circle cx='72' cy='60' r='44'/><circle cx='128' cy='60' r='44'/></svg><h3>" + h + "</h3><p class='sm'>" + p + "</p>" + (b || "") + "</div>";
 }
 
-var KEYS = ["sleep", "privacy", "noise", "tidy", "guests", "sharing", "intent", "flexibility", "communication", "smoke"];
-var RANGE = {sleep: 4, privacy: 4, noise: 4, tidy: 4, guests: 4, sharing: 4, intent: 4, flexibility: 4, communication: 4, smoke: 4, wake: 4, study: 4, social: 4};
-var BASE = {sleep: 18, privacy: 16, noise: 12, tidy: 12, guests: 10, sharing: 8, intent: 8, flexibility: 6, communication: 6, smoke: 5, wake: 3, study: 3, social: 2};
+var KEYS = ["sleep", "privacy", "noise", "tidy", "temp", "guests", "sharing", "intent", "flexibility", "communication"];
+var RANGE = {sleep: 4, privacy: 4, noise: 4, tidy: 4, temp: 4, guests: 4, sharing: 4, intent: 4, flexibility: 4, communication: 4, smoke: 4, wake: 4, study: 4, social: 4};
+var BASE = {sleep: 18, privacy: 16, noise: 12, tidy: 12, temp: 8, guests: 10, sharing: 8, intent: 8, flexibility: 4, communication: 4, smoke: 5, wake: 3, study: 3, social: 2};
 var MUL = {1: .5, 2: 1, 3: 2};
-var SH = {sleep: "Sleep", privacy: "Privacy", noise: "Noise", tidy: "Tidy", guests: "Guests", sharing: "Sharing", intent: "Bond", flexibility: "Flexibility", communication: "Openness", smoke: "Smoke", wake: "Morning", study: "Study", social: "Social"};
-var NM = {sleep: "sleep schedule", privacy: "personal space", noise: "room sound level", tidy: "cleanliness", guests: "guest policy", sharing: "sharing belongings", intent: "roommate connection", flexibility: "flexibility", communication: "communication", smoke: "smoking/substances", wake: "morning rhythm", study: "study habits", social: "social energy"};
-var GOOD = {sleep: "wind down at similar times", privacy: "have aligned personal space needs", noise: "prefer the same room sound level", tidy: "keep a similar level of cleanliness", guests: "feel comfortable with the same guest policy", sharing: "share similar boundaries on belongings", intent: "seek the same kind of roommate relationship", flexibility: "balance flexibility and personal preferences", communication: "handle feedback with open communication", smoke: "share matching substance boundaries", wake: "have matching morning routines", study: "share preferred study spaces", social: "recharge in complementary ways"};
-var BAD = {sleep: "different sleep timing", privacy: "different personal space needs", noise: "different noise comfort levels", tidy: "different tidiness expectations", guests: "different guest boundaries", sharing: "different sharing boundaries", intent: "different expectations for closeness", flexibility: "both have very strong preferences", communication: "both tend to leave issues unspoken", smoke: "conflicting views on smoking/substances", wake: "different wake-up hours", study: "different study environments", social: "different social energies"};
+var SH = {sleep: "Sleep", privacy: "Privacy", noise: "Noise", tidy: "Tidy", temp: "Climate", guests: "Guests", sharing: "Sharing", intent: "Bond", flexibility: "Flexibility", communication: "Openness", smoke: "Smoke", wake: "Morning", study: "Study", social: "Social"};
+var NM = {sleep: "sleep schedule", privacy: "personal space", noise: "room sound level", tidy: "cleanliness", temp: "room temperature", guests: "guest policy", sharing: "sharing belongings", intent: "roommate connection", flexibility: "flexibility", communication: "communication", smoke: "smoking/substances", wake: "morning rhythm", study: "study habits", social: "social energy"};
+var GOOD = {sleep: "wind down at similar times", privacy: "have aligned personal space needs", noise: "prefer the same room sound level", tidy: "keep a similar level of cleanliness", temp: "prefer similar room temperature and cooling", guests: "feel comfortable with the same guest policy", sharing: "share similar boundaries on belongings", intent: "seek the same kind of roommate relationship", flexibility: "balance flexibility and personal preferences", communication: "handle feedback with open communication", smoke: "share matching substance boundaries", wake: "have matching morning routines", study: "share preferred study spaces", social: "recharge in complementary ways"};
+var BAD = {sleep: "different sleep timing", privacy: "different personal space needs", noise: "different noise comfort levels", tidy: "different tidiness expectations", temp: "different room temperature preferences", guests: "different guest boundaries", sharing: "different sharing boundaries", intent: "different expectations for closeness", flexibility: "both have very strong preferences", communication: "both tend to leave issues unspoken", smoke: "conflicting views on smoking/substances", wake: "different wake-up hours", study: "different study environments", social: "different social energies"};
 
 var S = {
   me: null,
@@ -166,10 +166,17 @@ function score(p){
     warnings.push("Different need for personal space: One of you may want quiet, private time in the room, while the other likes the room to be more social. Decide early on 'room to myself' hours.");
   }
 
-  var mySmoke = (me.a && me.a.smoke) || 1, peSmoke = (p && p.a && p.a.smoke) || 1;
-  if ((mySmoke === 1 && peSmoke > 1) || (peSmoke === 1 && mySmoke > 1)) {
-    if (clash.indexOf("smoke") < 0) clash.push("smoke");
-    warnings.push("Smoking / substance boundary mismatch: One student requires a strictly smoke-free environment.");
+  if (me.a && me.a.smoke && p && p.a && p.a.smoke) {
+    var mySmoke = me.a.smoke || 1, peSmoke = p.a.smoke || 1;
+    if ((mySmoke === 1 && peSmoke > 1) || (peSmoke === 1 && mySmoke > 1)) {
+      if (clash.indexOf("smoke") < 0) clash.push("smoke");
+      warnings.push("Smoking / substance boundary mismatch: One student requires a strictly smoke-free environment.");
+    }
+  }
+
+  var myTemp = (me.a && me.a.temp) || 2, peTemp = (p && p.a && p.a.temp) || 2;
+  if (Math.abs(myTemp - peTemp) >= 2) {
+    warnings.push("Room climate difference: One of you prefers cooler AC/cooling, while the other prefers a warmer room or open windows. Agree on nighttime thermostat or fan settings.");
   }
 
   var myNoise = (me.a && me.a.noise) || 2, peNoise = (p && p.a && p.a.noise) || 2;
@@ -386,14 +393,14 @@ var Q = [
     ]
   },
   {
-    id: "smoke",
+    id: "temp",
     c: 1,
-    t: "How do you feel about smoking, vaping, or drinking around you?",
+    t: "How do you like your room temperature?",
     o: [
-      ["Not okay near me, I need a strictly smoke-free room", 1],
-      ["Okay outside the hostel / outside the room only", 2],
-      ["Fine if not inside the bedroom", 3],
-      ["No issue at all", 4]
+      ["Chilly, AC or cooler on strong", 1],
+      ["Cool, comfortable moderate AC/cooling", 2],
+      ["Moderate, a ceiling fan is plenty for me", 3],
+      ["Warm & fresh, prefer windows open and minimal cooling", 4]
     ]
   }
 ];

@@ -70,7 +70,7 @@ class Command(BaseCommand):
         questions_spec = [
             ("sleep", "When does your day usually end?", 1, 4, 5.0),
             ("wake", "And when do you usually wake up?", 1, 4, 3.0),
-            ("smoke", "Where do you stand on smoking?", 1, 3, 5.0),
+            ("temp", "How do you like your room temperature?", 1, 4, 8.0),
             ("tidy", "Your side of the room usually looks...", 1, 4, 4.0),
             ("noise", "While studying or sleeping, the room should be...", 1, 4, 4.0),
             ("study", "Where do you do your best work?", 1, 4, 3.0),
@@ -154,8 +154,8 @@ class Command(BaseCommand):
                 "role": "student",
                 "avatar_hue": 270,
                 "is_demo": True,
-                "answers": {"sleep": 3, "wake": 3, "smoke": 1, "tidy": 4, "noise": 1, "study": 3, "guests": 1, "social": 1},
-                "importance": {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 3, "noise": 2, "study": 2, "guests": 2, "social": 1}
+                "answers": {"sleep": 3, "wake": 3, "temp": 2, "tidy": 4, "noise": 1, "study": 3, "guests": 1, "social": 1},
+                "importance": {"sleep": 2, "wake": 2, "temp": 1, "tidy": 3, "noise": 2, "study": 2, "guests": 2, "social": 1}
             },
             {
                 "roll_no": "12310267",
@@ -168,8 +168,8 @@ class Command(BaseCommand):
                 "role": "student",
                 "avatar_hue": 190,
                 "is_demo": True,
-                "answers": {"sleep": 1, "wake": 1, "smoke": 1, "tidy": 3, "noise": 1, "study": 2, "guests": 1, "social": 1},
-                "importance": {"sleep": 3, "wake": 3, "smoke": 3, "tidy": 2, "noise": 3, "study": 2, "guests": 2, "social": 1}
+                "answers": {"sleep": 1, "wake": 1, "temp": 2, "tidy": 3, "noise": 1, "study": 2, "guests": 1, "social": 1},
+                "importance": {"sleep": 3, "wake": 3, "temp": 1, "tidy": 2, "noise": 3, "study": 2, "guests": 2, "social": 1}
             },
             {
                 "roll_no": "12310268",
@@ -182,8 +182,8 @@ class Command(BaseCommand):
                 "role": "student",
                 "avatar_hue": 25,
                 "is_demo": True,
-                "answers": {"sleep": 4, "wake": 4, "smoke": 2, "tidy": 1, "noise": 4, "study": 4, "guests": 4, "social": 3},
-                "importance": {"sleep": 1, "wake": 1, "smoke": 1, "tidy": 1, "noise": 1, "study": 1, "guests": 3, "social": 2}
+                "answers": {"sleep": 4, "wake": 4, "temp": 3, "tidy": 1, "noise": 4, "study": 4, "guests": 4, "social": 3},
+                "importance": {"sleep": 1, "wake": 1, "temp": 2, "tidy": 1, "noise": 1, "study": 1, "guests": 3, "social": 2}
             },
             {
                 "roll_no": "12310269",
@@ -196,8 +196,8 @@ class Command(BaseCommand):
                 "role": "student",
                 "avatar_hue": 210,
                 "is_demo": True,
-                "answers": {"sleep": 3, "wake": 3, "smoke": 1, "tidy": 4, "noise": 2, "study": 3, "guests": 2, "social": 2},
-                "importance": {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 2}
+                "answers": {"sleep": 3, "wake": 3, "temp": 2, "tidy": 4, "noise": 2, "study": 3, "guests": 2, "social": 2},
+                "importance": {"sleep": 2, "wake": 2, "temp": 1, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 2}
             },
             {
                 "roll_no": "12310270",
@@ -210,8 +210,8 @@ class Command(BaseCommand):
                 "role": "student",
                 "avatar_hue": 45,
                 "is_demo": True,
-                "answers": {"sleep": 4, "wake": 3, "smoke": 1, "tidy": 2, "noise": 3, "study": 1, "guests": 3, "social": 2},
-                "importance": {"sleep": 2, "wake": 1, "smoke": 2, "tidy": 1, "noise": 1, "study": 2, "guests": 2, "social": 2}
+                "answers": {"sleep": 4, "wake": 3, "temp": 2, "tidy": 2, "noise": 3, "study": 1, "guests": 3, "social": 2},
+                "importance": {"sleep": 2, "wake": 1, "temp": 3, "tidy": 1, "noise": 1, "study": 2, "guests": 2, "social": 2}
             },
             {
                 "roll_no": "12310271",
@@ -224,8 +224,8 @@ class Command(BaseCommand):
                 "role": "student",
                 "avatar_hue": 210,
                 "is_demo": True,
-                "answers": {"sleep": 2, "wake": 2, "smoke": 1, "tidy": 3, "noise": 2, "study": 2, "guests": 2, "social": 2},
-                "importance": {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 2}
+                "answers": {"sleep": 2, "wake": 2, "temp": 2, "tidy": 3, "noise": 2, "study": 2, "guests": 2, "social": 2},
+                "importance": {"sleep": 2, "wake": 2, "temp": 1, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 2}
             },
             {
                 "roll_no": "12519174",
@@ -238,8 +238,8 @@ class Command(BaseCommand):
                 "role": "student",
                 "avatar_hue": 330,
                 "is_demo": True,
-                "answers": {"sleep": 3, "wake": 3, "smoke": 1, "tidy": 4, "noise": 2, "study": 3, "guests": 2, "social": 2},
-                "importance": {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 2}
+                "answers": {"sleep": 3, "wake": 3, "temp": 2, "tidy": 4, "noise": 2, "study": 3, "guests": 2, "social": 2},
+                "importance": {"sleep": 2, "wake": 2, "temp": 1, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 2}
             },
             {
                 "roll_no": "12519175",
@@ -252,8 +252,8 @@ class Command(BaseCommand):
                 "role": "student",
                 "avatar_hue": 140,
                 "is_demo": True,
-                "answers": {"sleep": 2, "wake": 2, "smoke": 1, "tidy": 3, "noise": 2, "study": 3, "guests": 2, "social": 2},
-                "importance": {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 1}
+                "answers": {"sleep": 2, "wake": 2, "temp": 2, "tidy": 3, "noise": 2, "study": 3, "guests": 2, "social": 2},
+                "importance": {"sleep": 2, "wake": 2, "temp": 1, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 1}
             },
             {
                 "roll_no": "12519176",
@@ -266,8 +266,8 @@ class Command(BaseCommand):
                 "role": "student",
                 "avatar_hue": 290,
                 "is_demo": True,
-                "answers": {"sleep": 1, "wake": 1, "smoke": 1, "tidy": 3, "noise": 1, "study": 2, "guests": 1, "social": 1},
-                "importance": {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 1}
+                "answers": {"sleep": 1, "wake": 1, "temp": 2, "tidy": 3, "noise": 1, "study": 2, "guests": 1, "social": 1},
+                "importance": {"sleep": 2, "wake": 2, "temp": 1, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 1}
             },
             {
                 "roll_no": "12519177",
@@ -280,8 +280,8 @@ class Command(BaseCommand):
                 "role": "student",
                 "avatar_hue": 10,
                 "is_demo": True,
-                "answers": {"sleep": 3, "wake": 2, "smoke": 1, "tidy": 2, "noise": 2, "study": 2, "guests": 3, "social": 3},
-                "importance": {"sleep": 1, "wake": 1, "smoke": 3, "tidy": 2, "noise": 1, "study": 2, "guests": 2, "social": 2}
+                "answers": {"sleep": 3, "wake": 2, "temp": 2, "tidy": 2, "noise": 2, "study": 2, "guests": 3, "social": 3},
+                "importance": {"sleep": 1, "wake": 1, "temp": 1, "tidy": 2, "noise": 1, "study": 2, "guests": 2, "social": 2}
             },
             {
                 "roll_no": "12519178",
@@ -294,8 +294,8 @@ class Command(BaseCommand):
                 "role": "student",
                 "avatar_hue": 80,
                 "is_demo": True,
-                "answers": {"sleep": 2, "wake": 2, "smoke": 1, "tidy": 4, "noise": 1, "study": 3, "guests": 1, "social": 1},
-                "importance": {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 3, "noise": 2, "study": 2, "guests": 1, "social": 1}
+                "answers": {"sleep": 2, "wake": 2, "temp": 2, "tidy": 4, "noise": 1, "study": 3, "guests": 1, "social": 1},
+                "importance": {"sleep": 2, "wake": 2, "temp": 1, "tidy": 3, "noise": 2, "study": 2, "guests": 1, "social": 1}
             }
         ]
 
@@ -326,7 +326,7 @@ class Command(BaseCommand):
             # Save responses
             for key, val in s["answers"].items():
                 imp_val = s["importance"].get(key, 2)
-                is_db = (imp_val == 3) or (key == 'smoke' and val == 1)
+                is_db = (imp_val == 3) 
                 Response.objects.update_or_create(
                     user=user,
                     question=created_questions[key],

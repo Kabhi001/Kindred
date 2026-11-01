@@ -28,7 +28,7 @@ import networkx as nx
 QUESTIONS_CONFIG = [
     {'key': 'sleep', 'min': 1, 'max': 4, 'base_weight': 5.0, 'is_circular': True, 'cycle_period': 4},
     {'key': 'wake', 'min': 1, 'max': 4, 'base_weight': 3.0, 'is_circular': True, 'cycle_period': 4},
-    {'key': 'smoke', 'min': 1, 'max': 3, 'base_weight': 5.0, 'is_circular': False, 'cycle_period': 0},
+    {'key': 'temp', 'min': 1, 'max': 4, 'base_weight': 5.0, 'is_circular': False, 'cycle_period': 0},
     {'key': 'tidy', 'min': 1, 'max': 4, 'base_weight': 4.0, 'is_circular': False, 'cycle_period': 0},
     {'key': 'noise', 'min': 1, 'max': 4, 'base_weight': 4.0, 'is_circular': False, 'cycle_period': 0},
     {'key': 'study', 'min': 1, 'max': 4, 'base_weight': 3.0, 'is_circular': False, 'cycle_period': 0},
@@ -96,10 +96,10 @@ class SyntheticStudent:
                 if k == 'tidy': val = 4
                 elif k == 'noise': val = 1
                 elif k == 'guests': val = 1
-                elif k == 'smoke': val = 1
+                elif k == 'temp': val = 2
                 else: val = rng.randint(q_min, q_max)
             elif archetype == 'CASUAL_REBEL':
-                if k == 'smoke': val = rng.choice([2, 3])
+                if k == 'temp': val = rng.choice([1, 3, 4])
                 elif k == 'tidy': val = 1
                 elif k == 'guests': val = rng.choice([3, 4])
                 else: val = rng.randint(q_min, q_max)
@@ -112,7 +112,7 @@ class SyntheticStudent:
 
             # Strict dealbreaker assignment
             is_db = False
-            if k == 'smoke' and val == 1 and imp >= 2 and rng.random() < 0.65:
+            if k == 'temp' and val == 1 and imp >= 2 and rng.random() < 0.65:
                 is_db = True
             elif k == 'sleep' and val == 1 and imp == 3:
                 is_db = True

@@ -14,12 +14,12 @@ KEYS = [
     'privacy',
     'noise',
     'tidy',
+    'temp',
     'guests',
     'sharing',
     'intent',
     'flexibility',
     'communication',
-    'smoke',
 ]
 
 # Possible range (1 to max_val) for each trait
@@ -32,8 +32,10 @@ RANGE = {
     'sharing': 4,        # 1: Keep separate, 2: Ask first, 3: Small things ok, 4: Share all
     'intent': 4,         # 1: Keep to ourselves, 2: Friendly separate, 3: Good friends, 4: Best friends
     'flexibility': 4,    # 1: Adjust easily, 2: Adjust after talk, 3: Prefer my way compromise, 4: Strongly prefer
+    'temp': 4,           # 1: Chilly (AC strong), 2: Cool, 3: Moderate (fan only), 4: Warm & fresh
     'communication': 4,  # 1: Within a day, 2: After few days, 3: Drop hints, 4: Say nothing
-    'smoke': 4,          # 1: Not near me, 2: Outside hostel only, 3: Not in bedroom, 4: No issue
+    # Backward compatibility for legacy test cases
+    'smoke': 4,          # Legacy fallback
     # Backward compatibility for legacy test cases
     'wake': 4,
     'study': 4,
@@ -46,13 +48,14 @@ BASE_WEIGHTS = {
     'privacy': 16.0,
     'noise': 12.0,
     'tidy': 12.0,
+    'temp': 8.0,
     'guests': 10.0,
     'sharing': 8.0,
     'intent': 8.0,
-    'flexibility': 6.0,
-    'communication': 6.0,
-    'smoke': 5.0,
+    'flexibility': 4.0,
+    'communication': 4.0,
     # Backward compatibility
+    'smoke': 5.0,
     'wake': 3.0,
     'study': 3.0,
     'social': 2.0,
@@ -75,6 +78,7 @@ SHORT_LABELS = {
     'sharing': 'Sharing',
     'intent': 'Bond',
     'flexibility': 'Flexibility',
+    'temp': 'Climate',
     'communication': 'Openness',
     'smoke': 'Smoke',
     # Legacy fallbacks
@@ -93,6 +97,7 @@ TRAIT_NAMES = {
     'sharing': 'sharing belongings',
     'intent': 'roommate closeness',
     'flexibility': 'handling differences',
+    'temp': 'room temperature & cooling',
     'communication': 'communication style',
     'smoke': 'smoking stance',
     # Legacy fallbacks
@@ -111,6 +116,7 @@ GOOD_DESCRIPTORS = {
     'sharing': 'share similar boundaries on belongings',
     'intent': 'seek the same kind of roommate relationship',
     'flexibility': 'balance flexibility and personal preferences',
+    'temp': 'prefer similar room temperature and AC settings',
     'communication': 'handle feedback with open communication',
     'smoke': 'share matching substance boundaries',
     # Legacy fallbacks
@@ -129,6 +135,7 @@ FRICTION_DESCRIPTORS = {
     'sharing': 'different sharing boundaries',
     'intent': 'different expectations for closeness',
     'flexibility': 'both have very strong preferences',
+    'temp': 'different room temperature and AC preferences',
     'communication': 'both tend to leave issues unspoken',
     'smoke': 'conflicting views on smoking/substances',
     # Legacy fallbacks
@@ -161,12 +168,19 @@ def evaluate_clashes_and_warnings(answers_a: Dict[str, int], answers_b: Dict[str
         clashes.append('privacy')
         warnings.append("Different need for personal space: One of you may want quiet, private time in the room, while the other likes the room to be more social. Decide early on 'room to myself' hours.")
 
-    # 3. Smoking Filter Deal-Breaker: One is strictly smoke-free (1) and other is not (>1)
-    smoke_a = answers_a.get('smoke', 1)
-    smoke_b = answers_b.get('smoke', 1)
-    if (smoke_a == 1 and smoke_b > 1) or (smoke_b == 1 and smoke_a > 1):
-        clashes.append('smoke')
-        warnings.append("Smoking / substance boundary mismatch: One student requires a strictly smoke-free environment.")
+    # 3. Smoking Filter Deal-Breaker (Legacy / Unit-Test backward compatibility)
+    if 'smoke' in answers_a or 'smoke' in answers_b:
+        smoke_a = answers_a.get('smoke', 1)
+        smoke_b = answers_b.get('smoke', 1)
+        if (smoke_a == 1 and smoke_b > 1) or (smoke_b == 1 and smoke_a > 1):
+            clashes.append('smoke')
+            warnings.append("Smoking / substance boundary mismatch: One student requires a strictly smoke-free environment.")
+
+    # Room Temperature / AC Sensitivity Warning: Gap >= 2
+    temp_a = answers_a.get('temp', 2)
+    temp_b = answers_b.get('temp', 2)
+    if abs(temp_a - temp_b) >= 2:
+        warnings.append("Room climate difference: You have different AC and cooling preferences. Agree on nighttime thermostat or fan settings.")
 
     # 4. Noise Warning: Gap >= 2 or student 3-4 paired with student 1
     noise_a = answers_a.get('noise', 2)

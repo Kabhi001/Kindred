@@ -81,8 +81,8 @@ def run():
         ("sharing", "How do you feel about people using your snacks, charger, or toiletries?", 1, 4, 8.0),
         ("intent", "What are you hoping for in a roommate?", 1, 4, 8.0),
         ("flexibility", "When room rules or plans don't go your way, you usually...", 1, 4, 6.0),
-        ("communication", "If your roommate did something that bugged you, you'd...", 1, 4, 6.0),
-        ("smoke", "How do you feel about smoking, vaping, or drinking around you?", 1, 4, 5.0),
+        ("temp", "How do you like your room temperature?", 1, 4, 8.0),
+        ("communication", "If your roommate did something that bugged you, you'd...", 1, 4, 4.0),
     ]
 
     active_keys = [k for k, _, _, _, _ in questions_data]
@@ -152,49 +152,49 @@ def run():
     students_data = [
         # Male Students (Allocated to BH-1 / BH-2)
         ("12310266", "Aarav Patel", "aarav.12310266@college.edu", "M", "1st Year", "Computer Science", bh1, 270,
-         {"sleep": 3, "privacy": 2, "noise": 2, "tidy": 1, "guests": 2, "sharing": 2, "intent": 3, "flexibility": 2, "communication": 1, "smoke": 1},
-         {"sleep": 3, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
+         {"sleep": 3, "privacy": 2, "noise": 2, "tidy": 1, "guests": 2, "sharing": 2, "intent": 3, "flexibility": 2, "communication": 1, "temp": 2},
+         {"sleep": 3, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "temp": 1}),
 
         ("12310267", "Rohan Verma", "rohan.12310267@college.edu", "M", "1st Year", "Electrical Engineering", bh1, 190,
-         {"sleep": 3, "privacy": 2, "noise": 2, "tidy": 1, "guests": 2, "sharing": 2, "intent": 3, "flexibility": 2, "communication": 1, "smoke": 1},
-         {"sleep": 3, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
+         {"sleep": 3, "privacy": 2, "noise": 2, "tidy": 1, "guests": 2, "sharing": 2, "intent": 3, "flexibility": 2, "communication": 1, "temp": 2},
+         {"sleep": 3, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "temp": 1}),
 
         ("12310268", "Kabir Sharma", "kabir.12310268@college.edu", "M", "1st Year", "Mechanical Engineering", bh1, 35,
-         {"sleep": 1, "privacy": 4, "noise": 3, "tidy": 3, "guests": 4, "sharing": 4, "intent": 4, "flexibility": 1, "communication": 2, "smoke": 2},
-         {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 1, "guests": 3, "sharing": 1, "intent": 2, "flexibility": 1, "communication": 1, "smoke": 1}),
+         {"sleep": 1, "privacy": 4, "noise": 3, "tidy": 3, "guests": 4, "sharing": 4, "intent": 4, "flexibility": 1, "communication": 2, "temp": 3},
+         {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 1, "guests": 3, "sharing": 1, "intent": 2, "flexibility": 1, "communication": 1, "temp": 2}),
 
         ("12310269", "Ishaan Gupta", "ishaan.12310269@college.edu", "M", "1st Year", "Physics", bh1, 220,
-         {"sleep": 4, "privacy": 1, "noise": 1, "tidy": 2, "guests": 1, "sharing": 1, "intent": 1, "flexibility": 3, "communication": 3, "smoke": 1},
-         {"sleep": 3, "privacy": 3, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
+         {"sleep": 4, "privacy": 1, "noise": 1, "tidy": 2, "guests": 1, "sharing": 1, "intent": 1, "flexibility": 3, "communication": 3, "temp": 2},
+         {"sleep": 3, "privacy": 3, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "temp": 1}),
 
         ("12310270", "Dev Dixit", "dev.12310270@college.edu", "M", "1st Year", "Architecture", bh1, 340,
-         {"sleep": 4, "privacy": 3, "noise": 3, "tidy": 4, "guests": 3, "sharing": 3, "intent": 3, "flexibility": 2, "communication": 2, "smoke": 2},
-         {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 1, "guests": 2, "sharing": 1, "intent": 2, "flexibility": 1, "communication": 2, "smoke": 1}),
+         {"sleep": 4, "privacy": 3, "noise": 3, "tidy": 4, "guests": 3, "sharing": 3, "intent": 3, "flexibility": 2, "communication": 2, "temp": 3},
+         {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 1, "guests": 2, "sharing": 1, "intent": 2, "flexibility": 1, "communication": 2, "temp": 2}),
 
         ("12310271", "Siddharth Malhotra", "siddharth.12310271@college.edu", "M", "1st Year", "Civil Engineering", bh2, 210,
-         {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 1},
-         {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
+         {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "temp": 2},
+         {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "temp": 1}),
 
         # Female Students (Allocated to GH-1)
         ("12519174", "Meera Nair", "meera.12519174@college.edu", "F", "1st Year", "Data Science", gh1, 320,
-         {"sleep": 2, "privacy": 2, "noise": 1, "tidy": 1, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 1, "smoke": 1},
-         {"sleep": 2, "privacy": 2, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
+         {"sleep": 2, "privacy": 2, "noise": 1, "tidy": 1, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 1, "temp": 2},
+         {"sleep": 2, "privacy": 2, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "temp": 1}),
 
         ("12519175", "Ananya Roy", "ananya.12519175@college.edu", "F", "1st Year", "Biotechnology", gh1, 160,
-         {"sleep": 2, "privacy": 2, "noise": 1, "tidy": 1, "guests": 2, "sharing": 2, "intent": 3, "flexibility": 2, "communication": 1, "smoke": 1},
-         {"sleep": 2, "privacy": 2, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
+         {"sleep": 2, "privacy": 2, "noise": 1, "tidy": 1, "guests": 2, "sharing": 2, "intent": 3, "flexibility": 2, "communication": 1, "temp": 2},
+         {"sleep": 2, "privacy": 2, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "temp": 1}),
 
         ("12519176", "Diya Sharma", "diya.12519176@college.edu", "F", "1st Year", "AI & Robotics", gh1, 290,
-         {"sleep": 1, "privacy": 1, "noise": 1, "tidy": 2, "guests": 1, "sharing": 1, "intent": 1, "flexibility": 3, "communication": 2, "smoke": 1},
-         {"sleep": 3, "privacy": 3, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
+         {"sleep": 1, "privacy": 1, "noise": 1, "tidy": 2, "guests": 1, "sharing": 1, "intent": 1, "flexibility": 3, "communication": 2, "temp": 2},
+         {"sleep": 3, "privacy": 3, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "temp": 1}),
 
         ("12519177", "Riya Sen", "riya.12519177@college.edu", "F", "1st Year", "Chemical Engineering", gh1, 10,
-         {"sleep": 3, "privacy": 3, "noise": 2, "tidy": 3, "guests": 3, "sharing": 3, "intent": 3, "flexibility": 2, "communication": 2, "smoke": 1},
-         {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
+         {"sleep": 3, "privacy": 3, "noise": 2, "tidy": 3, "guests": 3, "sharing": 3, "intent": 3, "flexibility": 2, "communication": 2, "temp": 2},
+         {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "temp": 1}),
 
         ("12519178", "Tanvi Patel", "tanvi.12519178@college.edu", "F", "1st Year", "Mathematics", gh1, 80,
-         {"sleep": 2, "privacy": 2, "noise": 1, "tidy": 1, "guests": 1, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 1},
-         {"sleep": 2, "privacy": 2, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
+         {"sleep": 2, "privacy": 2, "noise": 1, "tidy": 1, "guests": 1, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "temp": 2},
+         {"sleep": 2, "privacy": 2, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "temp": 1}),
     ]
 
     for reg_no, name, email, g, yr, br, blk, hue, answers, importance in students_data:
@@ -223,7 +223,7 @@ def run():
             q_obj = Question.objects.filter(key=q_key).first()
             if q_obj:
                 imp_val = importance.get(q_key, 2)
-                is_db = (imp_val == 3) or (q_key in ['sleep', 'privacy'] and imp_val == 3) or (q_key == 'smoke' and ans_val == 1)
+                is_db = (imp_val == 3) or (q_key in ['sleep', 'privacy'] and imp_val == 3) 
                 Response.objects.update_or_create(
                     user=student,
                     question=q_obj,
