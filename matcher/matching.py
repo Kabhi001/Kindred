@@ -1,35 +1,60 @@
-﻿"""
+"""
 Core matching algorithm and profile encoding/decoding utilities for Kindred.
+Incorporates empirical university roommate compatibility dimensions and
+constructive, non-blaming clash warning rules.
 """
 
 import base64
 import json
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 
-# Core lifestyle traits evaluated in the kindred quiz
-KEYS = ['sleep', 'wake', 'smoke', 'tidy', 'noise', 'study', 'guests', 'social']
+# 10 core lifestyle dimensions derived from empirical campus housing research
+KEYS = [
+    'sleep',
+    'privacy',
+    'noise',
+    'tidy',
+    'guests',
+    'sharing',
+    'intent',
+    'flexibility',
+    'communication',
+    'smoke',
+]
 
 # Possible range (1 to max_val) for each trait
 RANGE = {
-    'sleep': 4,   # 1: <10pm, 2: ~11pm, 3: past midnight, 4: 2am+
-    'wake': 4,    # 1: <6am, 2: 6-8am, 3: 8-10am, 4: late morning
-    'smoke': 3,   # 1: Never, 2: Occasionally not indoors, 3: Regularly
-    'tidy': 4,    # 4: Spotless, 3: Tidy, 2: Lived-in, 1: Creative storm
-    'noise': 4,   # 1: Silent, 2: Quiet hum, 3: Soft music, 4: Any noise
-    'study': 4,   # 1: Room night, 2: Room day, 3: Library, 4: Anywhere
-    'guests': 4,  # 1: Rare, 2: Now and then, 3: Often, 4: Open house
-    'social': 4,  # 1: Alone, 2: One close friend, 3: Big group, 4: Depends
+    'sleep': 4,          # 1: <11pm, 2: 11pm-1am, 3: 1am-3am, 4: 3am+
+    'privacy': 4,        # 1: A lot, 2: A few hours, 3: A little, 4: Barely
+    'noise': 4,          # 1: Quiet/silent, 2: Earphones, 3: Speaker sometimes, 4: Out loud normal
+    'tidy': 4,           # 1: Spotless daily, 2: Neat, 3: Lived-in, 4: Relaxed
+    'guests': 4,         # 1: Almost never, 2: Occasionally heads-up, 3: Most weeks, 4: Open door
+    'sharing': 4,        # 1: Keep separate, 2: Ask first, 3: Small things ok, 4: Share all
+    'intent': 4,         # 1: Keep to ourselves, 2: Friendly separate, 3: Good friends, 4: Best friends
+    'flexibility': 4,    # 1: Adjust easily, 2: Adjust after talk, 3: Prefer my way compromise, 4: Strongly prefer
+    'communication': 4,  # 1: Within a day, 2: After few days, 3: Drop hints, 4: Say nothing
+    'smoke': 4,          # 1: Not near me, 2: Outside hostel only, 3: Not in bedroom, 4: No issue
+    # Backward compatibility for legacy test cases
+    'wake': 4,
+    'study': 4,
+    'social': 4,
 }
 
-# Base weight importance in roommate harmony
+# Empirical weights reflecting friction impact in shared campus living (Total: 100)
 BASE_WEIGHTS = {
-    'sleep': 5.0,
+    'sleep': 18.0,
+    'privacy': 16.0,
+    'noise': 12.0,
+    'tidy': 12.0,
+    'guests': 10.0,
+    'sharing': 8.0,
+    'intent': 8.0,
+    'flexibility': 6.0,
+    'communication': 6.0,
     'smoke': 5.0,
-    'tidy': 4.0,
-    'noise': 4.0,
+    # Backward compatibility
     'wake': 3.0,
     'study': 3.0,
-    'guests': 3.0,
     'social': 2.0,
 }
 
@@ -40,59 +65,140 @@ IMPORTANCE_MULTIPLIER = {
     3: 2.0,
 }
 
-# Short display labels
+# Short display labels for radar/bloom chart and summary chips
 SHORT_LABELS = {
     'sleep': 'Sleep',
-    'wake': 'Morning',
-    'smoke': 'Smoke',
-    'tidy': 'Tidy',
+    'privacy': 'Privacy',
     'noise': 'Noise',
-    'study': 'Study',
+    'tidy': 'Tidy',
     'guests': 'Guests',
+    'sharing': 'Sharing',
+    'intent': 'Bond',
+    'flexibility': 'Flexibility',
+    'communication': 'Openness',
+    'smoke': 'Smoke',
+    # Legacy fallbacks
+    'wake': 'Morning',
+    'study': 'Study',
     'social': 'Social',
 }
 
 # Friendly trait names
 TRAIT_NAMES = {
     'sleep': 'sleep schedule',
-    'wake': 'wake-up rhythm',
-    'smoke': 'smoking stance',
+    'privacy': 'personal space',
+    'noise': 'room sound level',
     'tidy': 'room cleanliness',
-    'noise': 'noise tolerance',
+    'guests': 'guest boundaries',
+    'sharing': 'sharing belongings',
+    'intent': 'roommate closeness',
+    'flexibility': 'handling differences',
+    'communication': 'communication style',
+    'smoke': 'smoking stance',
+    # Legacy fallbacks
+    'wake': 'wake-up rhythm',
     'study': 'study habits',
-    'guests': 'guest policy',
     'social': 'social recharge style',
 }
 
 # Harmonious descriptors
 GOOD_DESCRIPTORS = {
-    'sleep': 'wind down at a similar time',
-    'wake': 'have matching morning routines',
-    'smoke': 'share the same stance on smoking',
-    'tidy': 'keep a similar level of tidiness',
-    'noise': 'thrive with the same sound level',
-    'study': 'share preferred study spaces',
+    'sleep': 'wind down at similar times',
+    'privacy': 'have aligned personal space needs',
+    'noise': 'prefer the same room sound level',
+    'tidy': 'keep a similar level of cleanliness',
     'guests': 'feel comfortable with the same guest policy',
+    'sharing': 'share similar boundaries on belongings',
+    'intent': 'seek the same kind of roommate relationship',
+    'flexibility': 'balance flexibility and personal preferences',
+    'communication': 'handle feedback with open communication',
+    'smoke': 'share matching substance boundaries',
+    # Legacy fallbacks
+    'wake': 'have matching morning routines',
+    'study': 'share preferred study spaces',
     'social': 'recharge in complementary ways',
 }
 
 # Friction descriptors
 FRICTION_DESCRIPTORS = {
     'sleep': 'different sleep timing',
-    'wake': 'different wake-up hours',
-    'smoke': 'conflicting views on smoking',
-    'tidy': 'different tidiness expectations',
+    'privacy': 'different personal space needs',
     'noise': 'different noise comfort levels',
-    'study': 'different study environments',
+    'tidy': 'different tidiness expectations',
     'guests': 'different guest boundaries',
+    'sharing': 'different sharing boundaries',
+    'intent': 'different expectations for closeness',
+    'flexibility': 'both have very strong preferences',
+    'communication': 'both tend to leave issues unspoken',
+    'smoke': 'conflicting views on smoking/substances',
+    # Legacy fallbacks
+    'wake': 'different wake-up hours',
+    'study': 'different study environments',
     'social': 'different social energies',
 }
+
+
+def evaluate_clashes_and_warnings(answers_a: Dict[str, int], answers_b: Dict[str, int]) -> Tuple[List[str], List[str]]:
+    """
+    Evaluate empirical deal-breaker clashes and constructive friction warnings
+    based on the 10 university lifestyle dimensions.
+    Returns: (clashes, warnings)
+    """
+    clashes: List[str] = []
+    warnings: List[str] = []
+
+    # 1. Sleep Schedule Deal-Breaker: Gap >= 2
+    sleep_a = answers_a.get('sleep', 2)
+    sleep_b = answers_b.get('sleep', 2)
+    if abs(sleep_a - sleep_b) >= 2:
+        clashes.append('sleep')
+        warnings.append("Different sleep rhythms: You two tend to sleep at quite different times. Agree on lights-out time, desk-lamp or earphone rules in your first week.")
+
+    # 2. Personal Space (Privacy) Deal-Breaker: Gap >= 2
+    priv_a = answers_a.get('privacy', 2)
+    priv_b = answers_b.get('privacy', 2)
+    if abs(priv_a - priv_b) >= 2:
+        clashes.append('privacy')
+        warnings.append("Different need for personal space: One of you may want quiet, private time in the room, while the other likes the room to be more social. Decide early on 'room to myself' hours.")
+
+    # 3. Smoking Filter Deal-Breaker: One is strictly smoke-free (1) and other is not (>1)
+    smoke_a = answers_a.get('smoke', 1)
+    smoke_b = answers_b.get('smoke', 1)
+    if (smoke_a == 1 and smoke_b > 1) or (smoke_b == 1 and smoke_a > 1):
+        clashes.append('smoke')
+        warnings.append("Smoking / substance boundary mismatch: One student requires a strictly smoke-free environment.")
+
+    # 4. Noise Warning: Gap >= 2 or student 3-4 paired with student 1
+    noise_a = answers_a.get('noise', 2)
+    noise_b = answers_b.get('noise', 2)
+    if abs(noise_a - noise_b) >= 2 or (noise_a >= 3 and noise_b == 1) or (noise_b >= 3 and noise_a == 1):
+        warnings.append("Noise and sleep sensitivity: One of you is comfortable with sound in the room, and the other may be more sensitive to it. Earphones after a set hour work well.")
+
+    # 5. Cleanliness & Tidiness Warning: Gap >= 2
+    tidy_a = answers_a.get('tidy', 2)
+    tidy_b = answers_b.get('tidy', 2)
+    if abs(tidy_a - tidy_b) >= 2:
+        warnings.append("Different tidiness standards: You have different ideas of what 'clean enough' means. A simple cleaning schedule usually settles this.")
+
+    # 6. Flexibility Conflict Warning: Both have strong preferences (>= 3)
+    flex_a = answers_a.get('flexibility', 2)
+    flex_b = answers_b.get('flexibility', 2)
+    if flex_a >= 3 and flex_b >= 3:
+        warnings.append("Both have strong preferences: You both know what you like. Agree early on who decides what and how you'll settle disagreements.")
+
+    # 7. Communication Style Warning: Both avoid awkward conversations (>= 3)
+    comm_a = answers_a.get('communication', 2)
+    comm_b = answers_b.get('communication', 2)
+    if comm_a >= 3 and comm_b >= 3:
+        warnings.append("Both prefer to avoid awkward conversations: Small problems can pile up unspoken. Try a quick check-in at the end of week one: 'Anything I could do differently?'")
+
+    return list(dict.fromkeys(clashes)), list(dict.fromkeys(warnings))
 
 
 def calculate_persona(answers: Dict[str, int]) -> str:
     """
     Calculate the poetic persona archetype based on quiz answers.
-    e.g. 'Moonlit Scholar', 'Dawn Curator', 'Midnight Host'.
+    e.g. 'Moonlit Curator', 'Dawn Sage', 'Midnight Host'.
     """
     sleep_val = answers.get('sleep', 2)
     sleep_prefixes = ['Dawn', 'Daylight', 'Moonlit', 'Midnight']
@@ -102,17 +208,20 @@ def calculate_persona(answers: Dict[str, int]) -> str:
     guests = answers.get('guests', 2)
     tidy = answers.get('tidy', 2)
     noise = answers.get('noise', 2)
+    privacy = answers.get('privacy', 2)
     study = answers.get('study', 2)
 
     if guests >= 3:
         suffix = 'Host'
-    elif tidy == 4:
+    elif tidy == 1:
         suffix = 'Curator'
     elif noise == 1:
         suffix = 'Sage'
+    elif privacy == 1:
+        suffix = 'Sanctuary'
     elif study in (1, 3):
         suffix = 'Scholar'
-    elif tidy == 1:
+    elif tidy == 4:
         suffix = 'Dreamer'
     else:
         suffix = 'Wanderer'
@@ -134,16 +243,21 @@ def calculate_match_score(
     similarities = {}
     clashes = []
 
-    for k in KEYS:
+    active_keys = [k for k in KEYS if k in my_answers or k in peer_answers]
+    if not active_keys:
+        active_keys = KEYS
+
+    for k in active_keys:
         my_val = my_answers.get(k, 2)
         peer_val = peer_answers.get(k, 2)
-        rng = RANGE[k]
+        rng = RANGE.get(k, 4)
 
         sim = 1.0 - (abs(my_val - peer_val) / (rng - 1.0))
-        similarities[k] = max(0.0, min(1.0, sim))
+        sim = max(0.0, min(1.0, sim))
+        similarities[k] = sim
 
         imp = my_importance.get(k, 2)
-        weight = BASE_WEIGHTS[k] * IMPORTANCE_MULTIPLIER.get(imp, 1.0)
+        weight = BASE_WEIGHTS.get(k, 5.0) * IMPORTANCE_MULTIPLIER.get(imp, 1.0)
 
         total_weighted_sim += weight * sim
         total_weight += weight
@@ -156,6 +270,12 @@ def calculate_match_score(
             if peer_imp == 3 and sim < 0.5 and k not in clashes:
                 clashes.append(k)
 
+    # Incorporate empirical clashes & warnings
+    emp_clashes, emp_warnings = evaluate_clashes_and_warnings(my_answers, peer_answers)
+    for c in emp_clashes:
+        if c not in clashes:
+            clashes.append(c)
+
     if total_weight > 0:
         raw_score = round((total_weighted_sim / total_weight) * 100)
     else:
@@ -163,13 +283,13 @@ def calculate_match_score(
 
     final_score = min(raw_score, 59) if clashes else raw_score
 
-    strong_traits = [k for k in KEYS if similarities[k] >= 0.85]
-    strong_traits.sort(key=lambda k: BASE_WEIGHTS[k], reverse=True)
+    strong_traits = [k for k in active_keys if similarities.get(k, 0) >= 0.85]
+    strong_traits.sort(key=lambda k: BASE_WEIGHTS.get(k, 5.0), reverse=True)
     top_good = strong_traits[:3]
 
-    friction_candidates = [k for k in KEYS if similarities[k] < 0.6]
+    friction_candidates = [k for k in active_keys if similarities.get(k, 1) < 0.6]
     friction_candidates.sort(
-        key=lambda k: BASE_WEIGHTS[k] * (1.0 - similarities[k]),
+        key=lambda k: BASE_WEIGHTS.get(k, 5.0) * (1.0 - similarities.get(k, 1)),
         reverse=True
     )
     top_friction = friction_candidates[0] if friction_candidates else None
@@ -177,6 +297,7 @@ def calculate_match_score(
     return {
         'score': final_score,
         'clashes': clashes,
+        'warnings': emp_warnings,
         'is_dealbreaker': len(clashes) > 0,
         'good': top_good,
         'friction': top_friction,

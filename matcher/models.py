@@ -29,6 +29,11 @@ class Room(models.Model):
     floor = models.PositiveSmallIntegerField(default=1)
     is_accessible = models.BooleanField(default=False, help_text="Priority for students with accessibility needs")
     amenities = models.JSONField(default=list, blank=True, help_text="List of room amenities")
+    room_type = models.CharField(max_length=10, choices=[('SINGLE','Single'),('DOUBLE','Double'),('TRIPLE','Triple'),('QUAD','Quad')], default='DOUBLE')
+    facility_flags = models.JSONField(default=list, blank=True, help_text="e.g. ['AC','ATTACHED_WASH','BALCONY','ACCESSIBLE']")
+    bed_labels = models.JSONField(default=list, blank=True, help_text="e.g. ['Bed-A','Bed-B']")
+    status = models.CharField(max_length=12, choices=[('AVAILABLE','Available'),('OCCUPIED','Occupied'),('MAINTENANCE','Under Maintenance'),('RESERVED','Reserved')], default='AVAILABLE')
+    price_per_semester = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     class Meta:
         unique_together = ('block', 'number')
@@ -86,6 +91,12 @@ class StudentUser(models.Model):
     locked_until = models.DateTimeField(null=True, blank=True)
     last_login_at = models.DateTimeField(null=True, blank=True)
     last_login_ip = models.CharField(max_length=45, blank=True, default="")
+    is_freshman = models.BooleanField(default=False, help_text="First-year flag for anti-ragging isolation rules")
+    disability_verified = models.BooleanField(default=False, help_text="True when disability documentation approved")
+    dietary_pref = models.CharField(max_length=20, choices=[('VEG','Vegetarian'),('NONVEG','Non-Vegetarian'),('VEGAN','Vegan'),('JAIN','Jain'),('ANY','No Preference')], default='ANY', blank=True)
+    mess_plan = models.CharField(max_length=20, blank=True, default='', help_text="Assigned mess/dining hall plan")
+    password_reset_token = models.CharField(max_length=64, blank=True, default='')
+    password_reset_expires = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ['name']
@@ -460,4 +471,151 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.student.roll_no}: {self.title} (Read: {self.is_read})"
+
+class AcademicSession(models.Model):
+    name = models.CharField(max_length=20, unique=True, help_text="e.g. '2026-27'")
+    start_date = models.DateField()
+    end_date = models.DateField()
+    is_current = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-start_date']
+
+    def __str__(self):
+        return f"{self.name} ({'Current' if self.is_current else 'Archived'})"
+
+
+class HostelFee(models.Model):
+    FEE_STATUS = [('PENDING','Pending'),('VERIFIED','Verified'),('EXEMPTED','Exempted')]
+    student = models.ForeignKey(StudentUser, on_delete=models.CASCADE, related_name='fees')
+    academic_session = models.ForeignKey(AcademicSession, on_delete=models.CASCADE, related_name='fees', null=True, blank=True)
+    academic_year = models.CharField(max_length=20, help_text="e.g. '2026-27'")
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_ref = models.CharField(max_length=64, blank=True, default='')
+    status = models.CharField(max_length=10, choices=FEE_STATUS, default='PENDING')
+    receipt_file = models.FileField(upload_to='fee_receipts/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+    verified_by = models.CharField(max_length=80, blank=True, default='')
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ('student', 'academic_year')
+
+    def __str__(self):
+        return f"Fee: {self.student.roll_no} - {self.academic_year} ({self.status})"
+
+
+class EmergencyContact(models.Model):
+    student = models.OneToOneField(StudentUser, on_delete=models.CASCADE, related_name='emergency_contact')
+    blood_group = models.CharField(max_length=5, blank=True, default='')
+    medical_conditions = models.TextField(blank=True, default='')
+    chronic_allergies = models.TextField(blank=True, default='')
+    parent_name = models.CharField(max_length=100, blank=True, default='')
+    parent_phone = models.CharField(max_length=20, blank=True, default='')
+    parent_email = models.EmailField(blank=True, default='')
+    local_guardian_name = models.CharField(max_length=100, blank=True, default='')
+    local_guardian_phone = models.CharField(max_length=20, blank=True, default='')
+    home_address = models.TextField(blank=True, default='')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Emergency: {self.student.roll_no} - {self.parent_name}"
+
+
+class HostelCheckin(models.Model):
+    allotment = models.OneToOneField(Allotment, on_delete=models.CASCADE, related_name='checkin')
+    checkin_date = models.DateTimeField(default=timezone.now)
+    key_issued = models.BooleanField(default=False)
+    inventory_checklist = models.JSONField(default=dict, blank=True, help_text="e.g. {'mattress':true,'table':true,'chair':true,'cupboard_key':false}")
+    warden_signoff = models.BooleanField(default=False)
+    warden_name = models.CharField(max_length=80, blank=True, default='')
+    signed_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True, default='')
+
+    def __str__(self):
+        return f"Check-in: {self.allotment.user.roll_no} @ {self.allotment.room} ({self.checkin_date.strftime('%Y-%m-%d')})"
+
+
+class RoomSwapRequest(models.Model):
+    SWAP_STATUS = [('PENDING_PEER','Peer Approval Pending'),('WARDEN_REVIEW','Warden Review'),('APPROVED','Approved'),('REJECTED','Rejected')]
+    requester = models.ForeignKey(StudentUser, on_delete=models.CASCADE, related_name='swap_requests_out')
+    requester_pair = models.ForeignKey(Pair, on_delete=models.CASCADE, related_name='outgoing_swaps')
+    target_pair = models.ForeignKey(Pair, on_delete=models.CASCADE, related_name='incoming_swaps')
+    reason = models.TextField(blank=True, default='')
+    status = models.CharField(max_length=20, choices=SWAP_STATUS, default='PENDING_PEER')
+    peer_approved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.CharField(max_length=80, blank=True, default='')
+    warden_note = models.TextField(blank=True, default='')
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Swap: {self.requester.roll_no} -> Pair#{self.target_pair.id} ({self.status})"
+
+
+class MaintenanceTicket(models.Model):
+    CATEGORY_CHOICES = [('ELECTRICAL','Electrical'),('PLUMBING','Plumbing'),('FURNITURE','Furniture'),('INTERNET','Internet'),('ROOMMATE','Roommate Dispute'),('OTHER','Other')]
+    PRIORITY_CHOICES = [(1,'Low'),(2,'Medium'),(3,'High'),(4,'Critical')]
+    STATUS_CHOICES = [('OPEN','Open'),('IN_PROGRESS','In Progress'),('RESOLVED','Resolved'),('REJECTED','Rejected')]
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='maintenance_tickets')
+    student = models.ForeignKey(StudentUser, on_delete=models.CASCADE, related_name='filed_maintenance')
+    category = models.CharField(max_length=12, choices=CATEGORY_CHOICES, default='OTHER')
+    subject = models.CharField(max_length=200)
+    description = models.TextField()
+    priority = models.IntegerField(choices=PRIORITY_CHOICES, default=2)
+    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='OPEN')
+    resolution_notes = models.TextField(blank=True, default='')
+    assigned_to = models.CharField(max_length=80, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-priority', '-created_at']
+
+    def __str__(self):
+        return f"Maint#{self.id}: {self.category} - {self.subject} ({self.status})"
+
+
+class GatePass(models.Model):
+    PASS_STATUS = [('PENDING','Pending'),('APPROVED','Approved'),('REJECTED','Rejected'),('RETURNED','Returned')]
+    student = models.ForeignKey(StudentUser, on_delete=models.CASCADE, related_name='gate_passes')
+    leave_date = models.DateTimeField()
+    return_date = models.DateTimeField()
+    destination = models.CharField(max_length=200)
+    reason = models.TextField(blank=True, default='')
+    parent_contact = models.CharField(max_length=20, blank=True, default='')
+    status = models.CharField(max_length=10, choices=PASS_STATUS, default='PENDING')
+    approved_by = models.CharField(max_length=80, blank=True, default='')
+    actual_return = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"GatePass: {self.student.roll_no} ({self.leave_date.strftime('%Y-%m-%d')} to {self.return_date.strftime('%Y-%m-%d')}) - {self.status}"
+
+
+class DisciplinaryRecord(models.Model):
+    SEVERITY_CHOICES = [(1,'Warning'),(2,'Fine'),(3,'Suspension'),(4,'Expulsion')]
+    student = models.ForeignKey(StudentUser, on_delete=models.CASCADE, related_name='disciplinary_records')
+    violation = models.CharField(max_length=200)
+    description = models.TextField(blank=True, default='')
+    severity = models.IntegerField(choices=SEVERITY_CHOICES, default=1)
+    fine_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    fine_paid = models.BooleanField(default=False)
+    issued_by = models.CharField(max_length=80)
+    issued_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-issued_at']
+
+    def __str__(self):
+        return f"Discipline: {self.student.roll_no} - {self.violation} (Severity: {self.severity})"
 

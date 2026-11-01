@@ -81,14 +81,14 @@ function empty(h, p, b){
   return "<div class='card empty'><svg viewBox='0 0 200 120'><circle cx='72' cy='60' r='44'/><circle cx='128' cy='60' r='44'/></svg><h3>" + h + "</h3><p class='sm'>" + p + "</p>" + (b || "") + "</div>";
 }
 
-var KEYS = ["sleep", "wake", "smoke", "tidy", "noise", "study", "guests", "social"];
-var RANGE = {sleep: 4, wake: 4, smoke: 3, tidy: 4, noise: 4, study: 4, guests: 4, social: 4};
-var BASE = {sleep: 5, smoke: 5, tidy: 4, noise: 4, wake: 3, study: 3, guests: 3, social: 2};
+var KEYS = ["sleep", "privacy", "noise", "tidy", "guests", "sharing", "intent", "flexibility", "communication", "smoke"];
+var RANGE = {sleep: 4, privacy: 4, noise: 4, tidy: 4, guests: 4, sharing: 4, intent: 4, flexibility: 4, communication: 4, smoke: 4, wake: 4, study: 4, social: 4};
+var BASE = {sleep: 18, privacy: 16, noise: 12, tidy: 12, guests: 10, sharing: 8, intent: 8, flexibility: 6, communication: 6, smoke: 5, wake: 3, study: 3, social: 2};
 var MUL = {1: .5, 2: 1, 3: 2};
-var SH = {sleep: "Sleep", wake: "Morning", smoke: "Smoke", tidy: "Tidy", noise: "Noise", study: "Study", guests: "Guests", social: "Social"};
-var NM = {sleep: "sleep", wake: "mornings", smoke: "smoking", tidy: "tidiness", noise: "noise", study: "study habits", guests: "guests", social: "recharging"};
-var GOOD = {sleep: "wind down at a similar time", wake: "have similar mornings", smoke: "share a stance on smoking", tidy: "keep a similar level of tidy", noise: "want the same noise level", study: "study in similar places", guests: "feel the same about guests", social: "recharge in a similar way"};
-var BAD = {sleep: "different sleep timing", wake: "different wake-up times", smoke: "different views on smoking", tidy: "different tidiness", noise: "different noise comfort", study: "different study habits", guests: "different guest habits", social: "different ways to recharge"};
+var SH = {sleep: "Sleep", privacy: "Privacy", noise: "Noise", tidy: "Tidy", guests: "Guests", sharing: "Sharing", intent: "Bond", flexibility: "Flexibility", communication: "Openness", smoke: "Smoke", wake: "Morning", study: "Study", social: "Social"};
+var NM = {sleep: "sleep schedule", privacy: "personal space", noise: "room sound level", tidy: "cleanliness", guests: "guest policy", sharing: "sharing belongings", intent: "roommate connection", flexibility: "flexibility", communication: "communication", smoke: "smoking/substances", wake: "morning rhythm", study: "study habits", social: "social energy"};
+var GOOD = {sleep: "wind down at similar times", privacy: "have aligned personal space needs", noise: "prefer the same room sound level", tidy: "keep a similar level of cleanliness", guests: "feel comfortable with the same guest policy", sharing: "share similar boundaries on belongings", intent: "seek the same kind of roommate relationship", flexibility: "balance flexibility and personal preferences", communication: "handle feedback with open communication", smoke: "share matching substance boundaries", wake: "have matching morning routines", study: "share preferred study spaces", social: "recharge in complementary ways"};
+var BAD = {sleep: "different sleep timing", privacy: "different personal space needs", noise: "different noise comfort levels", tidy: "different tidiness expectations", guests: "different guest boundaries", sharing: "different sharing boundaries", intent: "different expectations for closeness", flexibility: "both have very strong preferences", communication: "both tend to leave issues unspoken", smoke: "conflicting views on smoking/substances", wake: "different wake-up hours", study: "different study environments", social: "different social energies"};
 
 var S = {
   me: null,
@@ -120,14 +120,14 @@ function bloom(L){
   var s = "<div class='bw'><svg class='bl' viewBox='0 0 300 300' role='img' aria-label='Trait bloom chart'>";
   [28, 56, 84, 112].forEach(function(r){ s += "<circle class='gr' cx='150' cy='150' r='" + r + "'/>" });
   KEYS.forEach(function(k, i){
-    var t = -Math.PI / 2 + i * Math.PI / 4, e = P(112, t).split(","), l = P(128, t).split(","), c = Math.cos(t);
-    s += "<line class='ax' x1='150' y1='150' x2='" + e[0] + "' y2='" + e[1] + "'/><text class='lb' x='" + l[0] + "' y='" + (+l[1] + 4) + "' text-anchor='" + (c > .3 ? "start" : c < -.3 ? "end" : "middle") + "'>" + SH[k] + "</text>";
+    var t = -Math.PI / 2 + i * (2 * Math.PI / KEYS.length), e = P(112, t).split(","), l = P(128, t).split(","), c = Math.cos(t);
+    s += "<line class='ax' x1='150' y1='150' x2='" + e[0] + "' y2='" + e[1] + "'/><text class='lb' x='" + l[0] + "' y='" + (+l[1] + 4) + "' text-anchor='" + (c > .3 ? "start" : c < -.3 ? "end" : "middle") + "'>" + (SH[k] || k) + "</text>";
   });
   L.forEach(function(e, n){
     KEYS.forEach(function(k, i){
       var ans = (e && e.p && e.p.a && e.p.a[k] != null) ? e.p.a[k] : 2;
       var imp = (e && e.p && e.p.i && e.p.i[k] != null) ? e.p.i[k] : 2;
-      var t = -Math.PI / 2 + i * Math.PI / 4, len = 112 * ans / RANGE[k];
+      var t = -Math.PI / 2 + i * (2 * Math.PI / KEYS.length), len = 112 * ans / (RANGE[k] || 4);
       s += "<path class='pt " + e.c + "' style='--i:" + (i + n * 3) + ";stroke-width:" + (1 + (imp - 1) * 1.4) + "' d='M150,150Q" + P(len * .62, t - .42) + " " + P(len, t) + "Q" + P(len * .62, t + .42) + " 150,150Z'/>";
     });
   });
@@ -136,27 +136,71 @@ function bloom(L){
 
 function score(p){
   var me = S.me;
-  if (!me || !me.a) return {v: 50, clash: [], good: [], bad: null};
-  var tot = 0, ws = 0, sims = {}, clash = [];
+  if (!me || !me.a) return {v: 50, clash: [], good: [], bad: null, warnings: []};
+  var tot = 0, ws = 0, sims = {}, clash = [], warnings = [];
+
   KEYS.forEach(function(k){
-    var myAns = (me.a && me.a[k]) ? me.a[k] : 2;
-    var peAns = (p && p.a && p.a[k]) ? p.a[k] : 2;
-    var s = 1 - Math.abs(myAns - peAns) / (RANGE[k] - 1);
-    var myImp = (me.i && me.i[k]) ? me.i[k] : 2;
-    var w = BASE[k] * (MUL[myImp] || 1);
+    var myAns = (me.a && me.a[k] != null) ? me.a[k] : 2;
+    var peAns = (p && p.a && p.a[k] != null) ? p.a[k] : 2;
+    var rng = (RANGE[k] || 4) - 1;
+    var s = Math.max(0, Math.min(1, 1 - Math.abs(myAns - peAns) / rng));
+    var myImp = (me.i && me.i[k] != null) ? me.i[k] : 2;
+    var w = (BASE[k] || 5) * (MUL[myImp] || 1);
     tot += w * s;
     ws += w;
     sims[k] = s;
-    if (myImp === 3 && s < .5) clash.push(k);
+    if (myImp === 3 && s < .5 && clash.indexOf(k) < 0) clash.push(k);
     if (p && p.i && p.i[k] === 3 && s < .5 && clash.indexOf(k) < 0) clash.push(k);
   });
-  var v = Math.round(tot / ws * 100);
+
+  // Empirical deal-breakers and clash warnings
+  var mySleep = (me.a && me.a.sleep) || 2, peSleep = (p && p.a && p.a.sleep) || 2;
+  if (Math.abs(mySleep - peSleep) >= 2) {
+    if (clash.indexOf("sleep") < 0) clash.push("sleep");
+    warnings.push("Different sleep rhythms: You two tend to sleep at quite different times. Agree on lights-out time, desk-lamp or earphone rules in your first week.");
+  }
+
+  var myPriv = (me.a && me.a.privacy) || 2, pePriv = (p && p.a && p.a.privacy) || 2;
+  if (Math.abs(myPriv - pePriv) >= 2) {
+    if (clash.indexOf("privacy") < 0) clash.push("privacy");
+    warnings.push("Different need for personal space: One of you may want quiet, private time in the room, while the other likes the room to be more social. Decide early on 'room to myself' hours.");
+  }
+
+  var mySmoke = (me.a && me.a.smoke) || 1, peSmoke = (p && p.a && p.a.smoke) || 1;
+  if ((mySmoke === 1 && peSmoke > 1) || (peSmoke === 1 && mySmoke > 1)) {
+    if (clash.indexOf("smoke") < 0) clash.push("smoke");
+    warnings.push("Smoking / substance boundary mismatch: One student requires a strictly smoke-free environment.");
+  }
+
+  var myNoise = (me.a && me.a.noise) || 2, peNoise = (p && p.a && p.a.noise) || 2;
+  if (Math.abs(myNoise - peNoise) >= 2 || (myNoise >= 3 && peNoise === 1) || (peNoise >= 3 && myNoise === 1)) {
+    warnings.push("Noise and sleep sensitivity: One of you is comfortable with sound in the room, and the other may be more sensitive to it. Earphones after a set hour work well.");
+  }
+
+  var myTidy = (me.a && me.a.tidy) || 2, peTidy = (p && p.a && p.a.tidy) || 2;
+  if (Math.abs(myTidy - peTidy) >= 2) {
+    warnings.push("Different tidiness standards: You have different ideas of what 'clean enough' means. A simple cleaning schedule usually settles this.");
+  }
+
+  var myFlex = (me.a && me.a.flexibility) || 2, peFlex = (p && p.a && p.a.flexibility) || 2;
+  if (myFlex >= 3 && peFlex >= 3) {
+    warnings.push("Both have strong preferences: You both know what you like. Agree early on who decides what and how you'll settle disagreements.");
+  }
+
+  var myComm = (me.a && me.a.communication) || 2, peComm = (p && p.a && p.a.communication) || 2;
+  if (myComm >= 3 && peComm >= 3) {
+    warnings.push("Both prefer to avoid awkward conversations: Small problems can pile up unspoken. Try a quick check-in at the end of week one: 'Anything I could do differently?'");
+  }
+
+  var v = ws > 0 ? Math.round(tot / ws * 100) : 50;
   if (clash.length) v = Math.min(v, 59);
+
   return {
     v: v,
     clash: clash,
-    good: KEYS.filter(function(k){ return sims[k] >= .85 }).sort(function(a, b){ return BASE[b] - BASE[a] }).slice(0, 3),
-    bad: KEYS.filter(function(k){ return sims[k] < .6 }).sort(function(a, b){ return BASE[b] * (1 - sims[b]) - BASE[a] * (1 - sims[a]) })[0]
+    warnings: warnings,
+    good: KEYS.filter(function(k){ return sims[k] >= .85 && clash.indexOf(k) < 0 }).sort(function(a, b){ return (BASE[b] || 0) - (BASE[a] || 0) }).slice(0, 3),
+    bad: KEYS.filter(function(k){ return sims[k] < .6 && clash.indexOf(k) < 0 }).sort(function(a, b){ return (BASE[b] || 0) * (1 - sims[b]) - (BASE[a] || 0) * (1 - sims[a]) })[0]
   };
 }
 
@@ -240,39 +284,129 @@ function waves(){
   raf = requestAnimationFrame(f);
 }
 
-/* QUIZ */
+/* QUIZ - 10 Empirical Research Dimensions */
 var Q = [
-  {id: "sleep", c: 1, t: "When does your day usually end?", o: [["Before 10 pm", 1], ["Around 11 pm", 2], ["Past midnight", 3], ["2 am or later", 4]]},
-  {id: "wake", c: 1, t: "And when do you usually wake up?", o: [["Before 6 am", 1], ["Between 6 and 8", 2], ["Between 8 and 10", 3], ["Late morning", 4]]},
-  {id: "light", t: "When you are up late, you…", w: function(a){ return a && a.sleep >= 3 }, o: [["Use a small desk lamp", 1], ["Just a laptop glow", 2], ["Keep the main light on", 3], ["Step out of the room", 4]]},
-  {id: "early", t: "If a roommate came in at 1 am, you would…", w: function(a){ return a && (a.sleep === 1 || a.wake === 1) }, o: [["Sleep right through it", 1], ["Wake up, but be fine", 2], ["Be genuinely upset", 3]]},
-  {id: "smoke", c: 1, t: "Where do you stand on smoking?", o: [["Never, and I want a smoke-free room", 1], ["Occasionally, never indoors", 2], ["Regularly", 3]]},
-  {id: "sb", t: "If a roommate smoked outside the room, you would feel…", w: function(a){ return a && a.smoke === 1 }, o: [["Fine with it", 1], ["Okay if the smell stays out", 2], ["Uncomfortable", 3]]},
-  {id: "sl", t: "Where would you smoke?", w: function(a){ return a && a.smoke > 1 }, o: [["Only outside the hostel", 1], ["Balcony or stairs", 2], ["In the room", 3]]},
-  {id: "tidy", c: 1, t: "Your side of the room usually looks…", o: [["Spotless", 4], ["Tidy, a few things out", 3], ["Lived-in", 2], ["A creative storm", 1]]},
-  {id: "mess", t: "A roommate leaves cups and clothes lying around. You…", w: function(a){ return a && a.tidy >= 3 }, o: [["Quietly tidy up", 1], ["Mention it kindly", 2], ["Would find it hard", 3]]},
-  {id: "rota", t: "Would you share a cleaning rota?", w: function(a){ return a && a.tidy <= 2 }, o: [["Yes, sounds fair", 1], ["Maybe, if flexible", 2], ["I would rather not", 3]]},
-  {id: "noise", c: 1, t: "While you study or sleep, the room should be…", o: [["Completely silent", 1], ["A quiet hum", 2], ["Soft music is fine", 3], ["Noise does not bother me", 4]]},
-  {id: "study", c: 1, t: "Where do you do your best work?", o: [["In the room at night", 1], ["In the room by day", 2], ["The library", 3], ["Anywhere at all", 4]]},
-  {id: "guests", c: 1, t: "Friends visiting the room are…", o: [["Rare", 1], ["Now and then", 2], ["Often", 3], ["An open house", 4]]},
-  {id: "over", t: "And overnight guests?", w: function(a){ return a && a.guests >= 3 }, o: [["Never", 1], ["With a heads-up", 2], ["Whenever", 3]]},
-  {id: "social", c: 1, t: "After a long day you recharge by…", o: [["Being alone", 1], ["One close friend", 2], ["A big group", 3], ["It depends on the day", 4]]}
+  {
+    id: "sleep",
+    c: 1,
+    t: "On normal college days, when did you usually fall asleep?",
+    o: [
+      ["Before 11 PM", 1],
+      ["Between 11 PM and 1 AM", 2],
+      ["Between 1 AM and 3 AM", 3],
+      ["After 3 AM (proper night owl)", 4]
+    ]
+  },
+  {
+    id: "privacy",
+    c: 1,
+    t: "How much do you need the room to yourself, to rest, study, or just be alone?",
+    o: [
+      ["A lot, regularly (need my own bubble)", 1],
+      ["Some, a few hours a day", 2],
+      ["A little, happy sharing most of the time", 3],
+      ["Barely, I like having company around", 4]
+    ]
+  },
+  {
+    id: "noise",
+    c: 1,
+    t: "What does your room usually sound like when you’re in it?",
+    o: [
+      ["Quiet, need silence to study or sleep", 1],
+      ["Earphones for everything, room stays quiet", 2],
+      ["Soft music or videos on speaker sometimes", 3],
+      ["Music or calls out loud is normal for me", 4]
+    ]
+  },
+  {
+    id: "tidy",
+    c: 1,
+    t: "How often do you properly clean up your desk and space?",
+    o: [
+      ["Spotless, everything reset daily", 1],
+      ["Neat, I tidy up every couple of days", 2],
+      ["Lived-in, clean up once a week or so", 3],
+      ["Relaxed, a bit of mess doesn’t bother me", 4]
+    ]
+  },
+  {
+    id: "guests",
+    c: 1,
+    t: "How often would you want friends visiting our room?",
+    o: [
+      ["Almost never, room is just for the two of us", 1],
+      ["Occasionally, with a heads-up", 2],
+      ["Most weeks, for short visits", 3],
+      ["Open door, friends dropping by anytime is great", 4]
+    ]
+  },
+  {
+    id: "sharing",
+    c: 1,
+    t: "How do you feel about people using your snacks, charger, or toiletries?",
+    o: [
+      ["I’d rather keep my stuff mine", 1],
+      ["Fine, but ask me first every time", 2],
+      ["Small things are okay without asking", 3],
+      ["What’s mine is yours", 4]
+    ]
+  },
+  {
+    id: "intent",
+    c: 1,
+    t: "What are you hoping for in a roommate?",
+    o: [
+      ["Respectful, and we keep to ourselves", 1],
+      ["Friendly, but separate lives and circles", 2],
+      ["A good friend, some shared meals and plans", 3],
+      ["A close best friend, doing most things together", 4]
+    ]
+  },
+  {
+    id: "flexibility",
+    c: 1,
+    t: "When room rules or plans don’t go your way, you usually...",
+    o: [
+      ["Adjust easily without fuss", 1],
+      ["Adjust after talking it through", 2],
+      ["Prefer my way, but willing to compromise", 3],
+      ["Strongly prefer my way", 4]
+    ]
+  },
+  {
+    id: "communication",
+    c: 1,
+    t: "If your roommate did something that bugged you, you’d...",
+    o: [
+      ["Say it within a day, calmly and directly", 1],
+      ["Bring it up after a few days if it keeps happening", 2],
+      ["Drop subtle hints and hope they get it", 3],
+      ["Say nothing to avoid awkwardness", 4]
+    ]
+  },
+  {
+    id: "smoke",
+    c: 1,
+    t: "How do you feel about smoking, vaping, or drinking around you?",
+    o: [
+      ["Not okay near me, I need a strictly smoke-free room", 1],
+      ["Okay outside the hostel / outside the room only", 2],
+      ["Fine if not inside the bedroom", 3],
+      ["No issue at all", 4]
+    ]
+  }
 ];
-var POOL = [
-  {id: "w1", t: "A roommate borrows your charger without asking. You…", o: [["Do not mind", 1], ["Mention it kindly", 2], ["Prefer they ask", 3]]},
-  {id: "w2", t: "Exam week begins. You want the room to be…", o: [["A silent library", 1], ["Calm, soft music", 2], ["Normal life", 3]]},
-  {id: "w3", t: "A roommate is homesick. You would…", o: [["Sit and talk", 1], ["Give them space", 2], ["Make some tea", 3]]},
-  {id: "w4", t: "Sunday morning means…", o: [["Sleeping in", 1], ["Chai and chatting", 2], ["Out early", 3]]}
-];
+var POOL = [];
 var Z = {A: {}, I: {}, idx: 0, scr: "intro", W: [], name: ""};
 function shuf(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t } return a }
-function vis(){ return Q.concat(Z.W).filter(function(q){ return !q.w || (Z.A && q.w(Z.A)) }) }
+function vis(){ return Q.slice() }
 function persona(a){
   if (!a) return "Roommate";
   var s = (a.sleep != null ? a.sleep : 2);
   var names = ["Dawn", "Daylight", "Moonlit", "Midnight"];
   var prefix = names[s - 1] || "Dawn";
-  var suffix = (a.guests >= 3 ? "Host" : a.tidy === 4 ? "Curator" : a.noise === 1 ? "Sage" : a.study === 1 || a.study === 3 ? "Scholar" : a.tidy === 1 ? "Dreamer" : "Wanderer");
+  var suffix = (a.guests >= 3 ? "Host" : a.tidy === 1 ? "Curator" : a.noise === 1 ? "Sage" : a.privacy === 1 ? "Sanctuary" : a.tidy === 4 ? "Dreamer" : "Wanderer");
   return prefix + " " + suffix;
 }
 
@@ -385,9 +519,20 @@ function matches(){
       b = "<button class='btn' data-s='" + p.id + "' data-name='" + esc(p.n) + "'>send request</button>";
     }
 
+    var warnBox = "";
+    var allWarns = (p.warnings && p.warnings.length) ? p.warnings : (p.frictions && p.frictions.length ? p.frictions : (r.warnings || []));
+    if (allWarns && allWarns.length) {
+      warnBox = "<div style='margin-top:10px;display:flex;flex-direction:column;gap:6px'>" + allWarns.slice(0, 2).map(function(w){
+        return "<div style='display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-radius:14px;background:rgba(224,112,159,0.12);border:1px solid rgba(224,112,159,0.25);font-size:12.5px;color:var(--ink);text-align:left'>" +
+          "<span style='font-size:14px;flex-shrink:0'>💡</span><span>" + esc(w) + "</span>" +
+        "</div>";
+      }).join("") + "</div>";
+    }
+
     return "<article class='card pc" + (top ? " top" : "") + "' style='--i:" + i + "'>" + (top ? "<span class='rib'>best match</span>" : "") + bloom([{p: p, c: "fp"}, {p: me, c: "fm"}]) +
     "<div><div class='tr'><div class='who'>" + tile(p.n, p.avatar_hue) + "<div><h3>" + p.n + bandBadge + "</h3><span class='hand' style='font-size:21px'>the " + p.p + "</span><div class='sm'>" + (p.roll_no || "") + " · " + (p.hostel || "Hostel") + " · " + (p.major || "Student") + "</div></div></div><div class='sc'>" + r.v + "<small>/100</small></div></div><div class='chips'>" + ch + "</div>" +
-    (r.clash.length ? "<p class='err sm' style='font-weight:600;margin:10px 0 0'>This pairing breaks a deal-breaker you set.</p>" : "") +
+    warnBox +
+    (r.clash.length ? "<div class='err sm' style='font-weight:600;margin:10px 0 0;padding:6px 12px;border-radius:10px;background:rgba(194,65,12,0.15);border:1px solid rgba(194,65,12,0.3)'>⚠️ Lifestyle rhythm mismatch (deal-breaker clash)</div>" : "") +
     (p.bio ? "<p class='sm' style='margin:10px 0 0;font-style:italic'>“" + esc(p.bio) + "”</p>" : "") +
     "<div class='row'>" + b + "<button class='btn gh' data-t='1'>trait lines</button><button class='btn gh' data-d='" + p.id + "'>remove</button></div></div><div class='xp'>" + lines(me, p) + "</div></article>";
   }).join("");

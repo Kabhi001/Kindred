@@ -1,7 +1,8 @@
 """
 Kindred - Database Seeder
 Populates initial hostel blocks (BH-1..6, GH-1..6 with Blocks A, B, C; 10 floors; 30 dual rooms each),
-questions, demo students with 8-digit registration numbers (e.g. 12310266, 12519174), and staff accounts.
+10 research-backed empirical roommate harmony questions, demo students with 8-digit registration numbers
+(e.g. 12310266, 12519174), and staff accounts.
 """
 import os
 import sys
@@ -16,6 +17,7 @@ from matcher.models import (
     HostelBlock, Room, StudentUser, AllotmentCalendar,
     Question, Response, Pair, Allotment, AuditLog
 )
+from matcher.matching import calculate_persona
 
 def run():
     print("[+] Seeding Kindred database...")
@@ -27,10 +29,6 @@ def run():
     print("[*] Allotment calendar set to Phase 3: Matching Open")
 
     # 2. Hostels & Blocks Specification
-    # BH-1 to BH-6 (Boys Hostels) and GH-1 to GH-6 (Girls Hostels)
-    # Each hostel has 3 blocks: Block-A, Block-B, Block-C
-    # Each block is a 10-floor tower containing 30 rooms (3 rooms per floor)
-    # Each room is strictly Dual student occupancy (capacity = 2)
     hostel_specs = []
     for i in range(1, 7):
         hostel_specs.append((f"BH-{i}", 'M'))
@@ -56,7 +54,6 @@ def run():
             )
             created_blocks[full_name] = block_obj
 
-            # 30 rooms: 10 floors x 3 rooms per floor
             for flr in range(1, 11):
                 for rm in range(1, 4):
                     rm_no = f"{flr}{rm:02d}"
@@ -77,19 +74,25 @@ def run():
     print(f"[*] Created/verified {total_blocks_count} hostel blocks across BH-1..6 & GH-1..6")
     print(f"[*] Total rooms in database: {total_rooms_count} (strictly 2 students capacity each)")
 
-    # 3. Standard Questions
+    # 3. 10 Research-Backed Empirical Questions
     questions_data = [
-        ("sleep", "When does your day usually end?", 1, 4, 5.0),
-        ("wake", "And when do you usually wake up?", 1, 4, 3.0),
-        ("smoke", "Where do you stand on smoking?", 1, 3, 5.0),
-        ("tidy", "Your side of the room usually looks...", 1, 4, 4.0),
-        ("noise", "While you study or sleep, the room should be...", 1, 4, 4.0),
-        ("study", "Where do you do your best work?", 1, 4, 3.0),
-        ("guests", "Friends visiting the room are...", 1, 4, 3.0),
-        ("social", "After a long day you recharge by...", 1, 4, 2.0),
+        ("sleep", "On normal college days, when did you usually fall asleep?", 1, 4, 18.0),
+        ("privacy", "How much do you need the room to yourself, to rest, study, or be alone?", 1, 4, 16.0),
+        ("noise", "What does your room usually sound like when you're in it?", 1, 4, 12.0),
+        ("tidy", "How often do you properly clean up your desk and space?", 1, 4, 12.0),
+        ("guests", "How often would you want friends visiting our room?", 1, 4, 10.0),
+        ("sharing", "How do you feel about people using your snacks, charger, or toiletries?", 1, 4, 8.0),
+        ("intent", "What are you hoping for in a roommate?", 1, 4, 8.0),
+        ("flexibility", "When room rules or plans don't go your way, you usually...", 1, 4, 6.0),
+        ("communication", "If your roommate did something that bugged you, you'd...", 1, 4, 6.0),
+        ("smoke", "How do you feel about smoking, vaping, or drinking around you?", 1, 4, 5.0),
     ]
+
+    active_keys = [k for k, _, _, _, _ in questions_data]
+    Question.objects.exclude(key__in=active_keys).update(is_active=False)
+
     for key, text, min_v, max_v, weight in questions_data:
-        is_circ = key in ['sleep', 'wake']
+        is_circ = (key == 'sleep')
         q, created = Question.objects.get_or_create(
             key=key,
             defaults={
@@ -102,11 +105,12 @@ def run():
                 'is_active': True
             }
         )
-        if not created and q.is_circular != is_circ:
-            q.is_circular = is_circ
-            q.cycle_period = 4
+        if not created:
+            q.text = text
+            q.base_weight = weight
+            q.is_active = True
             q.save()
-    print("[*] 8 lifestyle questions initialized (sleep & wake configured with circular time geometry)")
+    print("[*] 10 research-backed lifestyle questions initialized")
 
     # 4. Staff Accounts
     warden, _ = StudentUser.objects.get_or_create(
@@ -154,53 +158,54 @@ def run():
 
     students_data = [
         # Male Students (Allocated to BH-1 / BH-2)
-        ("12310266", "Aarav Patel", "aarav.12310266@college.edu", "M", "1st Year", "Computer Science", bh1_a, 270, "Midnight Curator",
-         {"sleep": 3, "wake": 2, "smoke": 1, "tidy": 4, "noise": 2, "study": 1, "guests": 2, "social": 1},
-         {"sleep": 2, "wake": 1, "smoke": 3, "tidy": 2, "noise": 2, "study": 1, "guests": 2, "social": 1}),
+        ("12310266", "Aarav Patel", "aarav.12310266@college.edu", "M", "1st Year", "Computer Science", bh1_a, 270,
+         {"sleep": 3, "privacy": 2, "noise": 2, "tidy": 1, "guests": 2, "sharing": 2, "intent": 3, "flexibility": 2, "communication": 1, "smoke": 1},
+         {"sleep": 3, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
 
-        ("12310267", "Rohan Verma", "rohan.12310267@college.edu", "M", "1st Year", "Electrical Engineering", bh1_a, 190, "Midnight Curator",
-         {"sleep": 3, "wake": 2, "smoke": 1, "tidy": 4, "noise": 2, "study": 1, "guests": 2, "social": 2},
-         {"sleep": 2, "wake": 1, "smoke": 3, "tidy": 2, "noise": 2, "study": 1, "guests": 2, "social": 1}),
+        ("12310267", "Rohan Verma", "rohan.12310267@college.edu", "M", "1st Year", "Electrical Engineering", bh1_a, 190,
+         {"sleep": 3, "privacy": 2, "noise": 2, "tidy": 1, "guests": 2, "sharing": 2, "intent": 3, "flexibility": 2, "communication": 1, "smoke": 1},
+         {"sleep": 3, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
 
-        ("12310268", "Kabir Sharma", "kabir.12310268@college.edu", "M", "1st Year", "Mechanical Engineering", bh1_b, 35, "Dawn Host",
-         {"sleep": 1, "wake": 1, "smoke": 2, "tidy": 2, "noise": 3, "study": 3, "guests": 3, "social": 3},
-         {"sleep": 2, "wake": 2, "smoke": 1, "tidy": 1, "noise": 1, "study": 2, "guests": 2, "social": 2}),
+        ("12310268", "Kabir Sharma", "kabir.12310268@college.edu", "M", "1st Year", "Mechanical Engineering", bh1_b, 35,
+         {"sleep": 1, "privacy": 4, "noise": 3, "tidy": 3, "guests": 4, "sharing": 4, "intent": 4, "flexibility": 1, "communication": 2, "smoke": 2},
+         {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 1, "guests": 3, "sharing": 1, "intent": 2, "flexibility": 1, "communication": 1, "smoke": 1}),
 
-        ("12310269", "Ishaan Gupta", "ishaan.12310269@college.edu", "M", "1st Year", "Physics", bh1_b, 220, "Midnight Sage",
-         {"sleep": 4, "wake": 3, "smoke": 1, "tidy": 3, "noise": 1, "study": 1, "guests": 1, "social": 1},
-         {"sleep": 2, "wake": 1, "smoke": 3, "tidy": 2, "noise": 3, "study": 2, "guests": 1, "social": 1}),
+        ("12310269", "Ishaan Gupta", "ishaan.12310269@college.edu", "M", "1st Year", "Physics", bh1_b, 220,
+         {"sleep": 4, "privacy": 1, "noise": 1, "tidy": 2, "guests": 1, "sharing": 1, "intent": 1, "flexibility": 3, "communication": 3, "smoke": 1},
+         {"sleep": 3, "privacy": 3, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
 
-        ("12310270", "Dev Dixit", "dev.12310270@college.edu", "M", "1st Year", "Architecture", bh1_c, 340, "Moonlit Dreamer",
-         {"sleep": 4, "wake": 3, "smoke": 1, "tidy": 1, "noise": 3, "study": 4, "guests": 3, "social": 3},
-         {"sleep": 1, "wake": 1, "smoke": 1, "tidy": 1, "noise": 1, "study": 1, "guests": 2, "social": 2}),
+        ("12310270", "Dev Dixit", "dev.12310270@college.edu", "M", "1st Year", "Architecture", bh1_c, 340,
+         {"sleep": 4, "privacy": 3, "noise": 3, "tidy": 4, "guests": 3, "sharing": 3, "intent": 3, "flexibility": 2, "communication": 2, "smoke": 2},
+         {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 1, "guests": 2, "sharing": 1, "intent": 2, "flexibility": 1, "communication": 2, "smoke": 1}),
 
-        ("12310271", "Siddharth Malhotra", "siddharth.12310271@college.edu", "M", "1st Year", "Civil Engineering", bh2_a, 210, "Daylight Scholar",
-         {"sleep": 2, "wake": 2, "smoke": 1, "tidy": 3, "noise": 2, "study": 2, "guests": 2, "social": 2},
-         {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 2}),
+        ("12310271", "Siddharth Malhotra", "siddharth.12310271@college.edu", "M", "1st Year", "Civil Engineering", bh2_a, 210,
+         {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 1},
+         {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
 
         # Female Students (Allocated to GH-1)
-        ("12519174", "Meera Nair", "meera.12519174@college.edu", "F", "1st Year", "Data Science", gh1_a, 320, "Daylight Scholar",
-         {"sleep": 2, "wake": 2, "smoke": 1, "tidy": 3, "noise": 1, "study": 3, "guests": 2, "social": 1},
-         {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 2, "noise": 3, "study": 2, "guests": 2, "social": 1}),
+        ("12519174", "Meera Nair", "meera.12519174@college.edu", "F", "1st Year", "Data Science", gh1_a, 320,
+         {"sleep": 2, "privacy": 2, "noise": 1, "tidy": 1, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 1, "smoke": 1},
+         {"sleep": 2, "privacy": 2, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
 
-        ("12519175", "Ananya Roy", "ananya.12519175@college.edu", "F", "1st Year", "Biotechnology", gh1_a, 160, "Daylight Scholar",
-         {"sleep": 2, "wake": 2, "smoke": 1, "tidy": 4, "noise": 1, "study": 3, "guests": 2, "social": 2},
-         {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 2, "noise": 3, "study": 2, "guests": 2, "social": 1}),
+        ("12519175", "Ananya Roy", "ananya.12519175@college.edu", "F", "1st Year", "Biotechnology", gh1_a, 160,
+         {"sleep": 2, "privacy": 2, "noise": 1, "tidy": 1, "guests": 2, "sharing": 2, "intent": 3, "flexibility": 2, "communication": 1, "smoke": 1},
+         {"sleep": 2, "privacy": 2, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
 
-        ("12519176", "Diya Sharma", "diya.12519176@college.edu", "F", "1st Year", "AI & Robotics", gh1_b, 290, "Dawn Curator",
-         {"sleep": 1, "wake": 1, "smoke": 1, "tidy": 3, "noise": 1, "study": 2, "guests": 1, "social": 1},
-         {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 2, "noise": 2, "study": 2, "guests": 2, "social": 1}),
+        ("12519176", "Diya Sharma", "diya.12519176@college.edu", "F", "1st Year", "AI & Robotics", gh1_b, 290,
+         {"sleep": 1, "privacy": 1, "noise": 1, "tidy": 2, "guests": 1, "sharing": 1, "intent": 1, "flexibility": 3, "communication": 2, "smoke": 1},
+         {"sleep": 3, "privacy": 3, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
 
-        ("12519177", "Riya Sen", "riya.12519177@college.edu", "F", "1st Year", "Chemical Engineering", gh1_b, 10, "Midnight Host",
-         {"sleep": 3, "wake": 2, "smoke": 1, "tidy": 2, "noise": 2, "study": 2, "guests": 3, "social": 3},
-         {"sleep": 1, "wake": 1, "smoke": 3, "tidy": 2, "noise": 1, "study": 2, "guests": 2, "social": 2}),
+        ("12519177", "Riya Sen", "riya.12519177@college.edu", "F", "1st Year", "Chemical Engineering", gh1_b, 10,
+         {"sleep": 3, "privacy": 3, "noise": 2, "tidy": 3, "guests": 3, "sharing": 3, "intent": 3, "flexibility": 2, "communication": 2, "smoke": 1},
+         {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
 
-        ("12519178", "Tanvi Patel", "tanvi.12519178@college.edu", "F", "1st Year", "Mathematics", gh1_c, 80, "Daylight Scholar",
-         {"sleep": 2, "wake": 2, "smoke": 1, "tidy": 4, "noise": 1, "study": 3, "guests": 1, "social": 1},
-         {"sleep": 2, "wake": 2, "smoke": 3, "tidy": 3, "noise": 2, "study": 2, "guests": 1, "social": 1}),
+        ("12519178", "Tanvi Patel", "tanvi.12519178@college.edu", "F", "1st Year", "Mathematics", gh1_c, 80,
+         {"sleep": 2, "privacy": 2, "noise": 1, "tidy": 1, "guests": 1, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 1},
+         {"sleep": 2, "privacy": 2, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
     ]
 
-    for reg_no, name, email, g, yr, br, blk, hue, pers, answers, importance in students_data:
+    for reg_no, name, email, g, yr, br, blk, hue, answers, importance in students_data:
+        pers = calculate_persona(answers)
         student, _ = StudentUser.objects.update_or_create(
             roll_no=reg_no,
             defaults={
@@ -217,6 +222,7 @@ def run():
                 'consent_at': timezone.now(),
                 'is_demo': False
             }
+        )
         if not student.password_hash:
             student.set_password("student123")
             student.save(update_fields=['password_hash'])
@@ -224,7 +230,7 @@ def run():
             q_obj = Question.objects.filter(key=q_key).first()
             if q_obj:
                 imp_val = importance.get(q_key, 2)
-                is_db = (imp_val == 3) or (q_key == 'smoke' and ans_val == 1)
+                is_db = (imp_val == 3) or (q_key in ['sleep', 'privacy'] and imp_val == 3) or (q_key == 'smoke' and ans_val == 1)
                 Response.objects.update_or_create(
                     user=student,
                     question=q_obj,

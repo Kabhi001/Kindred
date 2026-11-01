@@ -594,9 +594,6 @@ def api_matches(request):
             band_title = "High Friction Risk"
             band_code = "RISK"
 
-        # Privacy Seal: Anonymize specific clash dimensions into generic rhythm label
-        clash_labels = ["Major lifestyle rhythm mismatch"] if has_clash else []
-
         formatted.append({
             'id': m['id'],
             'name': m['name'],
@@ -608,13 +605,17 @@ def api_matches(request):
             'block': m['block'],
             'avatar_hue': m['avatar_hue'],
             'score': m['final_score'],
+            'serverScore': m['final_score'],
             'harmony_band': {
                 'title': band_title,
                 'code': band_code
             },
             'good': m['good_reasons'],
             'friction': m['frictions'][0] if m['frictions'] else None,
-            'clashes': clash_labels,
+            'frictions': m.get('frictions', []),
+            'clashes': ["Major lifestyle rhythm mismatch"] if has_clash else [],
+            'clash_keys': m.get('clashes', []),
+            'warnings': m.get('warnings', []) or m.get('frictions', []),
             'has_clash': has_clash,
             'is_dealbreaker': has_clash,
             'request_status': req_status,
@@ -742,6 +743,12 @@ def api_send_request(request):
     # Strict Same-Gender Roommate Policy (Male-to-Male and Female-to-Female only)
     if to_user.gender != me.gender:
         return JsonResponse({'error': 'Hostel regulations require roommates to be of the same gender (Male-to-Male and Female-to-Female only). Cross-gender pairing is not permitted.'}, status=400)
+
+    # Statutory Anti-Ragging Regulation: Strict freshman - senior separation
+    a_fresh = getattr(me, 'is_freshman', False) or (me.year in ['1st Year', 'First Year'])
+    b_fresh = getattr(to_user, 'is_freshman', False) or (to_user.year in ['1st Year', 'First Year'])
+    if a_fresh != b_fresh:
+        return JsonResponse({'error': 'Anti-Ragging Statutory Compliance: UGC/AICTE regulations strictly prohibit roommate pairings between 1st-Year freshmen and senior students.'}, status=400)
 
     u1_id = min(me.id, to_user.id)
     u2_id = max(me.id, to_user.id)
@@ -1950,3 +1957,7 @@ def api_feedback_summary(request):
     })
 
 
+
+
+# Import all extended views
+from .views_extended import *

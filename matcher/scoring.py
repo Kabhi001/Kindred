@@ -9,7 +9,10 @@ from .models import (
     StudentUser, Question, Response, PairScore, Pair,
     Room, Allotment, AuditLog, HostelBlock
 )
-from .matching import calculate_persona, GOOD_DESCRIPTORS, FRICTION_DESCRIPTORS, TRAIT_NAMES
+from .matching import (
+    calculate_persona, GOOD_DESCRIPTORS, FRICTION_DESCRIPTORS,
+    TRAIT_NAMES, evaluate_clashes_and_warnings
+)
 
 
 def get_user_responses_dict(user: StudentUser):
@@ -93,21 +96,37 @@ def calculate_mutual_score(user_a: StudentUser, user_b: StudentUser, questions=N
     score_a_to_b, sims_a, clashes_a = calculate_directional_score(ans_a, imp_a, db_a, ans_b, q_dict)
     score_b_to_a, sims_b, clashes_b = calculate_directional_score(ans_b, imp_b, db_b, ans_a, q_dict)
 
-    all_clashes = list(set(clashes_a + clashes_b))
+    emp_clashes, emp_warnings = evaluate_clashes_and_warnings(ans_a, ans_b)
+    all_clashes = list(set(clashes_a + clashes_b + emp_clashes))
     raw_final = min(score_a_to_b, score_b_to_a)
     final_score = min(raw_final, 59.0) if all_clashes else raw_final
 
-    good_keys = [k for k, s in sims_a.items() if s >= 0.85]
+    good_keys = [k for k, s in sims_a.items() if s >= 0.85 and k not in all_clashes]
     good_reasons = [GOOD_DESCRIPTORS.get(k, f"align on {k}") for k in good_keys[:3]]
 
-    friction_keys = [k for k, s in sims_a.items() if s < 0.6]
+    friction_keys = [k for k, s in sims_a.items() if s < 0.6 and k not in all_clashes]
     frictions = [FRICTION_DESCRIPTORS.get(k, f"differ on {k}") for k in friction_keys[:2]]
+
+    for w in emp_warnings:
+        if w not in frictions:
+            frictions.append(w)
+
+    # Dietary compatibility check
+    diet_a = getattr(user_a, 'dietary_pref', 'ANY') or 'ANY'
+    diet_b = getattr(user_b, 'dietary_pref', 'ANY') or 'ANY'
+    if diet_a != 'ANY' and diet_b != 'ANY':
+        veg_types = {'VEG', 'JAIN', 'VEGAN'}
+        if (diet_a in veg_types and diet_b == 'NONVEG') or (diet_b in veg_types and diet_a == 'NONVEG'):
+            frictions.append("differ on dietary habits (veg vs non-veg in shared room)")
+        elif (diet_a in veg_types and diet_b in veg_types) or (diet_a == 'NONVEG' and diet_b == 'NONVEG'):
+            good_reasons.append("share matching dietary preferences")
 
     return {
         'score_a_to_b': round(score_a_to_b, 1),
         'score_b_to_a': round(score_b_to_a, 1),
         'final_score': round(final_score, 1),
         'clashes': all_clashes,
+        'warnings': emp_warnings,
         'good_reasons': good_reasons,
         'frictions': frictions,
     }
@@ -144,6 +163,13 @@ def compute_ranked_matches_for_student(student: StudentUser):
 
     if student.block_id:
         candidates_qs = candidates_qs.filter(Q(block=student.block) | Q(block__isnull=True))
+
+    # Statutory Anti-Ragging Regulation: Strict freshman - senior separation
+    is_fresh = getattr(student, 'is_freshman', False) or (student.year in ['1st Year', 'First Year'])
+    if is_fresh:
+        candidates_qs = candidates_qs.filter(Q(is_freshman=True) | Q(year__in=['1st Year', 'First Year']))
+    else:
+        candidates_qs = candidates_qs.exclude(Q(is_freshman=True) | Q(year__in=['1st Year', 'First Year']))
 
     candidates = list(candidates_qs)
     if not candidates:
@@ -235,6 +261,7 @@ def compute_ranked_matches_for_student(student: StudentUser):
             'is_dealbreaker': len(ps.clashes) > 0,
             'good_reasons': ps.good_reasons,
             'frictions': ps.frictions,
+            'warnings': ps.frictions,
         })
 
     if new_pair_scores:
@@ -258,7 +285,8 @@ def run_blossom_leftover_matching(block=None, actor="System", dry_run=False):
 
     groups = {}
     for st in unpaired_students:
-        key = (st.gender, st.block_id)
+        is_fresh = getattr(st, 'is_freshman', False) or (st.year in ['1st Year', 'First Year'])
+        key = (st.gender, st.block_id, is_fresh)
         groups.setdefault(key, []).append(st)
 
     created_pairs = []
@@ -267,7 +295,8 @@ def run_blossom_leftover_matching(block=None, actor="System", dry_run=False):
     all_odd_students = []
     questions = list(Question.objects.filter(is_active=True))
 
-    for (gender, blk_id), group_students in groups.items():
+    for group_key, group_students in groups.items():
+        gender, blk_id = group_key[0], group_key[1]
         if len(group_students) < 2:
             all_odd_students.extend(group_students)
             continue
@@ -421,17 +450,26 @@ def run_automated_room_allotment(actor="System"):
             continue
 
         with transaction.atomic():
-            # Capacity-aware room search using bulk annotation and select_for_update() row locks
-            vacant_room = Room.objects.select_for_update().filter(block=blk).annotate(
+            needs_accessible = getattr(pair.user_a, 'disability_verified', False) or getattr(pair.user_b, 'disability_verified', False)
+            room_filter = Q(block=blk)
+            if needs_accessible:
+                room_filter &= (Q(is_accessible=True) | Q(floor=1))
+            else:
+                room_filter &= ~Q(status__in=['MAINTENANCE', 'RESERVED']) & Q(is_accessible=False)
+
+            vacant_room = Room.objects.select_for_update().filter(room_filter).annotate(
                 occupied=Count('allotments', filter=Q(allotments__is_active=True))
             ).filter(occupied__lte=F('capacity') - 2).order_by('floor', 'number').first()
 
             if not vacant_room:
-                # Fallback search respecting student gender policy
                 student_gender = pair.user_a.gender
-                vacant_room = Room.objects.select_for_update().filter(
-                    Q(block__gender=student_gender) | Q(block__gender='COED')
-                ).annotate(
+                fb_filter = (Q(block__gender=student_gender) | Q(block__gender='COED'))
+                if needs_accessible:
+                    fb_filter &= (Q(is_accessible=True) | Q(floor=1))
+                else:
+                    fb_filter &= ~Q(status__in=['MAINTENANCE', 'RESERVED']) & Q(is_accessible=False)
+
+                vacant_room = Room.objects.select_for_update().filter(fb_filter).annotate(
                     occupied=Count('allotments', filter=Q(allotments__is_active=True))
                 ).filter(occupied__lte=F('capacity') - 2).order_by('block', 'floor', 'number').first()
 
