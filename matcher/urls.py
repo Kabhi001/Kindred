@@ -77,6 +77,7 @@ urlpatterns = [
 
     # Interactive Floor Map Matrix
     path('api/floormap/', views.api_floor_map, name='api_floor_map'),
+    path('api/floor-map/', views.api_floor_map, name='api_floor_map_alias'),
 
     # Warden Operations & Bulk Roster Export
     path('api/warden/allot/<int:pairing_id>/', views.api_warden_allot, name='api_warden_allot'),

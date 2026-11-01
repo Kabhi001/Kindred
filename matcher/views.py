@@ -214,6 +214,44 @@ def warden_dashboard_view(request):
             's2': p.user_b,
         })
 
+    all_hostels = HostelBlock.objects.all().order_by('name')
+    selected_hostel_id = request.GET.get('hostel_id')
+    active_hostel = None
+    if selected_hostel_id:
+        active_hostel = all_hostels.filter(id=selected_hostel_id).first()
+    if not active_hostel:
+        active_hostel = getattr(current_user, 'block', None) or all_hostels.first()
+
+    # Pre-fetch rooms for 100-room matrix (5 levels x 20 rooms)
+    rooms_qs = Room.objects.filter(block=active_hostel).prefetch_related('allotments__user', 'pairs').order_by('floor', 'number')
+    floors_list = []
+    for flr in range(5, 0, -1):  # Level 5 down to Level 1
+        flr_rooms = [r for r in rooms_qs if r.floor == flr]
+        rooms_data = []
+        for r in flr_rooms:
+            active_allotments = [a for a in r.allotments.all() if a.is_active]
+            occupied = len(active_allotments)
+            occupants_str = " & ".join(a.user.name for a in active_allotments)
+            is_allocated = (occupied >= r.capacity) or r.pairs.filter(status='ALLOTTED').exists()
+            rooms_data.append({
+                'id': r.id,
+                'number': r.number,
+                'floor': r.floor,
+                'occupied': occupied,
+                'is_allocated': is_allocated,
+                'occupants': occupants_str,
+            })
+        floors_list.append({
+            'level': flr,
+            'rooms': rooms_data,
+            'allocated_count': sum(1 for x in rooms_data if x['is_allocated']),
+            'vacant_count': sum(1 for x in rooms_data if not x['is_allocated']),
+        })
+
+    total_matrix_rooms = sum(len(f['rooms']) for f in floors_list)
+    total_matrix_allocated = sum(f['allocated_count'] for f in floors_list)
+    total_matrix_vacant = sum(f['vacant_count'] for f in floors_list)
+
     context = {
         'current_user': current_user,
         'calendar': calendar,
@@ -227,6 +265,12 @@ def warden_dashboard_view(request):
         'confirmed_pairs_count': pairs.count(),
         'allotted_count': pairs.filter(status='ALLOTTED').count(),
         'pending_requests_count': Request.objects.filter(status='SENT').count(),
+        'all_hostels': all_hostels,
+        'active_hostel': active_hostel,
+        'floors_list': floors_list,
+        'total_matrix_rooms': total_matrix_rooms,
+        'total_matrix_allocated': total_matrix_allocated,
+        'total_matrix_vacant': total_matrix_vacant,
     }
     return render(request, 'matcher/warden.html', context)
 
@@ -1027,24 +1071,33 @@ def api_warden_allot(request, pairing_id):
         }, status=400)
 
     reason = reason or "Standard Warden room allotment"
-    blk = pairing.user_a.block or HostelBlock.objects.first()
+    hostel_id = body.get('hostel_id')
+    blk = None
+    if hostel_id:
+        blk = HostelBlock.objects.filter(id=hostel_id).first()
+    if not blk:
+        blk = pairing.user_a.block or HostelBlock.objects.first()
 
     with transaction.atomic():
-        room, _ = Room.objects.get_or_create(
-            block=blk,
-            number=room_number,
-            defaults={'capacity': 2, 'floor': 1}
-        )
+        floor_calc = int(room_number[0]) if (room_number and room_number[0].isdigit()) else 1
+        room = Room.objects.filter(block=blk, number=room_number).first()
+        if not room:
+            room, _ = Room.objects.get_or_create(
+                block=blk,
+                number=room_number,
+                defaults={'capacity': 2, 'floor': floor_calc, 'room_type': 'DOUBLE', 'status': 'AVAILABLE'}
+            )
         # Row-level concurrency lock preventing race condition overbookings
         room = Room.objects.select_for_update().get(id=room.id)
 
-        # Capacity validation under lock
+        # Capacity validation & strict non-reallocatable lock
         active_allotments = room.allotments.filter(is_active=True).exclude(
             user__in=[pairing.user_a, pairing.user_b]
         ).count()
-        if active_allotments + 2 > room.capacity:
+        other_pair_allotted = room.pairs.filter(status='ALLOTTED').exclude(id=pairing.id).exists()
+        if active_allotments + 2 > room.capacity or other_pair_allotted:
             return JsonResponse({
-                'error': f'Room {room.number} is already at full capacity ({room.capacity} beds).'
+                'error': f'Room {room.number} is already at full capacity and allocated. It cannot be selected again.'
             }, status=400)
 
         if pairing.room and pairing.room != room:

@@ -45,14 +45,14 @@ def run():
                 'hostel_name': h_name,
                 'block_name': '',
                 'gender': gender,
-                'total_floors': 10,
+                'total_floors': 5,
                 'campus': 'Main Campus'
             }
         )
         created_hostels[h_name] = hostel_obj
 
-        for flr in range(1, 11):
-            for rm in range(1, 4):
+        for flr in range(1, 6):
+            for rm in range(1, 21):
                 rm_no = f"{flr}{rm:02d}"
                 _, created = Room.objects.get_or_create(
                     block=hostel_obj,

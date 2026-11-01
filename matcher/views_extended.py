@@ -1074,6 +1074,7 @@ def api_floor_map(request):
             'floor': r.floor,
             'capacity': r.capacity,
             'occupied': occupied,
+            'is_allocated': (occupied >= r.capacity) or r.pairs.filter(status='ALLOTTED').exists(),
             'color': color,
             'status_text': status_text,
             'is_accessible': r.is_accessible,

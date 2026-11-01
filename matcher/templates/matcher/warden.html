@@ -85,6 +85,129 @@ input[type=text]{padding:10px 16px;border-radius:16px;border:1px solid var(--lin
 @media(max-width:760px){
   .pair-card{grid-template-columns:1fr}
 }
+
+/* 100-Room Hostel Matrix Styles (5 Levels x 20 Rooms) */
+.matrix-container{
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.matrix-grid{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 820px;
+}
+.level-row{
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 14px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 10px 16px;
+  border-radius: 18px;
+  transition: all 0.2s ease;
+}
+.level-row:hover{
+  border-color: var(--lv);
+  box-shadow: 0 4px 14px rgba(133,102,209,0.08);
+}
+.level-label{
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.level-label small{
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--soft);
+  margin-top: 2px;
+}
+.rooms-strip{
+  display: grid;
+  grid-template-columns: repeat(20, minmax(32px, 1fr));
+  gap: 6px;
+}
+.room-btn{
+  height: 40px;
+  min-width: 0;
+  padding: 0 2px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  position: relative;
+}
+.room-btn.vacant{
+  background: #dcfce7;
+  color: #166534;
+  border: 1.5px solid #86efac;
+}
+.room-btn.vacant:hover{
+  background: #bbf7d0;
+  border-color: #22c55e;
+  transform: translateY(-2px) scale(1.08);
+  box-shadow: 0 4px 12px rgba(34,197,94,0.3);
+  z-index: 2;
+}
+.room-btn.allocated{
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1.5px solid #fca5a5 !important;
+  cursor: not-allowed !important;
+  opacity: 0.88;
+}
+.room-btn.allocated:hover{
+  background: #fecaca !important;
+  border-color: #ef4444 !important;
+}
+.room-btn.selected-for-allot{
+  background: var(--lv) !important;
+  color: #ffffff !important;
+  border-color: var(--lv) !important;
+  transform: scale(1.12);
+  box-shadow: 0 0 0 3px #ffffff, 0 6px 16px var(--lv);
+  z-index: 5;
+  animation: pulse-glow 1s infinite alternate;
+}
+@keyframes pulse-glow {
+  from { box-shadow: 0 0 0 2px #fff, 0 0 10px var(--lv); }
+  to { box-shadow: 0 0 0 4px #fff, 0 0 20px var(--lv); }
+}
+@keyframes shake-btn {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+.shake {
+  animation: shake-btn 0.25s ease-in-out 2;
+}
+.pair-pick-item{
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: all 0.18s ease;
+}
+.pair-pick-item:hover{
+  border-color: var(--lv);
+  background: rgba(133,102,209,0.08);
+  transform: translateY(-1px);
+}
+
 </style>
 </head>
 <body>
@@ -190,6 +313,123 @@ input[type=text]{padding:10px 16px;border-radius:16px;border:1px solid var(--lin
     </table>
   </div>
 
+  
+  <!-- 100-Room Hostel Matrix (5 Levels x 20 Rooms) Section -->
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin:34px 0 14px">
+    <div>
+      <h2 style="margin:0">Hostel 100-Room Allocation Matrix</h2>
+      <p class="sub" style="margin:4px 0 0">Visual interactive grid of 100 rooms across 5 levels (20 rooms per floor). Click any green room to allot. <b>Once a room is allocated, it is permanently locked and cannot be selected again.</b></p>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <label for="matrix-hostel-select" style="font-weight:600;font-size:13.5px;color:var(--soft)">Select Hostel:</label>
+      <select id="matrix-hostel-select" onchange="loadHostelMatrix(this.value)" style="padding:8px 16px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 14px var(--sans)">
+        {% for h in all_hostels %}
+        <option value="{{ h.id }}" {% if h.id == active_hostel.id %}selected{% endif %}>{{ h.name }} ({{ h.get_gender_display }})</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <!-- Active Allocation Selection Banner (Shows when warden picks a pair to assign) -->
+  <div id="allocation-prompt-banner" class="card" style="display:none;background:linear-gradient(135deg,rgba(133,102,209,0.15),rgba(224,112,159,0.15));border:1.5px solid var(--lv);padding:14px 20px;margin-bottom:18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:24px">🎯</span>
+        <div>
+          <b id="allocating-pair-names" style="color:var(--ink);font-size:15px">Allotting Room for: [Pair]</b>
+          <span style="display:block;font-size:12.5px;color:var(--soft);margin-top:2px">Click any available green room box in the 100-room grid below to complete allotment.</span>
+        </div>
+      </div>
+      <button class="btn" onclick="cancelPairSelection()" style="padding:6px 14px;font-size:12px;background:transparent;color:var(--ink);border:1px solid var(--line)">Cancel Selection</button>
+    </div>
+  </div>
+
+  <!-- 100-Room Grid Card -->
+  <div class="card" id="room-matrix-card" style="padding:22px 24px;margin-bottom:32px">
+    <!-- Matrix Header & Stats -->
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span id="grid-hostel-title" style="font-weight:700;font-size:18px;color:var(--ink)">{{ active_hostel.name }}</span>
+        <span class="tag" style="background:var(--surface);border:1px solid var(--line);font-size:11.5px" id="grid-occupancy-summary">
+          100 Total Rooms · 5 Levels × 20 Rooms
+        </span>
+      </div>
+      <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;font-size:12.5px;font-weight:600">
+        <span style="display:flex;align-items:center;gap:6px">
+          <span style="width:14px;height:14px;border-radius:4px;background:#dcfce7;border:1.5px solid #22c55e;display:inline-block"></span>
+          <span id="stat-vacant-text"><b id="stat-vacant-count">{{ total_matrix_vacant }}</b> Available (Click to Allot)</span>
+        </span>
+        <span style="display:flex;align-items:center;gap:6px">
+          <span style="width:14px;height:14px;border-radius:4px;background:#fee2e2;border:1.5px solid #ef4444;display:inline-block"></span>
+          <span id="stat-allocated-text"><b id="stat-allocated-count">{{ total_matrix_allocated }}</b> Allocated (🔒 Locked)</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Levels Strip (Level 5 down to Level 1) -->
+    <div class="matrix-container">
+      <div class="matrix-grid" id="matrix-levels-grid">
+        {% for flr in floors_list %}
+        <div class="level-row" id="level-row-{{ flr.level }}">
+          <div class="level-label">
+            Level {{ flr.level }}
+            <small>({{ flr.level }}01 - {{ flr.level }}20)</small>
+          </div>
+          <div class="rooms-strip">
+            {% for r in flr.rooms %}
+            <button type="button"
+                    class="room-btn {% if r.is_allocated %}allocated{% else %}vacant{% endif %}"
+                    id="r-btn-{{ r.number }}"
+                    data-num="{{ r.number }}"
+                    data-id="{{ r.id }}"
+                    data-allocated="{% if r.is_allocated %}1{% else %}0{% endif %}"
+                    data-occupants="{{ r.occupants }}"
+                    onclick="handleRoomGridClick('{{ r.number }}', {{ r.id }}, {% if r.is_allocated %}true{% else %}false{% endif %}, '{{ r.occupants|escapejs }}')"
+                    title="{% if r.is_allocated %}🔒 Room {{ r.number }} is ALLOCATED to: {{ r.occupants }} (Cannot be selected again){% else %}Room {{ r.number }} (Level {{ flr.level }}) - Available (Double Room) - Click to Allot{% endif %}">
+              {% if r.is_allocated %}<span style="font-size:9px;line-height:1">🔒</span>{% endif %}
+              <span>{{ r.number }}</span>
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Pair Selection Modal (Used when warden clicks a vacant room directly in the grid) -->
+  <div id="pair-picker-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px">
+    <div class="card" style="max-width:500px;width:100%;max-height:85vh;overflow-y:auto;position:relative">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:12px">
+        <div>
+          <h3 style="margin:0;font-size:22px">Allot Room <span id="modal-room-number" style="color:var(--lv)"></span></h3>
+          <span class="sm">Choose a confirmed roommate pair to assign to this room:</span>
+        </div>
+        <button type="button" class="btn" onclick="closePairPickerModal()" style="padding:4px 10px;font-size:16px;background:none;border:none;color:var(--soft);cursor:pointer">✕</button>
+      </div>
+
+      <div id="pair-picker-list" style="margin-top:14px">
+        {% if pairs_data %}
+          {% for item in pairs_data %}
+          <div class="pair-pick-item" onclick="confirmAllotmentFromModal({{ item.pairing.id }}, '{{ item.s1.name|escapejs }} & {{ item.s2.name|escapejs }}')">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <b style="color:var(--ink);font-size:14.5px">{{ item.s1.name }} & {{ item.s2.name }}</b>
+                <div class="sm" style="color:var(--soft);margin-top:2px">{{ item.s1.roll_no }} · {{ item.s2.roll_no }} · {{ item.score }}/100 Match</div>
+              </div>
+              <span class="tag {% if item.pairing.status == 'ALLOTTED' %}done{% else %}wait{% endif %}">
+                {% if item.pairing.status == 'ALLOTTED' %}Room {{ item.pairing.room.number }}{% else %}Unassigned{% endif %}
+              </span>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="sm" style="text-align:center;padding:20px">No confirmed pairs currently available.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
   <h2>Confirmed Roommate Pairings</h2>
   <p class="sub">These student pairs are confirmed via mutual agreement or Blossom matching and ready for keys.</p>
 
@@ -232,11 +472,15 @@ input[type=text]{padding:10px 16px;border-radius:16px;border:1px solid var(--lin
         </div>
       </div>
 
-      <div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+        <button type="button" class="btn action" style="padding:8px 16px;font-size:12.5px;display:flex;align-items:center;gap:6px" onclick="selectPairForGridAllotment({{ item.pairing.id }}, '{{ item.s1.name|escapejs }}', '{{ item.s2.name|escapejs }}')">
+          <span>🎯</span>
+          <span>{% if item.pairing.status == 'ALLOTTED' %}Reassign from 100-Room Grid{% else %}Select from 100-Room Grid →{% endif %}</span>
+        </button>
         <form class="allot-form" onsubmit="allotRoom(event, {{ item.pairing.id }})">
-          <input type="text" id="room-input-{{ item.pairing.id }}" placeholder="e.g. A-102" value="{% if item.pairing.room %}{{ item.pairing.room.number }}{% endif %}" required>
-          <button type="submit" class="btn">
-            {% if item.pairing.status == 'ALLOTTED' %}Override Room{% else %}Allot Room{% endif %}
+          <input type="text" id="room-input-{{ item.pairing.id }}" placeholder="e.g. 101" value="{% if item.pairing.room %}{{ item.pairing.room.number }}{% endif %}" required style="width:100px;padding:6px 12px;font-size:13px">
+          <button type="submit" class="btn" style="padding:6px 14px;font-size:12.5px">
+            {% if item.pairing.status == 'ALLOTTED' %}Override{% else %}Direct Allot{% endif %}
           </button>
         </form>
       </div>
@@ -448,6 +692,208 @@ function updateTicket(ticketId, newStatus) {
   }).catch(function(err){
     toast('Error: ' + err.message);
   });
+}
+</script>
+<script>
+// State for interactive 100-room allocation grid
+var selectedPairingId = null;
+var selectedPairNames = "";
+var activeModalRoomNum = null;
+var activeModalRoomId = null;
+
+function selectPairForGridAllotment(pairingId, s1Name, s2Name) {
+  selectedPairingId = pairingId;
+  selectedPairNames = s1Name + " & " + s2Name;
+
+  var banner = document.getElementById("allocation-prompt-banner");
+  var label = document.getElementById("allocating-pair-names");
+  if (banner && label) {
+    label.textContent = "Allotting Room for: " + selectedPairNames;
+    banner.style.display = "block";
+  }
+
+  // Scroll smoothly to room matrix
+  var matrixCard = document.getElementById("room-matrix-card");
+  if (matrixCard) {
+    matrixCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  toast("🎯 Allotting for " + selectedPairNames + ". Click any available green room box in the grid below.");
+}
+
+function cancelPairSelection() {
+  selectedPairingId = null;
+  selectedPairNames = "";
+  var banner = document.getElementById("allocation-prompt-banner");
+  if (banner) banner.style.display = "none";
+}
+
+function handleRoomGridClick(roomNum, roomId, isAllocated, occupants) {
+  var btn = document.getElementById("r-btn-" + roomNum);
+
+  // STRICT LOCK: Once a room is allocated, it CANNOT be selected again!
+  if (isAllocated) {
+    if (btn) {
+      btn.classList.add("shake");
+      setTimeout(function(){ btn.classList.remove("shake"); }, 500);
+    }
+    toast("🔒 Room " + roomNum + " is already allocated" + (occupants ? " to " + occupants : "") + " and cannot be selected again.");
+    return;
+  }
+
+  // Case A: A pair was pre-selected from the confirmed list
+  if (selectedPairingId) {
+    if (confirm("Confirm Allotment: Assign Room " + roomNum + " to " + selectedPairNames + "?")) {
+      executeGridAllotment(selectedPairingId, roomNum, btn, selectedPairNames);
+    }
+    return;
+  }
+
+  // Case B: No pair pre-selected, open modal to choose a confirmed pair
+  activeModalRoomNum = roomNum;
+  activeModalRoomId = roomId;
+  var modal = document.getElementById("pair-picker-modal");
+  var modalNum = document.getElementById("modal-room-number");
+  if (modal && modalNum) {
+    modalNum.textContent = roomNum;
+    modal.style.display = "flex";
+  }
+}
+
+function closePairPickerModal() {
+  var modal = document.getElementById("pair-picker-modal");
+  if (modal) modal.style.display = "none";
+  activeModalRoomNum = null;
+  activeModalRoomId = null;
+}
+
+function confirmAllotmentFromModal(pairingId, pairNames) {
+  if (!activeModalRoomNum) return;
+  var roomNum = activeModalRoomNum;
+  var btn = document.getElementById("r-btn-" + roomNum);
+  closePairPickerModal();
+
+  executeGridAllotment(pairingId, roomNum, btn, pairNames);
+}
+
+function executeGridAllotment(pairingId, roomNum, btn, pairNames) {
+  var hostelSelect = document.getElementById("matrix-hostel-select");
+  var hostelId = hostelSelect ? hostelSelect.value : null;
+
+  fetch('/api/warden/allot/' + pairingId + '/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    body: JSON.stringify({
+      room_number: roomNum,
+      hostel_id: hostelId,
+      reason: "Warden 100-Room Grid Selection"
+    })
+  }).then(function(r){ return r.json() }).then(function(res){
+    if (res.ok) {
+      // 1. Lock room button permanently: Red, locked, unclickable
+      if (btn) {
+        btn.classList.remove("vacant");
+        btn.classList.add("allocated");
+        btn.setAttribute("data-allocated", "1");
+        btn.setAttribute("data-occupants", pairNames || "Assigned Students");
+        btn.innerHTML = '<span style="font-size:9px;line-height:1">🔒</span><span>' + roomNum + '</span>';
+        btn.title = "🔒 Room " + roomNum + " is ALLOCATED to: " + (pairNames || "Assigned Students") + " (Locked: Cannot be selected again)";
+        btn.setAttribute("onclick", "handleRoomGridClick('" + roomNum + "', " + (btn.getAttribute('data-id') || 0) + ", true, '" + (pairNames || "").replace(/'/g, "\\'") + "')");
+      }
+
+      // 2. Update pair card in list
+      var card = document.getElementById("pair-" + pairingId);
+      var tag = document.getElementById("tag-" + pairingId);
+      var roomInput = document.getElementById("room-input-" + pairingId);
+      if (tag) {
+        tag.className = 'tag done';
+        tag.textContent = 'Allotted: Room ' + roomNum;
+      }
+      if (roomInput) roomInput.value = roomNum;
+      if (card) card.classList.add("allotted");
+
+      // 3. Update stats counters
+      var vacantSpan = document.getElementById("stat-vacant-count");
+      var allocatedSpan = document.getElementById("stat-allocated-count");
+      if (vacantSpan && allocatedSpan) {
+        var vCount = parseInt(vacantSpan.textContent) || 0;
+        var aCount = parseInt(allocatedSpan.textContent) || 0;
+        if (vCount > 0) vacantSpan.textContent = vCount - 1;
+        allocatedSpan.textContent = aCount + 1;
+      }
+
+      cancelPairSelection();
+      toast("✓ Room " + roomNum + " successfully allocated to " + (pairNames || "pair") + "! Room is now locked.");
+    } else {
+      toast(res.error || "Failed to allot room");
+    }
+  }).catch(function(err){
+    console.error(err);
+    toast("Network error while allocating room.");
+  });
+}
+
+function loadHostelMatrix(hostelId) {
+  if (!hostelId) return;
+  fetch('/api/floormap/?hostel_id=' + hostelId)
+    .then(function(r){ return r.json() })
+    .then(function(data){
+      if (!data.ok) {
+        toast(data.error || "Failed to load hostel rooms");
+        return;
+      }
+
+      var title = document.getElementById("grid-hostel-title");
+      if (title && data.block) title.textContent = data.block.name;
+
+      var container = document.getElementById("matrix-levels-grid");
+      if (!container) return;
+
+      var totalRooms = 0, totalAllocated = 0, totalVacant = 0;
+      var floorsHtml = "";
+
+      // Sort floors descending (5 down to 1)
+      var sortedFloors = (data.floors || []).slice().reverse();
+
+      sortedFloors.forEach(function(flr){
+        totalRooms += flr.rooms.length;
+        var roomsHtml = "";
+        flr.rooms.forEach(function(r){
+          var isAlloc = (r.is_allocated || r.occupied >= r.capacity || r.color === 'red');
+          if (isAlloc) totalAllocated++; else totalVacant++;
+
+          var occStr = (r.occupants || []).map(function(o){ return o.name }).join(" & ");
+          var titleAttr = isAlloc ?
+            ("🔒 Room " + r.number + " is ALLOCATED to: " + (occStr || "Assigned Students") + " (Locked: Cannot be selected again)") :
+            ("Room " + r.number + " (Level " + flr.floor + ") - Available Dual Room - Click to Allot");
+
+          roomsHtml += '<button type="button" class="room-btn ' + (isAlloc ? 'allocated' : 'vacant') + '" id="r-btn-' + r.number + '" data-num="' + r.number + '" data-id="' + r.id + '" data-allocated="' + (isAlloc ? '1' : '0') + '" data-occupants="' + occStr + '" onclick="handleRoomGridClick(\'' + r.number + '\', ' + r.id + ', ' + (isAlloc ? 'true' : 'false') + ', \'' + occStr.replace(/'/g, "\\'") + '\')" title="' + titleAttr + '">' +
+            (isAlloc ? '<span style="font-size:9px;line-height:1">🔒</span>' : '') +
+            '<span>' + r.number + '</span></button>';
+        });
+
+        floorsHtml += '<div class="level-row" id="level-row-' + flr.floor + '">' +
+          '<div class="level-label">Level ' + flr.floor + '<small>(' + flr.floor + '01 - ' + flr.floor + '20)</small></div>' +
+          '<div class="rooms-strip">' + roomsHtml + '</div>' +
+          '</div>';
+      });
+
+      container.innerHTML = floorsHtml;
+
+      var vCountEl = document.getElementById("stat-vacant-count");
+      var aCountEl = document.getElementById("stat-allocated-count");
+      if (vCountEl) vCountEl.textContent = totalVacant;
+      if (aCountEl) aCountEl.textContent = totalAllocated;
+
+      toast("Loaded " + (data.block ? data.block.name : "Hostel") + " (100 rooms · 5 levels)");
+    })
+    .catch(function(err){
+      console.error(err);
+      toast("Error loading floor matrix");
+    });
 }
 </script>
 </body>
