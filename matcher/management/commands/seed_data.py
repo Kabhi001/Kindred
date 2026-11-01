@@ -43,14 +43,14 @@ class Command(BaseCommand):
                     'hostel_name': h_name,
                     'block_name': '',
                     'gender': gender,
-                    'total_floors': 10,
+                    'total_floors': 5,
                     'campus': 'Main Campus'
                 }
             )
             created_blocks[h_name] = block_obj
 
-            for flr in range(1, 11):
-                for rm in range(1, 4):
+            for flr in range(1, 6):  # 5 Levels
+                for rm in range(1, 21):  # 20 rooms per floor = 100 rooms per hostel
                     rm_no = f"{flr}{rm:02d}"
                     _, created = Room.objects.get_or_create(
                         block=block_obj,
@@ -58,24 +58,26 @@ class Command(BaseCommand):
                         defaults={
                             'capacity': 2,
                             'floor': flr,
-                            'is_accessible': (flr == 1 and rm == 1)
+                            'is_accessible': (flr == 1 and rm <= 2)
                         }
                     )
                     if created:
                         total_rooms_created += 1
 
-        self.stdout.write(f"  [OK] Hostels (12 total) and dual rooms initialized across BH-1..6 & GH-1..6")
+        self.stdout.write(f"  [OK] Hostels (12 total) initialized with 100 dual rooms each across BH-1..6 & GH-1..6 (5 levels x 20 rooms)")
 
-        # 3. Versioned Questions
+        # 3. 10 Research-Backed Empirical Questions
         questions_spec = [
-            ("sleep", "When does your day usually end?", 1, 4, 5.0),
-            ("wake", "And when do you usually wake up?", 1, 4, 3.0),
+            ("sleep", "On normal college days, when did you usually fall asleep?", 1, 4, 18.0),
+            ("privacy", "How much do you need the room to yourself, to rest, study, or be alone?", 1, 4, 16.0),
+            ("noise", "What does your room usually sound like when you're in it?", 1, 4, 12.0),
+            ("tidy", "How often do you properly clean up your desk and space?", 1, 4, 12.0),
+            ("guests", "How often would you want friends visiting our room?", 1, 4, 10.0),
+            ("sharing", "How do you feel about people using your snacks, charger, or toiletries?", 1, 4, 8.0),
+            ("intent", "What are you hoping for in a roommate?", 1, 4, 8.0),
+            ("flexibility", "When room rules or plans don't go your way, you usually...", 1, 4, 6.0),
             ("temp", "How do you like your room temperature?", 1, 4, 8.0),
-            ("tidy", "Your side of the room usually looks...", 1, 4, 4.0),
-            ("noise", "While studying or sleeping, the room should be...", 1, 4, 4.0),
-            ("study", "Where do you do your best work?", 1, 4, 3.0),
-            ("guests", "Friends visiting the room are...", 1, 4, 3.0),
-            ("social", "After a long day you recharge by...", 1, 4, 2.0),
+            ("communication", "If your roommate did something that bugged you, you'd...", 1, 4, 4.0),
         ]
         created_questions = {}
         for key, text, min_v, max_v, weight in questions_spec:
