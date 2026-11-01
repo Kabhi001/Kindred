@@ -410,18 +410,39 @@ input[type=text]{padding:10px 16px;border-radius:16px;border:1px solid var(--lin
 
       <div id="pair-picker-list" style="margin-top:14px">
         {% if pairs_data %}
+          <div style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;margin:6px 0 8px;letter-spacing:0.04em">
+            Confirmed Pairs Awaiting Room Assignment
+          </div>
           {% for item in pairs_data %}
-          <div class="pair-pick-item" onclick="confirmAllotmentFromModal({{ item.pairing.id }}, '{{ item.s1.name|escapejs }} & {{ item.s2.name|escapejs }}')">
+          {% if item.pairing.status != 'ALLOTTED' %}
+          <div class="pair-pick-item" id="modal-pair-{{ item.pairing.id }}" onclick="confirmAllotmentFromModal({{ item.pairing.id }}, '{{ item.s1.name|escapejs }} & {{ item.s2.name|escapejs }}', false, '')">
             <div style="display:flex;justify-content:space-between;align-items:center">
               <div>
                 <b style="color:var(--ink);font-size:14.5px">{{ item.s1.name }} & {{ item.s2.name }}</b>
                 <div class="sm" style="color:var(--soft);margin-top:2px">{{ item.s1.roll_no }} · {{ item.s2.roll_no }} · {{ item.score }}/100 Match</div>
               </div>
-              <span class="tag {% if item.pairing.status == 'ALLOTTED' %}done{% else %}wait{% endif %}">
-                {% if item.pairing.status == 'ALLOTTED' %}Room {{ item.pairing.room.number }}{% else %}Unassigned{% endif %}
-              </span>
+              <span class="tag wait">Unassigned (Click to Allot)</span>
             </div>
           </div>
+          {% endif %}
+          {% endfor %}
+
+          <!-- Already Allotted Pairs (shown for re-assignment/transfer only) -->
+          <div style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;margin:16px 0 8px;letter-spacing:0.04em">
+            Already Allotted Pairs (Transfer / Reassign)
+          </div>
+          {% for item in pairs_data %}
+          {% if item.pairing.status == 'ALLOTTED' %}
+          <div class="pair-pick-item" id="modal-pair-{{ item.pairing.id }}" style="opacity:0.85" onclick="confirmAllotmentFromModal({{ item.pairing.id }}, '{{ item.s1.name|escapejs }} & {{ item.s2.name|escapejs }}', true, '{{ item.pairing.room.number }}')">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <b style="color:var(--ink);font-size:14.5px">{{ item.s1.name }} & {{ item.s2.name }}</b>
+                <div class="sm" style="color:var(--soft);margin-top:2px">{{ item.s1.roll_no }} · {{ item.s2.roll_no }} · Currently in Room {{ item.pairing.room.number }}</div>
+              </div>
+              <span class="tag done">Room {{ item.pairing.room.number }} (Click to Transfer)</span>
+            </div>
+          </div>
+          {% endif %}
           {% endfor %}
         {% else %}
           <div class="sm" style="text-align:center;padding:20px">No confirmed pairs currently available.</div>
@@ -767,12 +788,18 @@ function closePairPickerModal() {
   activeModalRoomId = null;
 }
 
-function confirmAllotmentFromModal(pairingId, pairNames) {
+function confirmAllotmentFromModal(pairingId, pairNames, isAlreadyAllotted, currentRoom) {
   if (!activeModalRoomNum) return;
   var roomNum = activeModalRoomNum;
   var btn = document.getElementById("r-btn-" + roomNum);
-  closePairPickerModal();
 
+  if (isAlreadyAllotted && currentRoom) {
+    if (!confirm(pairNames + " is ALREADY allotted to Room " + currentRoom + ".\n\nDo you want to TRANSFER them to Room " + roomNum + "?\n(Their previous Room " + currentRoom + " will be released back to Available).")) {
+      return;
+    }
+  }
+
+  closePairPickerModal();
   executeGridAllotment(pairingId, roomNum, btn, pairNames);
 }
 
@@ -793,7 +820,21 @@ function executeGridAllotment(pairingId, roomNum, btn, pairNames) {
     })
   }).then(function(r){ return r.json() }).then(function(res){
     if (res.ok) {
-      // 1. Lock room button permanently: Red, locked, unclickable
+      // CRITICAL FIX: If pair had a previous room, FREE THE OLD ROOM back to vacant!
+      if (res.old_room_number && res.old_room_number !== roomNum) {
+        var oldBtn = document.getElementById("r-btn-" + res.old_room_number);
+        if (oldBtn) {
+          oldBtn.classList.remove("allocated");
+          oldBtn.classList.add("vacant");
+          oldBtn.setAttribute("data-allocated", "0");
+          oldBtn.setAttribute("data-occupants", "");
+          oldBtn.innerHTML = '<span>' + res.old_room_number + '</span>';
+          oldBtn.title = "Room " + res.old_room_number + " - Available Dual Room - Click to Allot";
+          oldBtn.setAttribute("onclick", "handleRoomGridClick('" + res.old_room_number + "', " + (oldBtn.getAttribute('data-id') || 0) + ", false, '')");
+        }
+      }
+
+      // 1. Lock NEW room button permanently: Red, locked, unclickable
       if (btn) {
         btn.classList.remove("vacant");
         btn.classList.add("allocated");
@@ -815,14 +856,26 @@ function executeGridAllotment(pairingId, roomNum, btn, pairNames) {
       if (roomInput) roomInput.value = roomNum;
       if (card) card.classList.add("allotted");
 
-      // 3. Update stats counters
-      var vacantSpan = document.getElementById("stat-vacant-count");
-      var allocatedSpan = document.getElementById("stat-allocated-count");
-      if (vacantSpan && allocatedSpan) {
-        var vCount = parseInt(vacantSpan.textContent) || 0;
-        var aCount = parseInt(allocatedSpan.textContent) || 0;
-        if (vCount > 0) vacantSpan.textContent = vCount - 1;
-        allocatedSpan.textContent = aCount + 1;
+      // 3. Update stats counters: Only adjust if this was a brand new allotment (not transferring an existing room)
+      if (!res.old_room_number || res.old_room_number === roomNum) {
+        var vacantSpan = document.getElementById("stat-vacant-count");
+        var allocatedSpan = document.getElementById("stat-allocated-count");
+        if (vacantSpan && allocatedSpan) {
+          var vCount = parseInt(vacantSpan.textContent) || 0;
+          var aCount = parseInt(allocatedSpan.textContent) || 0;
+          if (vCount > 0) vacantSpan.textContent = vCount - 1;
+          allocatedSpan.textContent = aCount + 1;
+        }
+      }
+
+      // 4. Update modal pair item
+      var modalPairItem = document.getElementById("modal-pair-" + pairingId);
+      if (modalPairItem) {
+        var modalTag = modalPairItem.querySelector(".tag");
+        if (modalTag) {
+          modalTag.className = "tag done";
+          modalTag.textContent = "Room " + roomNum + " (Click to Transfer)";
+        }
       }
 
       cancelPairSelection();

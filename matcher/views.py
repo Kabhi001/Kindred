@@ -1063,6 +1063,7 @@ def api_warden_allot(request, pairing_id):
     reason = body.get('reason', '').strip()
 
     pairing = get_object_or_404(Pair, id=pairing_id)
+    old_room_number = pairing.room.number if pairing.room else None
     # Require mandatory reason if overriding an already allotted room
     is_reallotment = pairing.room is not None and pairing.room.number != room_number
     if is_reallotment and not reason:
@@ -1101,7 +1102,11 @@ def api_warden_allot(request, pairing_id):
             }, status=400)
 
         if pairing.room and pairing.room != room:
-            Allotment.objects.filter(room=pairing.room, user__in=[pairing.user_a, pairing.user_b]).update(is_active=False)
+            old_r = pairing.room
+            Allotment.objects.filter(room=old_r, user__in=[pairing.user_a, pairing.user_b]).update(is_active=False)
+            if not old_r.allotments.filter(is_active=True).exists():
+                old_r.status = 'AVAILABLE'
+                old_r.save()
 
         pairing.room = room
         pairing.status = 'ALLOTTED'
@@ -1121,6 +1126,7 @@ def api_warden_allot(request, pairing_id):
         'ok': True,
         'status': pairing.status,
         'room_number': room.number,
+        'old_room_number': old_room_number,
         'message': f"Room {room.number} officially allotted to {pairing.user_a.name} & {pairing.user_b.name}."
     })
 
