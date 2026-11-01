@@ -1068,10 +1068,15 @@ def api_warden_allot(request, pairing_id):
     old_room_number = pairing.room.number if pairing.room else None
     # Require mandatory reason if overriding an already allotted room
     is_reallotment = pairing.room is not None and pairing.room.number != room_number
-    if is_reallotment and not reason:
-        return JsonResponse({
-            'error': 'Warden room re-allocation override requires a mandatory justification note.'
-        }, status=400)
+    if is_reallotment:
+        if not reason:
+            return JsonResponse({
+                'error': 'Warden room re-allocation override requires a mandatory justification note.'
+            }, status=400)
+        if reason == "Warden 100-Room Grid Selection":
+            return JsonResponse({
+                'error': f'Room allocation is locked: {pairing.user_a.name} & {pairing.user_b.name} are already permanently allotted to Room {pairing.room.number}. Once allotted, it cannot be changed.'
+            }, status=400)
 
     reason = reason or "Standard Warden room allotment"
     hostel_id = body.get('hostel_id')

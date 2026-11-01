@@ -418,35 +418,20 @@ input[type=text]{padding:10px 16px;border-radius:16px;border:1px solid var(--lin
           </div>
           {% for item in pairs_data %}
           {% if item.pairing.status != 'ALLOTTED' %}
-          <div class="pair-pick-item" id="modal-pair-{{ item.pairing.id }}" onclick="confirmAllotmentFromModal({{ item.pairing.id }}, '{{ item.s1.name|escapejs }} & {{ item.s2.name|escapejs }}', false, '')">
+          <div class="pair-pick-item" id="modal-pair-{{ item.pairing.id }}" onclick="confirmAllotmentFromModal({{ item.pairing.id }}, '{{ item.s1.name|escapejs }} & {{ item.s2.name|escapejs }}')">
             <div style="display:flex;justify-content:space-between;align-items:center">
               <div>
                 <b style="color:var(--ink);font-size:14.5px">{{ item.s1.name }} & {{ item.s2.name }}</b>
                 <div class="sm" style="color:var(--soft);margin-top:2px">{{ item.s1.roll_no }} · {{ item.s2.roll_no }} · {{ item.score }}/100 Match</div>
               </div>
-              <span class="tag wait">Unassigned (Click to Allot)</span>
+              <span class="tag wait">Click to Allot</span>
             </div>
           </div>
           {% endif %}
           {% endfor %}
-
-          <!-- Already Allotted Pairs (shown for re-assignment/transfer only) -->
-          <div style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;margin:16px 0 8px;letter-spacing:0.04em">
-            Already Allotted Pairs (Transfer / Reassign)
+          <div id="no-unallotted-notice" class="sm" style="text-align:center;padding:24px;color:var(--soft);display:none">
+            All confirmed roommate pairs have already been permanently allotted rooms.<br><b>Once a room is allotted, it cannot be changed.</b>
           </div>
-          {% for item in pairs_data %}
-          {% if item.pairing.status == 'ALLOTTED' %}
-          <div class="pair-pick-item" id="modal-pair-{{ item.pairing.id }}" style="opacity:0.85" onclick="confirmAllotmentFromModal({{ item.pairing.id }}, '{{ item.s1.name|escapejs }} & {{ item.s2.name|escapejs }}', true, '{{ item.pairing.room.number }}')">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div>
-                <b style="color:var(--ink);font-size:14.5px">{{ item.s1.name }} & {{ item.s2.name }}</b>
-                <div class="sm" style="color:var(--soft);margin-top:2px">{{ item.s1.roll_no }} · {{ item.s2.roll_no }} · Currently in Room {{ item.pairing.room.number }}</div>
-              </div>
-              <span class="tag done">Room {{ item.pairing.room.number }} (Click to Transfer)</span>
-            </div>
-          </div>
-          {% endif %}
-          {% endfor %}
         {% else %}
           <div class="sm" style="text-align:center;padding:20px">No confirmed pairs currently available.</div>
         {% endif %}
@@ -496,17 +481,24 @@ input[type=text]{padding:10px 16px;border-radius:16px;border:1px solid var(--lin
         </div>
       </div>
 
-      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+      <div class="pair-actions" id="pair-actions-{{ item.pairing.id }}" style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+        {% if item.pairing.status == 'ALLOTTED' %}
+        <div style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.12);border:1.5px solid rgba(34,197,94,0.4);color:#166534;padding:8px 16px;border-radius:14px;font-size:13px;font-weight:700">
+          <span>🔒</span>
+          <span>Room {{ item.pairing.room.number }} Permanently Allotted · Cannot be changed</span>
+        </div>
+        {% else %}
         <button type="button" class="btn action" style="padding:8px 16px;font-size:12.5px;display:flex;align-items:center;gap:6px" onclick="selectPairForGridAllotment({{ item.pairing.id }}, '{{ item.s1.name|escapejs }}', '{{ item.s2.name|escapejs }}')">
           <span>🎯</span>
-          <span>{% if item.pairing.status == 'ALLOTTED' %}Reassign from 100-Room Grid{% else %}Select from 100-Room Grid →{% endif %}</span>
+          <span>Select from 100-Room Grid →</span>
         </button>
         <form class="allot-form" onsubmit="allotRoom(event, {{ item.pairing.id }})">
-          <input type="text" id="room-input-{{ item.pairing.id }}" placeholder="e.g. 101" value="{% if item.pairing.room %}{{ item.pairing.room.number }}{% endif %}" required style="width:100px;padding:6px 12px;font-size:13px">
+          <input type="text" id="room-input-{{ item.pairing.id }}" placeholder="e.g. 101" value="" required style="width:100px;padding:6px 12px;font-size:13px">
           <button type="submit" class="btn" style="padding:6px 14px;font-size:12.5px">
-            {% if item.pairing.status == 'ALLOTTED' %}Override{% else %}Direct Allot{% endif %}
+            Direct Allot
           </button>
         </form>
+        {% endif %}
       </div>
     </div>
     {% endfor %}
@@ -658,37 +650,45 @@ function runAutoAllotment() {
 
 function allotRoom(e, pairingId) {
   e.preventDefault();
-  var room = document.getElementById('room-input-' + pairingId).value.trim();
-  if(!room) return;
-
   var card = document.getElementById('pair-' + pairingId);
-  var isOverride = card && card.classList.contains('allotted');
-  var reason = "Hostel Warden Room Allocation";
-
-  if (isOverride) {
-    reason = prompt("This room allocation is an override. Enter mandatory justification note:") || "";
-    if (!reason.trim()) {
-      toast("Room override cancelled: Justification note is required.");
-      return;
-    }
+  if (card && card.classList.contains('allotted')) {
+    toast("🔒 This pair has already been permanently allotted a room. Once allotted, it cannot be changed.");
+    return;
   }
+  var input = document.getElementById('room-input-' + pairingId);
+  var roomNum = input ? input.value.trim() : '';
+  if (!roomNum) return;
 
   fetch('/api/warden/allot/' + pairingId + '/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-CSRFToken': getCookie('csrftoken') || ''
+      'X-CSRFToken': getCookie('csrftoken')
     },
-    body: JSON.stringify({ room_number: room, reason: reason })
+    body: JSON.stringify({ room_number: roomNum })
   }).then(function(r){ return r.json() }).then(function(res){
-    if(res.ok) {
+    if (res.ok) {
       toast(res.message);
       var tag = document.getElementById('tag-' + pairingId);
-      if(tag) {
+      if (tag) {
         tag.className = 'tag done';
-        tag.textContent = 'Allotted: Room ' + res.room_number;
+        tag.textContent = '🔒 Allotted: Room ' + res.room_number;
       }
-      if(card) card.classList.add('allotted');
+      if (card) {
+        card.classList.add('allotted');
+        var actionsCol = document.getElementById("pair-actions-" + pairingId);
+        if (actionsCol) {
+          actionsCol.innerHTML = '<div style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.12);border:1.5px solid rgba(34,197,94,0.4);color:#166534;padding:8px 16px;border-radius:14px;font-size:13px;font-weight:700">' +
+            '<span>🔒</span><span>Room ' + res.room_number + ' Permanently Allotted · Cannot be changed</span></div>';
+        }
+      }
+      var modalPairItem = document.getElementById("modal-pair-" + pairingId);
+      if (modalPairItem) modalPairItem.remove();
+      var remainingModalItems = document.querySelectorAll("#pair-picker-list .pair-pick-item");
+      var noUnallottedNotice = document.getElementById("no-unallotted-notice");
+      if (noUnallottedNotice && remainingModalItems.length === 0) {
+        noUnallottedNotice.style.display = "block";
+      }
       var hostelSelect = document.getElementById("matrix-hostel-select");
       if (hostelSelect && hostelSelect.value) {
         setTimeout(function(){ loadHostelMatrix(hostelSelect.value); }, 150);
@@ -696,40 +696,14 @@ function allotRoom(e, pairingId) {
     } else {
       toast(res.error || 'Failed to allot room');
     }
-  }).catch(function(err){
-    toast('Error: ' + err.message);
   });
 }
-
-function updateTicket(ticketId, newStatus) {
-  var notes = prompt("Enter resolution notes / comments:") || "";
-  fetch('/api/tickets/' + ticketId + '/update-status/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': getCookie('csrftoken') || ''
-    },
-    body: JSON.stringify({ status: newStatus, resolution_notes: notes })
-  }).then(function(r){ return r.json() }).then(function(res){
-    if(res.ok) {
-      toast(res.message);
-      setTimeout(function(){ location.reload() }, 600);
-    } else {
-      toast(res.error || 'Failed to update ticket status');
-    }
-  }).catch(function(err){
-    toast('Error: ' + err.message);
-  });
-}
-</script>
-<script>
-// State for interactive 100-room allocation grid
-var selectedPairingId = null;
-var selectedPairNames = "";
-var activeModalRoomNum = null;
-var activeModalRoomId = null;
-
 function selectPairForGridAllotment(pairingId, s1Name, s2Name) {
+  var card = document.getElementById("pair-" + pairingId);
+  if (card && card.classList.contains("allotted")) {
+    toast("🔒 This pair has already been permanently allotted a room. Once allotted, it cannot be changed.");
+    return;
+  }
   selectedPairingId = pairingId;
   selectedPairNames = s1Name + " & " + s2Name;
 
@@ -765,13 +739,13 @@ function handleRoomGridClick(roomNum, roomId, isAllocated, occupants) {
       btn.classList.add("shake");
       setTimeout(function(){ btn.classList.remove("shake"); }, 500);
     }
-    toast("🔒 Room " + roomNum + " is already allocated" + (occupants ? " to " + occupants : "") + " and cannot be selected again.");
+    toast("🔒 Room " + roomNum + " is already allocated" + (occupants ? " to " + occupants : "") + " and locked permanently. Once allotted, it cannot be changed.");
     return;
   }
 
   // Case A: A pair was pre-selected from the confirmed list
   if (selectedPairingId) {
-    if (confirm("Confirm Allotment: Assign Room " + roomNum + " to " + selectedPairNames + "?")) {
+    if (confirm("Confirm Allotment: Permanently assign Room " + roomNum + " to " + selectedPairNames + "?\n\nImportant: Once a room is allotted, it cannot be changed.")) {
       executeGridAllotment(selectedPairingId, roomNum, btn, selectedPairNames);
     }
     return;
@@ -784,6 +758,11 @@ function handleRoomGridClick(roomNum, roomId, isAllocated, occupants) {
   var modalNum = document.getElementById("modal-room-number");
   if (modal && modalNum) {
     modalNum.textContent = roomNum;
+    var unallottedItems = modal.querySelectorAll(".pair-pick-item");
+    var noNotice = document.getElementById("no-unallotted-notice");
+    if (noNotice) {
+      noNotice.style.display = (unallottedItems.length === 0) ? "block" : "none";
+    }
     modal.style.display = "flex";
   }
 }
@@ -795,15 +774,13 @@ function closePairPickerModal() {
   activeModalRoomId = null;
 }
 
-function confirmAllotmentFromModal(pairingId, pairNames, isAlreadyAllotted, currentRoom) {
+function confirmAllotmentFromModal(pairingId, pairNames) {
   if (!activeModalRoomNum) return;
   var roomNum = activeModalRoomNum;
   var btn = document.getElementById("r-btn-" + roomNum);
 
-  if (isAlreadyAllotted && currentRoom) {
-    if (!confirm(pairNames + " is ALREADY allotted to Room " + currentRoom + ".\n\nDo you want to TRANSFER them to Room " + roomNum + "?\n(Their previous Room " + currentRoom + " will be released back to Available).")) {
-      return;
-    }
+  if (!confirm("Confirm Allotment: Permanently assign Room " + roomNum + " to " + pairNames + "?\n\nImportant: Once a room is allotted, it cannot be changed.")) {
+    return;
   }
 
   closePairPickerModal();
@@ -827,62 +804,52 @@ function executeGridAllotment(pairingId, roomNum, btn, pairNames) {
     })
   }).then(function(r){ return r.json() }).then(function(res){
     if (res.ok) {
-      // CRITICAL FIX: If pair had a previous room, FREE THE OLD ROOM back to vacant!
-      if (res.old_room_number && res.old_room_number !== roomNum) {
-        var oldBtn = document.getElementById("r-btn-" + res.old_room_number);
-        if (oldBtn) {
-          oldBtn.classList.remove("allocated");
-          oldBtn.classList.add("vacant");
-          oldBtn.setAttribute("data-allocated", "0");
-          oldBtn.setAttribute("data-occupants", "");
-          oldBtn.innerHTML = '<span>' + res.old_room_number + '</span>';
-          oldBtn.title = "Room " + res.old_room_number + " - Available Dual Room - Click to Allot";
-          oldBtn.setAttribute("onclick", "handleRoomGridClick('" + res.old_room_number + "', " + (oldBtn.getAttribute('data-id') || 0) + ", false, '')");
-        }
-      }
-
-      // 1. Lock NEW room button permanently: Red, locked, unclickable
+      // 1. Lock room button permanently: Red, locked, unclickable
       if (btn) {
         btn.classList.remove("vacant");
         btn.classList.add("allocated");
         btn.setAttribute("data-allocated", "1");
         btn.setAttribute("data-occupants", pairNames || "Assigned Students");
         btn.innerHTML = '<span style="font-size:9px;line-height:1">🔒</span><span>' + roomNum + '</span>';
-        btn.title = "🔒 Room " + roomNum + " is ALLOCATED to: " + (pairNames || "Assigned Students") + " (Locked: Cannot be selected again)";
+        btn.title = "🔒 Room " + roomNum + " is ALLOCATED to: " + (pairNames || "Assigned Students") + " (Permanently Locked: Cannot be changed)";
         btn.setAttribute("onclick", "handleRoomGridClick('" + roomNum + "', " + (btn.getAttribute('data-id') || 0) + ", true, '" + (pairNames || "").replace(/'/g, "\\'") + "')");
       }
 
-      // 2. Update pair card in list
+      // 2. Update pair card in list to locked permanent state
       var card = document.getElementById("pair-" + pairingId);
       var tag = document.getElementById("tag-" + pairingId);
-      var roomInput = document.getElementById("room-input-" + pairingId);
       if (tag) {
         tag.className = 'tag done';
-        tag.textContent = 'Allotted: Room ' + roomNum;
+        tag.textContent = '🔒 Allotted: Room ' + roomNum;
       }
-      if (roomInput) roomInput.value = roomNum;
-      if (card) card.classList.add("allotted");
-
-      // 3. Update stats counters: Only adjust if this was a brand new allotment (not transferring an existing room)
-      if (!res.old_room_number || res.old_room_number === roomNum) {
-        var vacantSpan = document.getElementById("stat-vacant-count");
-        var allocatedSpan = document.getElementById("stat-allocated-count");
-        if (vacantSpan && allocatedSpan) {
-          var vCount = parseInt(vacantSpan.textContent) || 0;
-          var aCount = parseInt(allocatedSpan.textContent) || 0;
-          if (vCount > 0) vacantSpan.textContent = vCount - 1;
-          allocatedSpan.textContent = aCount + 1;
+      if (card) {
+        card.classList.add("allotted");
+        var actionsCol = document.getElementById("pair-actions-" + pairingId);
+        if (actionsCol) {
+          actionsCol.innerHTML = '<div style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.12);border:1.5px solid rgba(34,197,94,0.4);color:#166534;padding:8px 16px;border-radius:14px;font-size:13px;font-weight:700">' +
+            '<span>🔒</span><span>Room ' + roomNum + ' Permanently Allotted · Cannot be changed</span></div>';
         }
       }
 
-      // 4. Update modal pair item
+      // 3. Update stats counters
+      var vacantSpan = document.getElementById("stat-vacant-count");
+      var allocatedSpan = document.getElementById("stat-allocated-count");
+      if (vacantSpan && allocatedSpan) {
+        var vCount = parseInt(vacantSpan.textContent) || 0;
+        var aCount = parseInt(allocatedSpan.textContent) || 0;
+        if (vCount > 0) vacantSpan.textContent = vCount - 1;
+        allocatedSpan.textContent = aCount + 1;
+      }
+
+      // 4. Remove pair from modal list so they can NEVER be selected again
       var modalPairItem = document.getElementById("modal-pair-" + pairingId);
       if (modalPairItem) {
-        var modalTag = modalPairItem.querySelector(".tag");
-        if (modalTag) {
-          modalTag.className = "tag done";
-          modalTag.textContent = "Room " + roomNum + " (Click to Transfer)";
-        }
+        modalPairItem.remove();
+      }
+      var remainingModalItems = document.querySelectorAll("#pair-picker-list .pair-pick-item");
+      var noUnallottedNotice = document.getElementById("no-unallotted-notice");
+      if (noUnallottedNotice && remainingModalItems.length === 0) {
+        noUnallottedNotice.style.display = "block";
       }
 
       // 5. Instantly re-sync 100-room matrix from server to guarantee exact database alignment
@@ -891,7 +858,7 @@ function executeGridAllotment(pairingId, roomNum, btn, pairNames) {
       }
 
       cancelPairSelection();
-      toast("✓ Room " + roomNum + " successfully allocated to " + (pairNames || "pair") + "! Room is now locked.");
+      toast("✓ Room " + roomNum + " permanently allocated to " + (pairNames || "pair") + "! Room allocation is locked.");
     } else {
       toast(res.error || "Failed to allot room");
     }
@@ -900,7 +867,6 @@ function executeGridAllotment(pairingId, roomNum, btn, pairNames) {
     toast("Network error while allocating room.");
   });
 }
-
 function loadHostelMatrix(hostelId) {
   if (!hostelId) return;
   fetch('/api/floormap/?hostel_id=' + hostelId)
