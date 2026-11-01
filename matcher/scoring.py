@@ -253,6 +253,7 @@ def compute_ranked_matches_for_student(student: StudentUser):
             'year': peer.year,
             'persona': peer.persona,
             'block': peer.block.name if peer.block else "Main Hostel",
+            'hostel': peer.block.name if peer.block else "Main Hostel",
             'avatar_hue': peer.avatar_hue,
             'final_score': int(ps.final_score),
             'my_score': int(score_for_me),

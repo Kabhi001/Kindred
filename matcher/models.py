@@ -11,15 +11,22 @@ class HostelBlock(models.Model):
         ('F', 'Girls Hostel (GH)'),
         ('COED', 'Co-Ed Hostel'),
     ]
-    name = models.CharField(max_length=80, unique=True, help_text="e.g. BH-1 - Block A")
+    name = models.CharField(max_length=80, unique=True, help_text="e.g. BH-1, GH-2")
     hostel_name = models.CharField(max_length=30, blank=True, default="", help_text="e.g. BH-1, GH-2")
-    block_name = models.CharField(max_length=20, blank=True, default="", help_text="e.g. Block A, Block B, Block C")
+    block_name = models.CharField(max_length=20, blank=True, default="")
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='M')
     total_floors = models.PositiveSmallIntegerField(default=10, help_text="Standard 10-floor hostel tower")
     campus = models.CharField(max_length=80, default="Main Campus")
 
+    class Meta:
+        verbose_name = 'Hostel'
+        verbose_name_plural = 'Hostels'
+
     def __str__(self):
         return f"{self.name} ({self.get_gender_display()})"
+
+# Direct alias so code can use Hostel or HostelBlock interchangeably
+Hostel = HostelBlock
 
 
 class Room(models.Model):
@@ -49,6 +56,14 @@ class Room(models.Model):
     @property
     def is_available(self):
         return self.occupied_count < self.capacity
+
+    @property
+    def hostel(self):
+        return self.block
+
+    @hostel.setter
+    def hostel(self, val):
+        self.block = val
 
 
 class StudentUser(models.Model):
@@ -141,8 +156,24 @@ class StudentUser(models.Model):
     def registration_no(self, value):
         self.roll_no = value
 
+    @property
+    def hostel(self):
+        return self.block
+
+    @hostel.setter
+    def hostel(self, val):
+        self.block = val
+
+    @property
+    def hostel_id(self):
+        return self.block_id
+
+    @hostel_id.setter
+    def hostel_id(self, val):
+        self.block_id = val
+
     def __str__(self):
-        return f"{self.name} ({self.roll_no}) - {self.role.capitalize()}"
+        return f"{self.name} ({self.roll_no}) - {self.role.capitalize()}" 
 
     @property
     def is_paired(self):

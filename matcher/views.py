@@ -280,17 +280,27 @@ def api_me(request):
         'persona': user.persona,
         'avatar_hue': user.avatar_hue,
         'block': user.block.name if user.block else "Main Hostel",
+        'hostel': user.block.name if user.block else "Main Hostel",
         'block_id': user.block_id if user.block else None,
+        'hostel_id': user.block_id if user.block else None,
         'all_blocks': [
             {
                 'id': b.id,
                 'name': b.name,
-                'hostel': b.hostel_name,
-                'block': b.block_name,
+                'hostel': b.name,
                 'gender': b.gender,
                 'gender_display': b.get_gender_display(),
             }
-            for b in HostelBlock.objects.all().order_by('name')
+            for b in HostelBlock.objects.all().order_by('gender', 'name')
+        ],
+        'all_hostels': [
+            {
+                'id': b.id,
+                'name': b.name,
+                'gender': b.gender,
+                'gender_display': b.get_gender_display(),
+            }
+            for b in HostelBlock.objects.all().order_by('gender', 'name')
         ],
         'consent_given': user.consent_given,
         'has_quiz': has_quiz,
@@ -347,7 +357,7 @@ def api_update_profile(request):
     year = data.get('year', '').strip()
     branch = data.get('branch', '').strip()
     phone = data.get('phone', '').strip()
-    block_id = data.get('block_id')
+    block_id = data.get('hostel_id') or data.get('block_id')
 
     if not name:
         return JsonResponse({'error': 'Full name cannot be empty.'}, status=400)
@@ -1107,7 +1117,7 @@ def api_register(request):
     branch = body.get('branch', 'Computer Science').strip()
     year = body.get('year', '1st Year').strip()
     phone = body.get('phone', '').strip()
-    block_id = body.get('block_id')
+    block_id = body.get('hostel_id') or body.get('block_id')
     consent_given = bool(body.get('consent_given', True))
 
     if not name:
@@ -1459,7 +1469,7 @@ def api_admin_export_csv(request):
 
     writer = csv.writer(response)
     writer.writerow([
-        'Hostel Block', 'Room Number', 'Student 1 Name', 'Student 1 Roll',
+        'Hostel', 'Room Number', 'Student 1 Name', 'Student 1 Roll',
         'Student 2 Name', 'Student 2 Roll', 'Pairing Method', 'Allotment Status', 'Date Confirmed'
     ])
 
@@ -1497,7 +1507,7 @@ def api_admin_assign_warden(request):
 
     user_id = data.get('user_id')
     roll_no = (data.get('roll_no') or '').strip()
-    block_id = data.get('block_id')
+    block_id = data.get('hostel_id') or data.get('block_id')
 
     user = None
     if user_id:
@@ -1564,7 +1574,7 @@ def api_admin_create_warden(request):
     roll_no = (data.get('roll_no') or '').strip()
     email = (data.get('email') or '').strip()
     gender = (data.get('gender') or 'M').strip().upper()
-    block_id = data.get('block_id')
+    block_id = data.get('hostel_id') or data.get('block_id')
     password = (data.get('password') or '').strip() or 'warden123'
 
     if not name:

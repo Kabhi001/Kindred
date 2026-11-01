@@ -244,7 +244,7 @@ function home(){
 
   return "<header class='hero'>" + (m ? "<span class='hand'>welcome back, " + m.n + " (" + (m.roll_no || "") + ") · " + (m.block || "Hostel") + "</span>" : "<span class='hand'>a hostel roommate matcher</span>") +
   "<h1><span class='ln'><span>find the roommate</span></span><span class='ln'><span>who fits your rhythm.</span></span></h1>" +
-  "<p class='sub'>Answer a short quiz about how you live, compare with real classmates in your hostel block, and send a pairing request. When both say yes, the pair goes directly to the warden for room allotment.</p>" +
+  "<p class='sub'>Answer a short quiz about how you live, compare with real classmates in your hostel, and send a pairing request. When both say yes, the pair goes directly to the warden for room allotment.</p>" +
   pairBanner +
   "<div class='row'><button class='btn' data-go='" + (nx < 0 ? "matches" : st[nx][2]) + "'>" + (nx < 0 ? "see my matches" : st[nx][0].toLowerCase()) + "</button>" +
   (m && m.is_paired ? "<a href='/warden/' class='btn ok' style='text-decoration:none'>view room allotment ✓</a>" : "") +
@@ -847,124 +847,42 @@ function openProfileModal(){
     var kIn = $("#edit-block"); if (kIn && S.me.block_id) kIn.value = S.me.block_id;
     var eIn = $("#edit-email"); if (eIn) eIn.value = S.me.email || "";
     var pIn = $("#edit-phone"); if (pIn) pIn.value = S.me.phone || "";
-    initEditBlockSelectors();
+    initEditHostelSelectors();
   }
-function initEditBlockSelectors() {
+function initEditHostelSelectors() {
   if (!S.all_blocks || S.all_blocks.length === 0) return;
   var gEl = $("#edit-gender");
   var gender = gEl ? gEl.value : (S.me ? S.me.gender_code : "M");
   var currentBlockId = S.me ? S.me.block_id : null;
-  var currentBlock = null;
-  for (var i = 0; i < S.all_blocks.length; i++) {
-    if (S.all_blocks[i].id == currentBlockId) {
-      currentBlock = S.all_blocks[i];
-      break;
-    }
-  }
-
   var hostelEl = $("#edit-hostel");
-  var blockLetterEl = $("#edit-block-letter");
   var labelEl = $("#edit-hostel-label");
-
-  if (!hostelEl || !blockLetterEl) return;
+  if (!hostelEl) return;
 
   if (labelEl) {
-    if (gender === "M") labelEl.textContent = "Hostel Building (BH) *";
-    else if (gender === "F") labelEl.textContent = "Hostel Building (GH) *";
-    else labelEl.textContent = "Hostel Building *";
+    if (gender === "M") labelEl.textContent = "Hostel (Boys - BH) *";
+    else if (gender === "F") labelEl.textContent = "Hostel (Girls - GH) *";
+    else labelEl.textContent = "Hostel *";
   }
 
   var matching = S.all_blocks.filter(function(b){ return b.gender === gender || b.gender === "COED"; });
-  var hostels = [];
-  matching.forEach(function(b){
-    if (b.hostel && hostels.indexOf(b.hostel) === -1) hostels.push(b.hostel);
-  });
-
-  var prevHostel = hostelEl.value;
+  var prevVal = hostelEl.value || currentBlockId;
   hostelEl.innerHTML = "";
-  hostels.forEach(function(h){
+  matching.forEach(function(b){
     var opt = document.createElement("option");
-    opt.value = h;
-    opt.textContent = h;
+    opt.value = b.id;
+    opt.textContent = b.name + (b.gender === "M" ? " (Boys Hostel)" : b.gender === "F" ? " (Girls Hostel)" : "");
+    if (String(b.id) === String(prevVal)) opt.selected = true;
     hostelEl.appendChild(opt);
   });
 
-  if (currentBlock && hostels.indexOf(currentBlock.hostel) !== -1) {
-    hostelEl.value = currentBlock.hostel;
-  } else if (prevHostel && hostels.indexOf(prevHostel) !== -1) {
-    hostelEl.value = prevHostel;
-  } else if (hostels.length > 0) {
-    hostelEl.value = hostels[0];
-  }
-
-  updateEditBlockLetters(currentBlock ? currentBlock.block : null);
+  syncEditHostelHidden();
 }
 
-function updateEditBlockLetters(preferredBlock) {
-  var gEl = $("#edit-gender");
-  var gender = gEl ? gEl.value : "M";
+function syncEditHostelHidden() {
   var hostelEl = $("#edit-hostel");
-  var hostel = hostelEl ? hostelEl.value : "";
-  var blockLetterEl = $("#edit-block-letter");
-  if (!blockLetterEl) return;
-
-  var matching = S.all_blocks.filter(function(b){
-    return (b.gender === gender || b.gender === "COED") && b.hostel === hostel;
-  });
-  var blocks = [];
-  matching.forEach(function(b){
-    if (b.block && blocks.indexOf(b.block) === -1) blocks.push(b.block);
-  });
-
-  var prevBlock = blockLetterEl.value;
-  blockLetterEl.innerHTML = "";
-  blocks.forEach(function(blk){
-    var opt = document.createElement("option");
-    opt.value = blk;
-    opt.textContent = blk.replace("-", " ");
-    blockLetterEl.appendChild(opt);
-  });
-
-  if (preferredBlock && blocks.indexOf(preferredBlock) !== -1) {
-    blockLetterEl.value = preferredBlock;
-  } else if (prevBlock && blocks.indexOf(prevBlock) !== -1) {
-    blockLetterEl.value = prevBlock;
-  } else if (blocks.length > 0) {
-    blockLetterEl.value = blocks[0];
-  }
-
-  syncEditBlockHidden();
-}
-
-function syncEditBlockHidden() {
-  var gEl = $("#edit-gender");
-  var gender = gEl ? gEl.value : "M";
-  var hostelEl = $("#edit-hostel");
-  var hostel = hostelEl ? hostelEl.value : "";
-  var blockLetterEl = $("#edit-block-letter");
-  var blockLetter = blockLetterEl ? blockLetterEl.value : "";
   var hiddenEl = $("#edit-block");
-
-  var match = null;
-  for (var i = 0; i < S.all_blocks.length; i++) {
-    var b = S.all_blocks[i];
-    if ((b.gender === gender || b.gender === "COED") && b.hostel === hostel && b.block === blockLetter) {
-      match = b;
-      break;
-    }
-  }
-  if (!match) {
-    for (var j = 0; j < S.all_blocks.length; j++) {
-      var bk = S.all_blocks[j];
-      if (bk.hostel === hostel && bk.block === blockLetter) {
-        match = bk;
-        break;
-      }
-    }
-  }
-
-  if (hiddenEl) {
-    hiddenEl.value = match ? match.id : "";
+  if (hostelEl && hiddenEl) {
+    hiddenEl.value = hostelEl.value || "";
   }
 }
 

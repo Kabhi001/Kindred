@@ -985,10 +985,10 @@ def api_bulk_generate_rooms(request):
         return HttpResponseBadRequest("Invalid JSON")
 
     me = get_current_user(request)
-    block_id = body.get('block_id')
+    block_id = body.get('hostel_id') or body.get('block_id')
     block = HostelBlock.objects.filter(id=block_id).first()
     if not block:
-        return JsonResponse({'error': 'Hostel block not found.'}, status=404)
+        return JsonResponse({'error': 'Hostel not found.'}, status=404)
 
     start_num = int(body.get('start_num', 1))
     end_num = int(body.get('end_num', 20))
@@ -1037,10 +1037,10 @@ def api_floor_map(request):
     Interactive visual floor matrix:
     Green = Vacant, Yellow = Partial Occupancy, Red = Full, Grey = Maintenance
     """
-    block_id = request.GET.get('block_id')
+    block_id = request.GET.get('hostel_id') or request.GET.get('block_id')
     block = HostelBlock.objects.filter(id=block_id).first() if block_id else HostelBlock.objects.first()
     if not block:
-        return JsonResponse({'error': 'No hostel blocks found.'}, status=404)
+        return JsonResponse({'error': 'No hostels found.'}, status=404)
 
     rooms = Room.objects.filter(block=block).prefetch_related('allotments__user').order_by('floor', 'number')
 
@@ -1116,7 +1116,7 @@ def api_floor_map(request):
 def api_warden_roster_export(request):
     """Generates comprehensive roster CSV for physical warden roll-calls."""
     me = get_current_user(request)
-    block_id = request.GET.get('block_id')
+    block_id = request.GET.get('hostel_id') or request.GET.get('block_id')
 
     qs = Allotment.objects.filter(is_active=True).select_related('user', 'room', 'room__block')
     if block_id:
@@ -1129,7 +1129,7 @@ def api_warden_roster_export(request):
 
     writer = csv.writer(response)
     writer.writerow([
-        'Hostel Block', 'Floor', 'Room Number', 'Room Type',
+        'Hostel', 'Floor', 'Room Number', 'Room Type',
         'Student Name', 'Registration Number', 'Gender', 'Year',
         'Branch', 'Phone', 'Email', 'Physical Check-In', 'Key Issued'
     ])

@@ -166,7 +166,7 @@ tr:hover td{background:#00000005}
   <div style="margin:20px 0 10px">
     <span class="hand">master allotment administration</span>
     <h1>Governance & Allotment Controls</h1>
-    <p style="color:var(--soft);margin-top:6px">Control calendar phases, monitor hostel blocks capacity, download official rosters, and review audit logs.</p>
+    <p style="color:var(--soft);margin-top:6px">Control calendar phases, monitor hostel capacity, download official rosters, and review audit logs.</p>
   </div>
 
   <!-- Stats Grid -->
@@ -233,7 +233,7 @@ tr:hover td{background:#00000005}
       <span style="font-size:13px;font-weight:700;color:var(--soft);white-space:nowrap">Elevate User:</span>
       <input type="text" id="quick-warden-id" class="quick-input" placeholder="Registration No or Email (e.g. 12310266)">
       <select id="quick-warden-block" class="quick-select">
-        <option value="">-- Assign Hostel Block (Optional) --</option>
+        <option value="">-- Assign Hostel (Optional) --</option>
         {% for b in blocks %}
         <option value="{{ b.id }}">{{ b.name }} ({{ b.get_gender_display }})</option>
         {% endfor %}
@@ -251,7 +251,7 @@ tr:hover td{background:#00000005}
             <th>Staff Member</th>
             <th>Staff / Reg ID</th>
             <th>Email</th>
-            <th>Assigned Block</th>
+            <th>Assigned Hostel</th>
             <th>Role Access</th>
             <th>Actions</th>
           </tr>
@@ -274,7 +274,7 @@ tr:hover td{background:#00000005}
               {% if w.block %}
                 <span class="chip yes">{{ w.block.name }}</span>
               {% else %}
-                <span class="chip no" style="background:var(--lav);color:#35293f">All Campus Blocks</span>
+                <span class="chip no" style="background:var(--lav);color:#35293f">All Campus Hostels</span>
               {% endif %}
             </td>
             <td><span class="chip yes" style="background:#e0e7ff;color:#3730a3">Warden Access</span></td>
@@ -306,7 +306,7 @@ tr:hover td{background:#00000005}
             <th>Student</th>
             <th>Registration No</th>
             <th>Branch & Year</th>
-            <th>Block</th>
+            <th>Hostel</th>
             <th>Survey Status</th>
             <th>Pairing Status</th>
             <th>Actions</th>
@@ -413,7 +413,7 @@ tr:hover td{background:#00000005}
 
       <div class="form-row">
         <div class="form-group">
-          <label class="modal-label">Assigned Hostel Block</label>
+          <label class="modal-label">Assigned Hostel</label>
           <select id="warden-block" class="modal-input">
             <option value="">All Campus Hostels (Universal)</option>
             {% for b in blocks %}

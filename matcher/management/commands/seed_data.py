@@ -33,42 +33,38 @@ class Command(BaseCommand):
         for i in range(1, 7):
             hostel_specs.append((f"GH-{i}", 'F'))
 
-        block_letters = ['Block-A', 'Block-B', 'Block-C']
         created_blocks = {}
         total_rooms_created = 0
 
         for h_name, gender in hostel_specs:
-            for b_letter in block_letters:
-                full_name = f"{h_name} - {b_letter}"
-                block_obj, _ = HostelBlock.objects.get_or_create(
-                    name=full_name,
-                    defaults={
-                        'hostel_name': h_name,
-                        'block_name': b_letter,
-                        'gender': gender,
-                        'total_floors': 10,
-                        'campus': 'Main Campus'
-                    }
-                )
-                created_blocks[full_name] = block_obj
+            block_obj, _ = HostelBlock.objects.get_or_create(
+                name=h_name,
+                defaults={
+                    'hostel_name': h_name,
+                    'block_name': '',
+                    'gender': gender,
+                    'total_floors': 10,
+                    'campus': 'Main Campus'
+                }
+            )
+            created_blocks[h_name] = block_obj
 
-                # 30 rooms: 10 floors x 3 rooms per floor
-                for flr in range(1, 11):
-                    for rm in range(1, 4):
-                        rm_no = f"{flr}{rm:02d}"
-                        _, created = Room.objects.get_or_create(
-                            block=block_obj,
-                            number=rm_no,
-                            defaults={
-                                'capacity': 2,
-                                'floor': flr,
-                                'is_accessible': (flr == 1 and rm == 1)
-                            }
-                        )
-                        if created:
-                            total_rooms_created += 1
+            for flr in range(1, 11):
+                for rm in range(1, 4):
+                    rm_no = f"{flr}{rm:02d}"
+                    _, created = Room.objects.get_or_create(
+                        block=block_obj,
+                        number=rm_no,
+                        defaults={
+                            'capacity': 2,
+                            'floor': flr,
+                            'is_accessible': (flr == 1 and rm == 1)
+                        }
+                    )
+                    if created:
+                        total_rooms_created += 1
 
-        self.stdout.write(f"  [OK] Hostel blocks (36 total) and dual rooms initialized across BH-1..6 & GH-1..6")
+        self.stdout.write(f"  [OK] Hostels (12 total) and dual rooms initialized across BH-1..6 & GH-1..6")
 
         # 3. Versioned Questions
         questions_spec = [
@@ -135,14 +131,16 @@ class Command(BaseCommand):
         self.stdout.write("  [OK] Seeded staff accounts (Warden, Admin)")
 
         # 5. Real Student Users with 8-digit Registration Numbers
-        bh1_a = created_blocks.get("BH-1 - Block-A")
-        bh1_b = created_blocks.get("BH-1 - Block-B")
-        bh1_c = created_blocks.get("BH-1 - Block-C")
-        bh2_a = created_blocks.get("BH-2 - Block-A")
-
-        gh1_a = created_blocks.get("GH-1 - Block-A")
-        gh1_b = created_blocks.get("GH-1 - Block-B")
-        gh1_c = created_blocks.get("GH-1 - Block-C")
+        bh1 = created_blocks.get("BH-1") or HostelBlock.objects.filter(name="BH-1").first()
+        bh2 = created_blocks.get("BH-2") or HostelBlock.objects.filter(name="BH-2").first()
+        gh1 = created_blocks.get("GH-1") or HostelBlock.objects.filter(name="GH-1").first()
+        bh1_a = bh1
+        bh1_b = bh1
+        bh1_c = bh1
+        bh2_a = bh2
+        gh1_a = gh1
+        gh1_b = gh1
+        gh1_c = gh1
 
         students_spec = [
             {

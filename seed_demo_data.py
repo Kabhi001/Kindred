@@ -1,6 +1,6 @@
 """
 Kindred - Database Seeder
-Populates initial hostel blocks (BH-1..6, GH-1..6 with Blocks A, B, C; 10 floors; 30 dual rooms each),
+Populates initial hostels (BH-1..6, GH-1..6, 10 floors, 30 dual rooms each),
 10 research-backed empirical roommate harmony questions, demo students with 8-digit registration numbers
 (e.g. 12310266, 12519174), and staff accounts.
 """
@@ -28,50 +28,47 @@ def run():
     calendar.save()
     print("[*] Allotment calendar set to Phase 3: Matching Open")
 
-    # 2. Hostels & Blocks Specification
+    # 2. Hostels Specification (BH-1 to BH-6, GH-1 to GH-6)
     hostel_specs = []
     for i in range(1, 7):
         hostel_specs.append((f"BH-{i}", 'M'))
     for i in range(1, 7):
         hostel_specs.append((f"GH-{i}", 'F'))
 
-    block_letters = ['Block-A', 'Block-B', 'Block-C']
-    created_blocks = {}
+    created_hostels = {}
     total_rooms_created = 0
 
     for h_name, gender in hostel_specs:
-        for b_letter in block_letters:
-            full_name = f"{h_name} - {b_letter}"
-            block_obj, _ = HostelBlock.objects.get_or_create(
-                name=full_name,
-                defaults={
-                    'hostel_name': h_name,
-                    'block_name': b_letter,
-                    'gender': gender,
-                    'total_floors': 10,
-                    'campus': 'Main Campus'
-                }
-            )
-            created_blocks[full_name] = block_obj
+        hostel_obj, _ = HostelBlock.objects.get_or_create(
+            name=h_name,
+            defaults={
+                'hostel_name': h_name,
+                'block_name': '',
+                'gender': gender,
+                'total_floors': 10,
+                'campus': 'Main Campus'
+            }
+        )
+        created_hostels[h_name] = hostel_obj
 
-            for flr in range(1, 11):
-                for rm in range(1, 4):
-                    rm_no = f"{flr}{rm:02d}"
-                    _, created = Room.objects.get_or_create(
-                        block=block_obj,
-                        number=rm_no,
-                        defaults={
-                            'capacity': 2,
-                            'floor': flr,
-                            'is_accessible': (flr == 1 and rm == 1)
-                        }
-                    )
-                    if created:
-                        total_rooms_created += 1
+        for flr in range(1, 11):
+            for rm in range(1, 4):
+                rm_no = f"{flr}{rm:02d}"
+                _, created = Room.objects.get_or_create(
+                    block=hostel_obj,
+                    number=rm_no,
+                    defaults={
+                        'capacity': 2,
+                        'floor': flr,
+                        'is_accessible': (flr == 1 and rm == 1)
+                    }
+                )
+                if created:
+                    total_rooms_created += 1
 
-    total_blocks_count = HostelBlock.objects.count()
+    total_hostels_count = HostelBlock.objects.count()
     total_rooms_count = Room.objects.count()
-    print(f"[*] Created/verified {total_blocks_count} hostel blocks across BH-1..6 & GH-1..6")
+    print(f"[*] Created/verified {total_hostels_count} hostels across BH-1..6 & GH-1..6")
     print(f"[*] Total rooms in database: {total_rooms_count} (strictly 2 students capacity each)")
 
     # 3. 10 Research-Backed Empirical Questions
@@ -147,59 +144,55 @@ def run():
     print("[*] Seeded staff accounts (Warden, Administrator)")
 
     # 5. Students with 8-digit Registration Numbers
-    bh1_a = created_blocks.get("BH-1 - Block-A") or HostelBlock.objects.filter(hostel_name="BH-1", block_name="Block-A").first()
-    bh1_b = created_blocks.get("BH-1 - Block-B") or HostelBlock.objects.filter(hostel_name="BH-1", block_name="Block-B").first()
-    bh1_c = created_blocks.get("BH-1 - Block-C") or HostelBlock.objects.filter(hostel_name="BH-1", block_name="Block-C").first()
-    bh2_a = created_blocks.get("BH-2 - Block-A") or HostelBlock.objects.filter(hostel_name="BH-2", block_name="Block-A").first()
-
-    gh1_a = created_blocks.get("GH-1 - Block-A") or HostelBlock.objects.filter(hostel_name="GH-1", block_name="Block-A").first()
-    gh1_b = created_blocks.get("GH-1 - Block-B") or HostelBlock.objects.filter(hostel_name="GH-1", block_name="Block-B").first()
-    gh1_c = created_blocks.get("GH-1 - Block-C") or HostelBlock.objects.filter(hostel_name="GH-1", block_name="Block-C").first()
+    bh1 = created_hostels.get("BH-1") or HostelBlock.objects.filter(name="BH-1").first()
+    bh2 = created_hostels.get("BH-2") or HostelBlock.objects.filter(name="BH-2").first()
+    gh1 = created_hostels.get("GH-1") or HostelBlock.objects.filter(name="GH-1").first()
+    gh2 = created_hostels.get("GH-2") or HostelBlock.objects.filter(name="GH-2").first()
 
     students_data = [
         # Male Students (Allocated to BH-1 / BH-2)
-        ("12310266", "Aarav Patel", "aarav.12310266@college.edu", "M", "1st Year", "Computer Science", bh1_a, 270,
+        ("12310266", "Aarav Patel", "aarav.12310266@college.edu", "M", "1st Year", "Computer Science", bh1, 270,
          {"sleep": 3, "privacy": 2, "noise": 2, "tidy": 1, "guests": 2, "sharing": 2, "intent": 3, "flexibility": 2, "communication": 1, "smoke": 1},
          {"sleep": 3, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
 
-        ("12310267", "Rohan Verma", "rohan.12310267@college.edu", "M", "1st Year", "Electrical Engineering", bh1_a, 190,
+        ("12310267", "Rohan Verma", "rohan.12310267@college.edu", "M", "1st Year", "Electrical Engineering", bh1, 190,
          {"sleep": 3, "privacy": 2, "noise": 2, "tidy": 1, "guests": 2, "sharing": 2, "intent": 3, "flexibility": 2, "communication": 1, "smoke": 1},
          {"sleep": 3, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
 
-        ("12310268", "Kabir Sharma", "kabir.12310268@college.edu", "M", "1st Year", "Mechanical Engineering", bh1_b, 35,
+        ("12310268", "Kabir Sharma", "kabir.12310268@college.edu", "M", "1st Year", "Mechanical Engineering", bh1, 35,
          {"sleep": 1, "privacy": 4, "noise": 3, "tidy": 3, "guests": 4, "sharing": 4, "intent": 4, "flexibility": 1, "communication": 2, "smoke": 2},
          {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 1, "guests": 3, "sharing": 1, "intent": 2, "flexibility": 1, "communication": 1, "smoke": 1}),
 
-        ("12310269", "Ishaan Gupta", "ishaan.12310269@college.edu", "M", "1st Year", "Physics", bh1_b, 220,
+        ("12310269", "Ishaan Gupta", "ishaan.12310269@college.edu", "M", "1st Year", "Physics", bh1, 220,
          {"sleep": 4, "privacy": 1, "noise": 1, "tidy": 2, "guests": 1, "sharing": 1, "intent": 1, "flexibility": 3, "communication": 3, "smoke": 1},
          {"sleep": 3, "privacy": 3, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
 
-        ("12310270", "Dev Dixit", "dev.12310270@college.edu", "M", "1st Year", "Architecture", bh1_c, 340,
+        ("12310270", "Dev Dixit", "dev.12310270@college.edu", "M", "1st Year", "Architecture", bh1, 340,
          {"sleep": 4, "privacy": 3, "noise": 3, "tidy": 4, "guests": 3, "sharing": 3, "intent": 3, "flexibility": 2, "communication": 2, "smoke": 2},
          {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 1, "guests": 2, "sharing": 1, "intent": 2, "flexibility": 1, "communication": 2, "smoke": 1}),
 
-        ("12310271", "Siddharth Malhotra", "siddharth.12310271@college.edu", "M", "1st Year", "Civil Engineering", bh2_a, 210,
+        ("12310271", "Siddharth Malhotra", "siddharth.12310271@college.edu", "M", "1st Year", "Civil Engineering", bh2, 210,
          {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 1},
          {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
 
         # Female Students (Allocated to GH-1)
-        ("12519174", "Meera Nair", "meera.12519174@college.edu", "F", "1st Year", "Data Science", gh1_a, 320,
+        ("12519174", "Meera Nair", "meera.12519174@college.edu", "F", "1st Year", "Data Science", gh1, 320,
          {"sleep": 2, "privacy": 2, "noise": 1, "tidy": 1, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 1, "smoke": 1},
          {"sleep": 2, "privacy": 2, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
 
-        ("12519175", "Ananya Roy", "ananya.12519175@college.edu", "F", "1st Year", "Biotechnology", gh1_a, 160,
+        ("12519175", "Ananya Roy", "ananya.12519175@college.edu", "F", "1st Year", "Biotechnology", gh1, 160,
          {"sleep": 2, "privacy": 2, "noise": 1, "tidy": 1, "guests": 2, "sharing": 2, "intent": 3, "flexibility": 2, "communication": 1, "smoke": 1},
          {"sleep": 2, "privacy": 2, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
 
-        ("12519176", "Diya Sharma", "diya.12519176@college.edu", "F", "1st Year", "AI & Robotics", gh1_b, 290,
+        ("12519176", "Diya Sharma", "diya.12519176@college.edu", "F", "1st Year", "AI & Robotics", gh1, 290,
          {"sleep": 1, "privacy": 1, "noise": 1, "tidy": 2, "guests": 1, "sharing": 1, "intent": 1, "flexibility": 3, "communication": 2, "smoke": 1},
          {"sleep": 3, "privacy": 3, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
 
-        ("12519177", "Riya Sen", "riya.12519177@college.edu", "F", "1st Year", "Chemical Engineering", gh1_b, 10,
+        ("12519177", "Riya Sen", "riya.12519177@college.edu", "F", "1st Year", "Chemical Engineering", gh1, 10,
          {"sleep": 3, "privacy": 3, "noise": 2, "tidy": 3, "guests": 3, "sharing": 3, "intent": 3, "flexibility": 2, "communication": 2, "smoke": 1},
          {"sleep": 2, "privacy": 2, "noise": 2, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
 
-        ("12519178", "Tanvi Patel", "tanvi.12519178@college.edu", "F", "1st Year", "Mathematics", gh1_c, 80,
+        ("12519178", "Tanvi Patel", "tanvi.12519178@college.edu", "F", "1st Year", "Mathematics", gh1, 80,
          {"sleep": 2, "privacy": 2, "noise": 1, "tidy": 1, "guests": 1, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 1},
          {"sleep": 2, "privacy": 2, "noise": 3, "tidy": 2, "guests": 2, "sharing": 2, "intent": 2, "flexibility": 2, "communication": 2, "smoke": 3}),
     ]

@@ -334,7 +334,7 @@ class RoleAuthenticationTests(TestCase):
         csv_res = self.client.get(reverse('matcher:api_admin_export_csv'))
         self.assertEqual(csv_res.status_code, 200)
         self.assertEqual(csv_res['Content-Type'], 'text/csv')
-        self.assertIn('Hostel Block', csv_res.content.decode('utf-8'))
+        self.assertIn('Hostel', csv_res.content.decode('utf-8'))
 
     def test_role_mismatch_denied(self):
         # Student trying to sign in via Admin portal

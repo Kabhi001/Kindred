@@ -188,26 +188,15 @@ input:focus,select:focus{border-color:var(--lv);box-shadow:0 0 0 4px #8566d125}
           </select>
         </div>
 
-        <!-- Selection of BH / GH Hostel -->
-        <div class="form-group">
-          <label id="hostel-label">Hostel Building (BH) <span class="req">*</span></label>
-          <select id="reg-hostel" onchange="updateBlockOptions()" required>
+        <!-- Selection of Hostel -->
+        <div class="form-group col-span-2">
+          <label id="hostel-label">Assigned Hostel <span class="req">*</span></label>
+          <select id="reg-hostel" onchange="syncHostelSelection()" required>
             <!-- Dynamically populated based on Gender -->
           </select>
-          <div class="helper-text" id="hostel-helper">Select residential hostel building</div>
+          <input type="hidden" id="reg-block" name="block_id" value="">
+          <div class="helper-text" id="hostel-helper">Roommates are matched within your assigned hostel</div>
         </div>
-
-        <!-- Selection of Block / Wing -->
-        <div class="form-group">
-          <label>Hostel Block / Wing <span class="req">*</span></label>
-          <select id="reg-block-letter" onchange="syncBlockSelection()" required>
-            <!-- Dynamically populated based on Hostel -->
-          </select>
-          <div class="helper-text">Roommates are matched within your block</div>
-        </div>
-
-        <!-- Hidden input for resolved block ID -->
-        <input type="hidden" id="reg-block" name="block_id" value="">
 
         <!-- Password -->
         <div class="form-group">
@@ -299,88 +288,39 @@ function filterHostelBlocks() {
   const hostelHelper = document.getElementById("hostel-helper");
 
   if (gender === "M") {
-    hostelLabel.innerHTML = 'Hostel Building (BH) <span class="req">*</span>';
-    hostelHelper.textContent = 'Boys Hostel residential building';
+    hostelLabel.innerHTML = 'Assigned Hostel (BH) <span class="req">*</span>';
+    hostelHelper.textContent = 'Boys Hostel (BH-1 to BH-6)';
   } else if (gender === "F") {
-    hostelLabel.innerHTML = 'Hostel Building (GH) <span class="req">*</span>';
-    hostelHelper.textContent = 'Girls Hostel residential building';
+    hostelLabel.innerHTML = 'Assigned Hostel (GH) <span class="req">*</span>';
+    hostelHelper.textContent = 'Girls Hostel (GH-1 to GH-6)';
   } else {
-    hostelLabel.innerHTML = 'Hostel Building <span class="req">*</span>';
-    hostelHelper.textContent = 'Select residential building';
+    hostelLabel.innerHTML = 'Assigned Hostel <span class="req">*</span>';
+    hostelHelper.textContent = 'Select residential hostel';
   }
 
-  // Filter blocks matching selected gender (or COED)
   const matching = BLOCKS_DATA.filter(b => b.gender === gender || b.gender === "COED");
-  const hostels = [];
-  matching.forEach(b => {
-    if (b.hostel && !hostels.includes(b.hostel)) {
-      hostels.push(b.hostel);
-    }
-  });
-
-  const prevHostel = hostelSelect.value;
+  const prevVal = hostelSelect.value;
   hostelSelect.innerHTML = "";
-  hostels.forEach(h => {
+  matching.forEach(h => {
     const opt = document.createElement("option");
-    opt.value = h;
-    opt.textContent = h;
+    opt.value = h.id;
+    opt.textContent = h.name + (h.gender === "M" ? " (Boys Hostel)" : h.gender === "F" ? " (Girls Hostel)" : "");
     hostelSelect.appendChild(opt);
   });
 
-  if (hostels.includes(prevHostel)) {
-    hostelSelect.value = prevHostel;
-  } else if (hostels.length > 0) {
-    hostelSelect.value = hostels[0];
+  if (matching.some(h => String(h.id) === String(prevVal))) {
+    hostelSelect.value = prevVal;
+  } else if (matching.length > 0) {
+    hostelSelect.value = matching[0].id;
   }
 
-  updateBlockOptions();
+  syncHostelSelection();
 }
 
-function updateBlockOptions() {
-  const gender = document.getElementById("reg-gender").value;
-  const hostel = document.getElementById("reg-hostel").value;
-  const blockSelect = document.getElementById("reg-block-letter");
-
-  const matching = BLOCKS_DATA.filter(b => (b.gender === gender || b.gender === "COED") && b.hostel === hostel);
-  const blocks = [];
-  matching.forEach(b => {
-    if (b.block && !blocks.includes(b.block)) {
-      blocks.push(b.block);
-    }
-  });
-
-  const prevBlock = blockSelect.value;
-  blockSelect.innerHTML = "";
-  blocks.forEach(blk => {
-    const opt = document.createElement("option");
-    opt.value = blk;
-    opt.textContent = blk.replace("-", " ");
-    blockSelect.appendChild(opt);
-  });
-
-  if (blocks.includes(prevBlock)) {
-    blockSelect.value = prevBlock;
-  } else if (blocks.length > 0) {
-    blockSelect.value = blocks[0];
-  }
-
-  syncBlockSelection();
-}
-
-function syncBlockSelection() {
-  const gender = document.getElementById("reg-gender").value;
-  const hostel = document.getElementById("reg-hostel").value;
-  const blockLetter = document.getElementById("reg-block-letter").value;
+function syncHostelSelection() {
+  const hostelSelect = document.getElementById("reg-hostel");
   const hiddenInput = document.getElementById("reg-block");
-
-  const match = BLOCKS_DATA.find(b => (b.gender === gender || b.gender === "COED") && b.hostel === hostel && b.block === blockLetter)
-             || BLOCKS_DATA.find(b => b.hostel === hostel && b.block === blockLetter);
-
-  if (match) {
-    hiddenInput.value = match.id;
-  } else {
-    hiddenInput.value = "";
-  }
+  hiddenInput.value = hostelSelect.value || "";
 }
 filterHostelBlocks();
 
@@ -413,7 +353,7 @@ async function handleRegister(e) {
   const consent_given = document.getElementById("reg-consent").checked;
 
   if (!block_id) {
-    showToast("Please select your Hostel Building and Block.", "err");
+    showToast("Please select your Assigned Hostel.", "err");
     return;
   }
 

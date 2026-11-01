@@ -215,7 +215,7 @@ textarea{height:90px;font:13px/1.4 ui-monospace,Menlo,monospace}
 
         <div>
           <label style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.05em">Gender *</label>
-          <select id="edit-gender" class="form-select" onchange="initEditBlockSelectors()">
+          <select id="edit-gender" class="form-select" onchange="initEditHostelSelectors()">
             <option value="M" {% if current_student.gender == 'M' %}selected{% endif %}>Boys Hostel (Male)</option>
             <option value="F" {% if current_student.gender == 'F' %}selected{% endif %}>Girls Hostel (Female)</option>
             <option value="O" {% if current_student.gender == 'O' %}selected{% endif %}>Other / Co-Ed</option>
@@ -238,18 +238,12 @@ textarea{height:90px;font:13px/1.4 ui-monospace,Menlo,monospace}
           <input type="text" id="edit-branch" required value="{{ current_student.branch }}" placeholder="e.g. Computer Science" style="margin-top:4px">
         </div>
 
-        <div>
-          <label id="edit-hostel-label" style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.05em">Hostel Building (BH / GH) *</label>
-          <select id="edit-hostel" class="form-select" onchange="updateEditBlockLetters()">
+        <div style="grid-column:1/-1">
+          <label id="edit-hostel-label" style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.05em">Assigned Hostel *</label>
+          <select id="edit-hostel" class="form-select" onchange="syncEditHostelHidden()">
           </select>
+          <input type="hidden" id="edit-block" value="{{ current_student.block_id }}">
         </div>
-
-        <div>
-          <label style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.05em">Hostel Block / Wing *</label>
-          <select id="edit-block-letter" class="form-select" onchange="syncEditBlockHidden()">
-          </select>
-        </div>
-        <input type="hidden" id="edit-block" value="{{ current_student.block_id }}">
 
         <div>
           <label style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.05em">Email Address</label>
