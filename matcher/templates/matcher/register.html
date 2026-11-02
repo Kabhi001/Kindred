@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Cormorant+Garamond:ital,wght@0,500;1,400;1,500;1,600&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
+  color-scheme: light;
   --bg:#f8f2f4;--surface:#ffffffea;--ink:#35293f;--soft:#6a5d78;--line:#35293f22;
   --lav:#d4c6f5;--lv:#8566d1;--rd:#e0709f;--peach:#ffd9c9;--sage:#d6e8da;
   --butter:#fff1c4;--rose:#f7c4d8;--warn:#c2410c;--succ:#2e7d32;
@@ -19,9 +20,14 @@
 }
 @media (prefers-color-scheme:dark){
   :root{
+    color-scheme: dark;
     --bg:#1a1424;--surface:#281f36ea;--ink:#f4ecfb;--soft:#bbaed1;--line:#f4ecfb26;
     --lv:#bda2ff;--rd:#ff8fbb;--lav:#4a3a73;--peach:#5a3a40;--sage:#2f4a3c;
     --butter:#554a2a;--rose:#5e3450;--warn:#fdba74;--succ:#4caf50;
+  }
+  select option{
+    background-color:#281f36 !important;
+    color:#f4ecfb !important;
   }
 }
 *{box-sizing:border-box}
@@ -70,6 +76,22 @@ input[type=text],input[type=email],input[type=password],input[type=tel],select{
   transition:all .2s;outline:none;
 }
 input:focus,select:focus{border-color:var(--lv);box-shadow:0 0 0 4px #8566d125}
+select{
+  cursor:pointer;
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+  background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23bda2ff%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
+  background-repeat:no-repeat;
+  background-position:right 14px center;
+  background-size:16px;
+  padding-right:40px;
+}
+select option{
+  background-color:#ffffff;
+  color:#35293f;
+  padding:10px 14px;
+}
 
 .pwd-wrap{position:relative;display:flex;align-items:center}
 .pwd-wrap input{padding-right:45px}
@@ -192,7 +214,10 @@ input:focus,select:focus{border-color:var(--lv);box-shadow:0 0 0 4px #8566d125}
         <div class="form-group col-span-2">
           <label id="hostel-label">Assigned Hostel <span class="req">*</span></label>
           <select id="reg-hostel" onchange="syncHostelSelection()" required>
-            <!-- Dynamically populated based on Gender -->
+            <option value="" disabled selected>Select assigned hostel...</option>
+            {% for b in blocks %}
+              <option value="{{ b.id }}">{{ b.name }}{% if b.gender == 'M' %} (Boys Hostel){% elif b.gender == 'F' %} (Girls Hostel){% endif %}</option>
+            {% endfor %}
           </select>
           <input type="hidden" id="reg-block" name="block_id" value="">
           <div class="helper-text" id="hostel-helper">Roommates are matched within your assigned hostel</div>
@@ -309,7 +334,22 @@ function filterHostelBlocks() {
     hostelHelper.textContent = 'Select residential hostel';
   }
 
-  const matching = BLOCKS_DATA.filter(b => b.gender === gender || b.gender === "COED");
+  let matching = BLOCKS_DATA.filter(b => b.gender === gender || b.gender === "COED");
+  
+  // Safe Fallback if database has no records or empty
+  if (!matching || matching.length === 0) {
+    if (gender === "M") {
+      matching = [1, 2, 3, 4, 5, 6].map(i => ({id: "BH-" + i, name: "BH-" + i, gender: "M"}));
+    } else if (gender === "F") {
+      matching = [1, 2, 3, 4, 5, 6].map(i => ({id: "GH-" + i, name: "GH-" + i, gender: "F"}));
+    } else {
+      matching = [
+        ...[1, 2, 3, 4, 5, 6].map(i => ({id: "BH-" + i, name: "BH-" + i, gender: "M"})),
+        ...[1, 2, 3, 4, 5, 6].map(i => ({id: "GH-" + i, name: "GH-" + i, gender: "F"}))
+      ];
+    }
+  }
+
   const prevVal = hostelSelect.value;
   hostelSelect.innerHTML = "";
   matching.forEach(h => {

@@ -851,7 +851,12 @@ function openProfileModal(){
     initEditHostelSelectors();
   }
 function initEditHostelSelectors() {
-  if (!S.all_blocks || S.all_blocks.length === 0) return;
+  var blocksList = (S.all_blocks && S.all_blocks.length > 0) ? S.all_blocks : [
+    {id:1, name:"BH-1", gender:"M"}, {id:2, name:"BH-2", gender:"M"}, {id:3, name:"BH-3", gender:"M"},
+    {id:4, name:"BH-4", gender:"M"}, {id:5, name:"BH-5", gender:"M"}, {id:6, name:"BH-6", gender:"M"},
+    {id:7, name:"GH-1", gender:"F"}, {id:8, name:"GH-2", gender:"F"}, {id:9, name:"GH-3", gender:"F"},
+    {id:10, name:"GH-4", gender:"F"}, {id:11, name:"GH-5", gender:"F"}, {id:12, name:"GH-6", gender:"F"}
+  ];
   var gEl = $("#edit-gender");
   var gender = gEl ? gEl.value : (S.me ? S.me.gender_code : "M");
   var currentBlockId = S.me ? S.me.block_id : null;
@@ -865,7 +870,7 @@ function initEditHostelSelectors() {
     else labelEl.textContent = "Hostel *";
   }
 
-  var matching = S.all_blocks.filter(function(b){ return b.gender === gender || b.gender === "COED"; });
+  var matching = blocksList.filter(function(b){ return b.gender === gender || b.gender === "COED"; });
   var prevVal = hostelEl.value || currentBlockId;
   hostelEl.innerHTML = "";
   matching.forEach(function(b){

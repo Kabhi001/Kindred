@@ -1161,6 +1161,16 @@ def login_view(request):
 @ensure_csrf_cookie
 def register_view(request):
     """Dedicated student registration portal."""
+    if not HostelBlock.objects.exists():
+        for i in range(1, 7):
+            HostelBlock.objects.get_or_create(
+                name=f"BH-{i}",
+                defaults={'hostel_name': f"BH-{i}", 'gender': 'M', 'total_floors': 5, 'campus': 'Main Campus'}
+            )
+            HostelBlock.objects.get_or_create(
+                name=f"GH-{i}",
+                defaults={'hostel_name': f"GH-{i}", 'gender': 'F', 'total_floors': 5, 'campus': 'Main Campus'}
+            )
     blocks = HostelBlock.objects.all().order_by('gender', 'name')
     return render(request, 'matcher/register.html', {'blocks': blocks})
 
@@ -1219,7 +1229,10 @@ def api_register(request):
     # Assign hostel block based on choice or gender
     block = None
     if block_id:
-        block = HostelBlock.objects.filter(id=block_id).first()
+        if str(block_id).isdigit():
+            block = HostelBlock.objects.filter(id=int(block_id)).first()
+        if not block:
+            block = HostelBlock.objects.filter(name__iexact=str(block_id)).first()
     if not block:
         block = HostelBlock.objects.filter(gender=gender).first()
     if not block:

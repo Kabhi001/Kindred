@@ -327,6 +327,8 @@ class Command(BaseCommand):
 
             # Save responses
             for key, val in s["answers"].items():
+                if key not in created_questions:
+                    continue
                 imp_val = s["importance"].get(key, 2)
                 is_db = (imp_val == 3) 
                 Response.objects.update_or_create(
