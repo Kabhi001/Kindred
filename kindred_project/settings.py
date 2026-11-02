@@ -40,6 +40,14 @@ if DEBUG:
         if dev_host not in ALLOWED_HOSTS:
             ALLOWED_HOSTS.append(dev_host)
 
+csrf_trusted_raw = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '')
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_trusted_raw.split(',') if origin.strip()]
+for host in ALLOWED_HOSTS:
+    if host not in ('testserver', '127.0.0.1', 'localhost', '[::1]') and not host.startswith('.'):
+        origin = f'https://{host}'
+        if origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(origin)
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',

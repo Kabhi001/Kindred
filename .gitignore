@@ -44,3 +44,7 @@ ENV/
 *.log
 
 staticfiles/
+
+# Databases
+*.sqlite3
+db.sqlite3
