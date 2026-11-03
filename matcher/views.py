@@ -693,6 +693,8 @@ def api_matches(request):
             'request_id': req_id,
             'is_partner': is_part,
             'room': m.get('room'),
+            'traits': m.get('traits', {}),
+            'trait_weights': m.get('trait_weights', {}),
         })
 
     pair = user.get_pair()

@@ -162,6 +162,9 @@ def compute_ranked_matches_for_student(student: StudentUser):
             res = calculate_mutual_score(student, partner, questions)
             score_for_me = res.get('score_b_to_a' if student.id > partner.id else 'score_a_to_b', res.get('final_score', 85))
             score_for_peer = res.get('score_a_to_b' if student.id > partner.id else 'score_b_to_a', res.get('final_score', 85))
+            partner_responses = Response.objects.filter(user=partner, question__is_active=True).select_related('question')
+            partner_ans = {r.question.key: r.answer for r in partner_responses}
+            partner_imp = {r.question.key: r.importance for r in partner_responses}
             return [{
                 'id': partner.id,
                 'name': partner.name,
@@ -182,6 +185,8 @@ def compute_ranked_matches_for_student(student: StudentUser):
                 'warnings': res.get('frictions', []),
                 'is_partner': True,
                 'room': my_pair.room.number if my_pair.room else None,
+                'traits': partner_ans,
+                'trait_weights': partner_imp,
             }]
         return []
 
@@ -285,7 +290,9 @@ def compute_ranked_matches_for_student(student: StudentUser):
         score_for_me = ps.score_a_to_b if student == u1 else ps.score_b_to_a
         score_for_peer = ps.score_b_to_a if student == u1 else ps.score_a_to_b
 
-        # Privacy Seal: Raw peer responses are NEVER serialized or exposed
+        peer_ans, peer_imp, _ = cached_responses[peer.id]
+
+        # Lifestyle trait rhythm dimensions for radar bloom visualization
         results.append({
             'id': peer.id,
             'name': peer.name,
@@ -304,6 +311,8 @@ def compute_ranked_matches_for_student(student: StudentUser):
             'good_reasons': ps.good_reasons,
             'frictions': ps.frictions,
             'warnings': ps.frictions,
+            'traits': peer_ans,
+            'trait_weights': peer_imp,
         })
 
     if new_pair_scores:
