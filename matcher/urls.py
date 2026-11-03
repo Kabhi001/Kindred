@@ -25,6 +25,8 @@ urlpatterns = [
     path('index/', views.index_view, name='index'),
     path('roomie/', views.roomie_vibe_view, name='roomie_vibe'),
     path('vibe/', views.roomie_vibe_view, name='vibe_alias'),
+    path('health/', views.health_check_view, name='health_check'),
+    path('ping/', views.health_check_view, name='ping'),
 
     # Role Specific Portals
     path('warden/', views.warden_dashboard_view, name='warden_dashboard'),

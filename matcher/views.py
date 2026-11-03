@@ -2094,5 +2094,10 @@ def roomie_vibe_view(request):
     return render(request, 'matcher/roomie_vibe.html')
 
 
+def health_check_view(request):
+    """Ultra-lightweight ping/health endpoint for Render health checks and keep-alive pingers."""
+    return JsonResponse({'status': 'ok', 'app': 'kindred', 'version': '2.1'})
+
+
 # Import all extended views
 from .views_extended import *
