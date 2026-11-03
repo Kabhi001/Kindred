@@ -4,210 +4,135 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Allotment Administration & Master Roster · kindred</title>
+<title>Kindred · Allotment Administration & Master Governance</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Cormorant+Garamond:ital,wght@0,500;1,400;1,500;1,600&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'kindred-design-system.css' %}">
 <style>
-:root{
-  --bg:#f8f2f4;--surface:#ffffffdd;--ink:#35293f;--soft:#6a5d78;--line:#35293f22;
-  --lav:#d4c6f5;--lv:#8566d1;--rd:#e0709f;--peach:#ffd9c9;--sage:#d6e8da;
-  --butter:#fff1c4;--rose:#f7c4d8;--warn:#c2410c;
-  --serif:"Cormorant Garamond",Georgia,serif;
-  --sans:"Quicksand",system-ui,sans-serif;
-  --hand:"Caveat",cursive;
-}
-@media (prefers-color-scheme:dark){
-  :root{
-    --bg:#1a1424;--surface:#281f36dd;--ink:#f4ecfb;--soft:#bbaed1;--line:#f4ecfb26;
-    --lv:#bda2ff;--rd:#ff8fbb;--lav:#4a3a73;--peach:#5a3a40;--sage:#2f4a3c;
-    --butter:#554a2a;--rose:#5e3450;--warn:#fdba74;
-  }
-}
-*{box-sizing:border-box}
-body{
-  margin:0;min-height:100vh;background:var(--bg);color:var(--ink);
-  font-family:var(--sans);font-size:16px;line-height:1.6;overflow-x:hidden;
-}
-body::after{
-  content:"";position:fixed;inset:0;pointer-events:none;opacity:.08;z-index:50;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-}
-.orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:.7;z-index:-1;pointer-events:none}
-.o1{width:46vmax;height:46vmax;background:var(--lav);left:-12vmax;top:-12vmax}
-.o2{width:40vmax;height:40vmax;background:var(--peach);right:-10vmax;bottom:-10vmax}
-
-.wrap{max-width:1160px;margin:0 auto;padding:20px 24px 80px}
-.nav{display:flex;justify-content:space-between;align-items:center;padding:16px 0;flex-wrap:wrap;gap:12px}
-.logo{font:italic 500 32px var(--serif);color:var(--ink);text-decoration:none}
-.logo span{color:var(--lv)}
-.nav-links{display:flex;align-items:center;gap:10px}
-.nav-links a{
-  background:none;border:0;font:600 14.5px var(--sans);color:var(--soft);
-  padding:7px 16px;border-radius:99px;cursor:pointer;text-decoration:none;transition:all .2s;
-}
-.nav-links a:hover{color:var(--ink)}
-.role-badge{
-  background:var(--lav);color:#35293f;padding:5px 14px;border-radius:99px;
-  font-size:12.5px;font-weight:700;letter-spacing:.03em;
-}
-.btn-logout{border:1px solid var(--line)!important}
-
-.card{
-  background:var(--surface);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  border:1px solid var(--line);border-radius:28px;padding:26px 30px;margin-bottom:24px;
-  box-shadow:0 16px 40px #00000014;
+.admin-wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 20px 90px;
 }
 
-h1,h2,h3{font-family:var(--serif);font-style:italic;font-weight:400;line-height:1.1;margin:0}
-h1{font-size:clamp(36px,5vw,52px);margin-top:6px}
-h2{font-size:28px;margin-bottom:14px}
-.hand{font-family:var(--hand);font-size:23px;color:var(--lv)}
+.quick-assign-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--color-cream);
+  padding: 16px 20px;
+  border-radius: var(--radius-card);
+  border: var(--border-thin);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 20px;
+}
 
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin:24px 0}
-.btn-sm-promote{
-  padding:5px 12px;border-radius:99px;font:600 12px var(--sans);
-  background:transparent;border:1px solid var(--lv);color:var(--lv);
-  cursor:pointer;transition:all .2s;white-space:nowrap;
+#toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-.btn-sm-promote:hover{background:var(--lv);color:#fff;transform:translateY(-1px);box-shadow:0 4px 10px #8566d133}
-.btn-sm-danger{
-  padding:5px 12px;border-radius:99px;font:600 12px var(--sans);
-  background:transparent;border:1px solid var(--warn);color:var(--warn);
-  cursor:pointer;transition:all .2s;white-space:nowrap;
+.toast-msg {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  border: 3px solid var(--color-ink);
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: var(--shadow-card);
+  transition: opacity 0.3s ease;
 }
-.btn-sm-danger:hover{background:var(--warn);color:#fff;transform:translateY(-1px);box-shadow:0 4px 10px #c2410c33}
-.quick-assign-bar{
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-  background:var(--bg);padding:14px 18px;border-radius:20px;border:1px solid var(--line);
-  margin-bottom:18px;
-}
-.quick-input{
-  flex:1;min-width:180px;padding:9px 14px;border-radius:12px;border:1px solid var(--line);
-  background:var(--surface);color:var(--ink);font:500 13.5px var(--sans);outline:none;
-}
-.quick-input:focus{border-color:var(--lv);box-shadow:0 0 0 3px #8566d120}
-.quick-select{
-  padding:9px 14px;border-radius:12px;border:1px solid var(--line);
-  background:var(--surface);color:var(--ink);font:500 13.5px var(--sans);outline:none;
-}
-.modal-backdrop{
-  position:fixed;inset:0;background:rgba(20,14,29,0.7);backdrop-filter:blur(8px);
-  z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;
-}
-.modal-card{
-  background:var(--surface);border:1px solid var(--line);border-radius:28px;
-  padding:32px 30px;width:100%;max-width:580px;box-shadow:0 24px 60px rgba(0,0,0,0.3);
-  animation:pop .25s cubic-bezier(.2,.8,.2,1) both;
-}
-@keyframes pop{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
-.form-group{text-align:left}
-.modal-label{display:block;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);margin-bottom:6px}
-.modal-input{
-  width:100%;padding:10px 14px;border-radius:14px;border:1px solid var(--line);
-  background:var(--bg);color:var(--ink);font:600 13.5px var(--sans);outline:none;transition:all .2s;
-}
-.modal-input:focus{border-color:var(--lv);box-shadow:0 0 0 3px #8566d125}
-.btn-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--soft);padding:4px}
-.btn-close:hover{color:var(--ink)}
-.btn-cancel{
-  padding:9px 20px;border-radius:99px;border:1px solid var(--line);
-  background:transparent;color:var(--soft);font:600 13.5px var(--sans);cursor:pointer;
-}
-.btn-cancel:hover{color:var(--ink);background:var(--line)}
-.stat-box{text-align:center;padding:20px 14px}
-.stat-box b{display:block;font:italic 500 48px/1 var(--serif);color:var(--ink)}
-.stat-box span{font-size:13.5px;color:var(--soft);font-weight:600}
-
-/* Phase Selector Buttons */
-.phase-btn-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:14px}
-.phase-btn{
-  background:transparent;border:1px solid var(--line);border-radius:18px;padding:12px 10px;
-  text-align:center;cursor:pointer;transition:all .2s;font:600 13px var(--sans);color:var(--ink);
-}
-.phase-btn:hover{background:var(--butter);border-color:transparent}
-.phase-btn.active{background:var(--ink);color:var(--bg);box-shadow:0 6px 16px #00000028}
-
-.btn-action{
-  padding:10px 22px;border-radius:99px;font:600 14px var(--sans);cursor:pointer;
-  border:1px solid var(--ink);background:var(--ink);color:var(--bg);display:inline-flex;align-items:center;gap:8px;text-decoration:none;
-}
-.btn-action:hover{transform:translateY(-2px);box-shadow:0 8px 20px #8566d125}
-
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:14.5px}
-th{text-align:left;padding:12px 16px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);border-bottom:1px solid var(--line)}
-td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
-tr:hover td{background:#00000005}
-
-.chip{display:inline-block;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:600}
-.chip.yes{background:var(--sage);color:#22543d}
-.chip.no{background:var(--butter);color:#744210}
-
-#toast{position:fixed;bottom:24px;right:24px;z-index:100;display:flex;flex-direction:column;gap:10px}
-.toast-msg{background:var(--ink);color:var(--bg);padding:12px 22px;border-radius:99px;font:600 14px var(--sans);box-shadow:0 12px 28px #00000028}
 </style>
 </head>
 <body>
 
-<div class="orb o1"></div><div class="orb o2"></div>
-
-<div class="wrap">
-  <div class="nav">
-    <a href="{% url 'matcher:home' %}" class="logo">kin<span>dred</span> · governance</a>
-    <div class="nav-links">
-      <span class="role-badge">⚙️ {{ current_user.name|default:"Kindred Administrator" }} (Administrator)</span>
-      <a href="{% url 'matcher:warden_dashboard' %}">Warden Portal</a>
-      <a href="{% url 'matcher:logout' %}" class="btn-logout" style="color:var(--warn);border-color:var(--warn)">Sign Out</a>
-    </div>
-  </div>
-
-  <div style="margin:20px 0 10px">
-    <span class="hand">master allotment administration</span>
-    <h1>Governance & Allotment Controls</h1>
-    <p style="color:var(--soft);margin-top:6px">Control calendar phases, monitor hostel capacity, download official rosters, and review audit logs.</p>
-  </div>
-
-  <!-- Stats Grid -->
-  <div class="stats-grid">
-    <div class="card stat-box">
-      <b>{{ total_students }}</b>
-      <span>Registered Students</span>
-    </div>
-    <div class="card stat-box">
-      <b style="color:var(--lv)">{{ total_wardens }}</b>
-      <span>Active Wardens</span>
-    </div>
-    <div class="card stat-box">
-      <b>{{ confirmed_pairs }}</b>
-      <span>Confirmed Pairs</span>
-    </div>
-    <div class="card stat-box">
-      <b style="color:#2e7d32">{{ allotted_count }}</b>
-      <span>Rooms Allotted</span>
-    </div>
-    <div class="card stat-box">
-      <b style="color:var(--warn)">{{ unpaired_count }}</b>
-      <span>Unpaired Remaining</span>
-    </div>
-  </div>
-
-  <!-- Calendar Controller -->
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-      <div>
-        <h2>Allotment Calendar Control</h2>
-        <span style="font-size:14px;color:var(--soft)">Active Phase: <b style="color:var(--lv)">{{ calendar.get_phase_display }}</b></span>
+<div class="admin-wrap">
+  <!-- Top Navigation Bar -->
+  <header style="margin-bottom: 28px;">
+    <nav class="nb-nav" style="background:var(--color-white);padding:12px 20px;">
+      <a href="{% url 'matcher:home' %}" class="nb-logo">
+        <span class="nb-logo-badge">K</span>
+        <span>kindred <small style="font-size:13px;font-weight:700;color:var(--color-muted);margin-left:4px">· governance</small></span>
+      </a>
+      
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span class="nb-chip" style="background:var(--color-lilac);">
+          ⚙️ {{ current_user.name|default:"Administrator" }} (Admin)
+        </span>
+        <a href="{% url 'matcher:warden_dashboard' %}" class="nb-btn nb-btn-secondary" style="padding:7px 16px;font-size:13px;">
+          Warden Desk →
+        </a>
+        <a href="{% url 'matcher:logout' %}" class="nb-btn nb-btn-danger" style="padding:7px 16px;font-size:13px;">
+          Sign Out
+        </a>
       </div>
-      <a href="{% url 'matcher:api_admin_export_csv' %}" class="btn-action">
+    </nav>
+  </header>
+
+  <!-- Title & Intro -->
+  <div style="margin-bottom: 24px;">
+    <div style="display:inline-flex;align-items:center;gap:8px;background:var(--color-lime);border:2px solid var(--color-ink);padding:4px 14px;border-radius:999px;font-weight:800;font-size:12.5px;box-shadow:var(--shadow-sm);margin-bottom:12px;">
+      🏛️ MASTER ALLOTMENT ADMINISTRATION
+    </div>
+    <h1 style="margin:0 0 8px;font-size:clamp(32px, 4.5vw, 48px);letter-spacing:-0.03em;">
+      Governance & Allotment Controls
+    </h1>
+    <p style="color:var(--color-muted);font-size:16px;font-weight:500;max-width:44em;margin:0;">
+      Control institutional calendar phases, oversee campus hostel capacities, download verified rosters, appoint hostel wardens, and review audit history.
+    </p>
+  </div>
+
+  <!-- 5 Stat Tiles Grid -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:32px;">
+    <div class="nb-card" style="background:var(--color-mint);padding:20px;text-align:center;">
+      <b style="display:block;font-size:42px;line-height:1;font-weight:800;color:var(--color-ink);">{{ total_students }}</b>
+      <span style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--color-ink);margin-top:4px;display:block;">Registered Students</span>
+    </div>
+    <div class="nb-card" style="background:var(--color-lilac);padding:20px;text-align:center;">
+      <b style="display:block;font-size:42px;line-height:1;font-weight:800;color:var(--color-ink);">{{ total_wardens }}</b>
+      <span style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--color-ink);margin-top:4px;display:block;">Active Wardens</span>
+    </div>
+    <div class="nb-card" style="background:var(--color-soft-yellow);padding:20px;text-align:center;">
+      <b style="display:block;font-size:42px;line-height:1;font-weight:800;color:var(--color-ink);">{{ confirmed_pairs }}</b>
+      <span style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--color-ink);margin-top:4px;display:block;">Confirmed Pairs</span>
+    </div>
+    <div class="nb-card" style="background:var(--color-light-pink);padding:20px;text-align:center;">
+      <b style="display:block;font-size:42px;line-height:1;font-weight:800;color:var(--color-ink);">{{ allotted_count }}</b>
+      <span style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--color-ink);margin-top:4px;display:block;">Rooms Allotted</span>
+    </div>
+    <div class="nb-card" style="background:var(--color-soft-red);padding:20px;text-align:center;">
+      <b style="display:block;font-size:42px;line-height:1;font-weight:800;color:var(--color-ink);">{{ unpaired_count }}</b>
+      <span style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--color-ink);margin-top:4px;display:block;">Unpaired Left</span>
+    </div>
+  </div>
+
+  <!-- Allotment Calendar Controller -->
+  <div class="nb-card" style="background:var(--color-lilac);margin-bottom:34px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:18px;">
+      <div>
+        <h2 style="margin:0 0 4px;font-size:24px;">Allotment Calendar Control</h2>
+        <span style="font-size:14px;font-weight:700;color:var(--color-ink);">
+          Active System Phase: 
+          <span class="nb-chip" style="background:var(--color-white);margin-left:6px;font-size:13px;">
+            {{ calendar.get_phase_display }}
+          </span>
+        </span>
+      </div>
+      <a href="{% url 'matcher:api_admin_export_csv' %}" class="nb-btn nb-btn-primary" style="font-size:13.5px;padding:9px 18px;">
         📥 Export Allotments CSV
       </a>
     </div>
 
-    <div class="phase-btn-grid">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">
       {% for phase_key, phase_label in phases %}
-      <button class="phase-btn {% if calendar.phase == phase_key %}active{% endif %}" onclick="setPhase('{{ phase_key }}')">
+      <button class="nb-btn {% if calendar.phase == phase_key %}nb-btn-primary{% else %}nb-btn-secondary{% endif %}" style="padding:10px 12px;font-size:13px;text-align:center;" onclick="setPhase('{{ phase_key }}')">
         {{ phase_label }}
       </button>
       {% endfor %}
@@ -215,14 +140,14 @@ tr:hover td{background:#00000005}
   </div>
 
   <!-- Warden Governance & Access Control -->
-  <div class="card" id="warden-management-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+  <div class="nb-card" id="warden-management-card" style="background:var(--color-white);margin-bottom:34px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
       <div>
-        <h2>Hostel Wardens & Governance Staff</h2>
-        <p style="color:var(--soft);font-size:13.5px;margin-top:4px">Appoint hostel wardens, create new staff profiles, or elevate any university person to warden privileges.</p>
+        <h2 style="margin:0;font-size:24px;">Hostel Wardens & Governance Staff</h2>
+        <p style="color:var(--color-muted);font-size:14px;margin:4px 0 0;">Appoint hostel wardens, configure new staff profiles, or elevate any university person to warden authority.</p>
       </div>
       <div>
-        <button class="btn-action" onclick="openAddWardenModal()" style="background:var(--lv);border-color:var(--lv)">
+        <button class="nb-btn nb-btn-primary" onclick="openAddWardenModal()" style="font-size:13.5px;padding:9px 18px;">
           ➕ Add New Warden
         </button>
       </div>
@@ -230,29 +155,29 @@ tr:hover td{background:#00000005}
 
     <!-- Quick Elevation Bar -->
     <div class="quick-assign-bar">
-      <span style="font-size:13px;font-weight:700;color:var(--soft);white-space:nowrap">Elevate User:</span>
-      <input type="text" id="quick-warden-id" class="quick-input" placeholder="Registration No or Email (e.g. 12310266)">
-      <select id="quick-warden-block" class="quick-select">
+      <span style="font-size:13px;font-weight:800;color:var(--color-ink);white-space:nowrap;">Quick Elevate:</span>
+      <input type="text" id="quick-warden-id" class="nb-input" placeholder="Registration No or Email (e.g. 12310266)" style="flex:1;min-width:220px;padding:8px 14px;font-size:13.5px;border-radius:999px;">
+      <select id="quick-warden-block" class="nb-select" style="padding:8px 14px;font-size:13.5px;width:auto;border-radius:999px;">
         <option value="">-- Assign Hostel (Optional) --</option>
         {% for b in blocks %}
         <option value="{{ b.id }}">{{ b.name }} ({{ b.get_gender_display }})</option>
         {% endfor %}
       </select>
-      <button type="button" class="btn-action" onclick="submitQuickAssignWarden()" style="padding:9px 18px;font-size:13px">
+      <button type="button" class="nb-btn nb-btn-accent" onclick="submitQuickAssignWarden()" style="padding:9px 18px;font-size:13px;">
         Grant Warden Access 🛡️
       </button>
     </div>
 
     <!-- Wardens Roster Table -->
-    <div class="table-wrap">
-      <table>
+    <div style="overflow-x:auto;">
+      <table class="nb-table">
         <thead>
           <tr>
             <th>Staff Member</th>
             <th>Staff / Reg ID</th>
             <th>Email</th>
             <th>Assigned Hostel</th>
-            <th>Role Access</th>
+            <th>Role Status</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -260,33 +185,33 @@ tr:hover td{background:#00000005}
           {% for w in wardens %}
           <tr id="warden-row-{{ w.id }}">
             <td>
-              <div style="display:flex;align-items:center;gap:10px">
-                <div style="width:34px;height:34px;border-radius:50%;background:hsl(45,80%,50%);color:#fff;display:grid;place-items:center;font-size:14px;font-weight:700">🛡️</div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:50%;background:var(--color-soft-yellow);border:2px solid var(--color-ink);color:var(--color-ink);display:grid;place-items:center;font-size:15px;font-weight:800;">🛡️</div>
                 <div>
                   <b>{{ w.name }}</b>
-                  <div style="font-size:11.5px;color:var(--soft)">{{ w.branch }} · {{ w.year }}</div>
+                  <div style="font-size:12px;color:var(--color-muted);">{{ w.branch }} · {{ w.year }}</div>
                 </div>
               </div>
             </td>
-            <td><code>{{ w.roll_no }}</code></td>
+            <td><code style="font-family:var(--font-mono);font-weight:700;">{{ w.roll_no }}</code></td>
             <td>{{ w.email }}</td>
             <td>
               {% if w.block %}
-                <span class="chip yes">{{ w.block.name }}</span>
+                <span class="nb-chip" style="background:var(--color-mint);font-size:12px;">{{ w.block.name }}</span>
               {% else %}
-                <span class="chip no" style="background:var(--lav);color:#35293f">All Campus Hostels</span>
+                <span class="nb-chip" style="background:var(--color-lilac);font-size:12px;">All Campus Hostels</span>
               {% endif %}
             </td>
-            <td><span class="chip yes" style="background:#e0e7ff;color:#3730a3">Warden Access</span></td>
+            <td><span class="nb-chip" style="background:var(--color-lime);font-size:12px;">Active Warden</span></td>
             <td>
-              <button class="btn-sm-danger" onclick="revokeWarden({{ w.id }}, '{{ w.name|escapejs }}')">
+              <button class="nb-btn nb-btn-danger" style="padding:4px 12px;font-size:12px;" onclick="revokeWarden({{ w.id }}, '{{ w.name|escapejs }}')">
                 Revoke Role
               </button>
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="6" style="text-align:center;padding:24px;color:var(--soft)">
+            <td colspan="6" style="text-align:center;padding:24px;color:var(--color-muted);font-weight:700;">
               No active warden accounts found. Click "Add New Warden" or elevate a user above.
             </td>
           </tr>
@@ -297,10 +222,14 @@ tr:hover td{background:#00000005}
   </div>
 
   <!-- Student Master Roster -->
-  <div class="card">
-    <h2>Student Master Roster</h2>
-    <div class="table-wrap">
-      <table>
+  <div class="nb-card" style="background:var(--color-white);margin-bottom:34px;">
+    <div style="margin-bottom:18px;">
+      <h2 style="margin:0 0 4px;font-size:24px;">Student Master Roster</h2>
+      <p style="color:var(--color-muted);font-size:14px;margin:0;">Enrolled students, lifestyle quiz completion status, and pairing state across all hostels.</p>
+    </div>
+    
+    <div style="overflow-x:auto;">
+      <table class="nb-table">
         <thead>
           <tr>
             <th>Student</th>
@@ -309,32 +238,32 @@ tr:hover td{background:#00000005}
             <th>Hostel</th>
             <th>Survey Status</th>
             <th>Pairing Status</th>
-            <th>Actions</th>
+            <th>Staff Elevation</th>
           </tr>
         </thead>
         <tbody>
           {% for s in students %}
           <tr>
             <td><b>{{ s.name }}</b></td>
-            <td><code>{{ s.roll_no }}</code></td>
+            <td><code style="font-family:var(--font-mono);font-weight:700;">{{ s.roll_no }}</code></td>
             <td>{{ s.branch }} · {{ s.year }}</td>
             <td>{{ s.block.name|default:"Unassigned" }}</td>
             <td>
               {% if s.has_completed_survey %}
-                <span class="chip yes">Completed (the {{ s.persona }})</span>
+                <span class="nb-chip" style="background:var(--color-mint);font-size:12px;">Done (the {{ s.persona }})</span>
               {% else %}
-                <span class="chip no">Incomplete</span>
+                <span class="nb-chip" style="background:var(--color-soft-yellow);font-size:12px;">Pending</span>
               {% endif %}
             </td>
             <td>
               {% if s.is_paired %}
-                <span class="chip yes">Paired ✓</span>
+                <span class="nb-chip" style="background:var(--color-lime);font-size:12px;">Paired ✓</span>
               {% else %}
-                <span class="chip no">Searching</span>
+                <span class="nb-chip" style="background:var(--color-light-pink);font-size:12px;">Searching</span>
               {% endif %}
             </td>
             <td>
-              <button class="btn-sm-promote" onclick="promoteStudentToWarden({{ s.id }}, '{{ s.name|escapejs }}', '{{ s.roll_no|escapejs }}')">
+              <button class="nb-btn nb-btn-secondary" style="padding:4px 12px;font-size:12px;" onclick="promoteStudentToWarden({{ s.id }}, '{{ s.name|escapejs }}', '{{ s.roll_no|escapejs }}')">
                 Make Warden 🛡️
               </button>
             </td>
@@ -345,28 +274,38 @@ tr:hover td{background:#00000005}
     </div>
   </div>
 
-  <!-- Audit Log -->
-  <div class="card">
-    <h2>System Audit Trail</h2>
-    <div class="table-wrap">
-      <table>
+  <!-- System Audit Trail -->
+  <div class="nb-card" style="background:var(--color-white);margin-bottom:34px;">
+    <div style="margin-bottom:18px;">
+      <h2 style="margin:0 0 4px;font-size:24px;">System Audit Trail</h2>
+      <p style="color:var(--color-muted);font-size:14px;margin:0;">Administrative changes, access elevations, room updates, and overrides logged permanently.</p>
+    </div>
+    
+    <div style="overflow-x:auto;">
+      <table class="nb-table">
         <thead>
           <tr>
             <th>Timestamp</th>
             <th>Actor</th>
             <th>Action</th>
             <th>Target</th>
-            <th>Notes</th>
+            <th>Reason / Notes</th>
           </tr>
         </thead>
         <tbody>
           {% for log in audit_logs %}
           <tr>
-            <td style="font-size:12.5px;color:var(--soft)">{{ log.timestamp|date:"M d, H:i" }}</td>
+            <td style="font-size:12.5px;color:var(--color-muted);white-space:nowrap;">{{ log.timestamp|date:"M d, H:i:s" }}</td>
             <td><b>{{ log.actor }}</b></td>
-            <td><code style="font-size:12px">{{ log.action }}</code></td>
-            <td>{{ log.target }}</td>
-            <td style="font-size:13px">{{ log.reason }}</td>
+            <td>
+              <span class="nb-chip" style="background:var(--color-lilac);font-size:11.5px;padding:3px 10px;">{{ log.action }}</span>
+            </td>
+            <td style="font-weight:700;">{{ log.target }}</td>
+            <td style="font-size:13px;color:var(--color-muted);">{{ log.reason }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" style="text-align:center;padding:20px;color:var(--color-muted);font-weight:700;">No audit logs recorded yet.</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -376,34 +315,36 @@ tr:hover td{background:#00000005}
 </div>
 
 <!-- Add New Warden Modal -->
-<div id="add-warden-modal" class="modal-backdrop" style="display:none">
-  <div class="modal-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-      <h2 style="font-size:24px">➕ Add New Hostel Warden</h2>
-      <button type="button" class="btn-close" onclick="closeAddWardenModal()">✕</button>
+<div id="add-warden-modal" class="nb-modal-backdrop" style="display:none;align-items:center;justify-content:center;">
+  <div class="nb-modal" style="max-width:560px;width:100%;background:var(--color-cream);padding:28px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:2px solid var(--color-ink);padding-bottom:12px;">
+      <h2 style="font-size:22px;margin:0;">➕ Add New Hostel Warden</h2>
+      <button type="button" class="nb-btn nb-btn-secondary" onclick="closeAddWardenModal()" style="padding:4px 10px;font-size:14px;">✕</button>
     </div>
-    <p style="font-size:13px;color:var(--soft);margin-bottom:20px">Create an official hostel staff warden account with room allotment and dispute resolution authority.</p>
+    <p style="font-size:13px;color:var(--color-muted);font-weight:600;margin-bottom:20px;">
+      Register an official staff warden with room allotment and dispute resolution capabilities.
+    </p>
 
     <form id="create-warden-form" onsubmit="submitCreateWarden(event)">
-      <div class="form-row">
-        <div class="form-group">
-          <label class="modal-label">Staff Full Name</label>
-          <input type="text" id="warden-name" class="modal-input" placeholder="e.g. Dr. Rajesh Sen" required>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+        <div class="nb-form-group">
+          <label class="nb-label">Staff Full Name</label>
+          <input type="text" id="warden-name" class="nb-input" placeholder="e.g. Dr. Rajesh Sen" required>
         </div>
-        <div class="form-group">
-          <label class="modal-label">Staff ID / Reg Number</label>
-          <input type="text" id="warden-roll" class="modal-input" placeholder="e.g. WARDEN-02" required>
+        <div class="nb-form-group">
+          <label class="nb-label">Staff ID / Reg Number</label>
+          <input type="text" id="warden-roll" class="nb-input" placeholder="e.g. WARDEN-02" required>
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label class="modal-label">Official College Email</label>
-          <input type="email" id="warden-email" class="modal-input" placeholder="e.g. warden.sen@college.edu" required>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+        <div class="nb-form-group">
+          <label class="nb-label">Official College Email</label>
+          <input type="email" id="warden-email" class="nb-input" placeholder="e.g. warden.sen@college.edu" required>
         </div>
-        <div class="form-group">
-          <label class="modal-label">Gender</label>
-          <select id="warden-gender" class="modal-input">
+        <div class="nb-form-group">
+          <label class="nb-label">Gender</label>
+          <select id="warden-gender" class="nb-select">
             <option value="M">Male (Boys Hostels)</option>
             <option value="F">Female (Girls Hostels)</option>
             <option value="O">Other</option>
@@ -411,25 +352,25 @@ tr:hover td{background:#00000005}
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label class="modal-label">Assigned Hostel</label>
-          <select id="warden-block" class="modal-input">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+        <div class="nb-form-group">
+          <label class="nb-label">Assigned Hostel</label>
+          <select id="warden-block" class="nb-select">
             <option value="">All Campus Hostels (Universal)</option>
             {% for b in blocks %}
             <option value="{{ b.id }}">{{ b.name }} ({{ b.get_gender_display }})</option>
             {% endfor %}
           </select>
         </div>
-        <div class="form-group">
-          <label class="modal-label">Staff Password</label>
-          <input type="password" id="warden-password" class="modal-input" placeholder="Default: warden123" value="warden123">
+        <div class="nb-form-group">
+          <label class="nb-label">Staff Password</label>
+          <input type="password" id="warden-password" class="nb-input" placeholder="Default: warden123" value="warden123">
         </div>
       </div>
 
-      <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:22px">
-        <button type="button" class="btn-cancel" onclick="closeAddWardenModal()">Cancel</button>
-        <button type="submit" class="btn-action" style="background:var(--lv);border-color:var(--lv)">Create Warden Profile →</button>
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px;">
+        <button type="button" class="nb-btn nb-btn-secondary" onclick="closeAddWardenModal()">Cancel</button>
+        <button type="submit" class="nb-btn nb-btn-primary">Create Warden Profile →</button>
       </div>
     </form>
   </div>
@@ -439,12 +380,16 @@ tr:hover td{background:#00000005}
 
 <script>
 function showToast(msg) {
-  const cont = document.getElementById("toast");
+  const container = document.getElementById("toast");
+  if (!container) return;
   const t = document.createElement("div");
   t.className = "toast-msg";
   t.textContent = msg;
-  cont.appendChild(t);
-  setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 300); }, 3000);
+  container.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = "0";
+    setTimeout(() => t.remove(), 300);
+  }, 3200);
 }
 
 function getCookie(name) {
@@ -463,11 +408,15 @@ function getCookie(name) {
 }
 
 function openAddWardenModal() {
-  document.getElementById('add-warden-modal').style.display = 'flex';
-  document.getElementById('warden-name').focus();
+  const modal = document.getElementById('add-warden-modal');
+  if (modal) modal.style.display = 'flex';
+  const nameInput = document.getElementById('warden-name');
+  if (nameInput) nameInput.focus();
 }
+
 function closeAddWardenModal() {
-  document.getElementById('add-warden-modal').style.display = 'none';
+  const modal = document.getElementById('add-warden-modal');
+  if (modal) modal.style.display = 'none';
 }
 
 async function submitCreateWarden(e) {
@@ -586,7 +535,7 @@ async function setPhase(phaseKey) {
         "Content-Type": "application/json",
         "X-CSRFToken": getCookie("csrftoken") || ""
       },
-      body: JSON.stringify({phase: phaseKey})
+      body: JSON.stringify({ phase: phaseKey })
     });
     const d = await res.json();
     if (d.ok) {
@@ -600,6 +549,5 @@ async function setPhase(phaseKey) {
   }
 }
 </script>
-
 </body>
 </html>

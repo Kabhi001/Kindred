@@ -2089,5 +2089,10 @@ def api_feedback_summary(request):
 
 
 
+def roomie_vibe_view(request):
+    """Gen Z Neo-brutalist roommate matching single-page UI for Kindred Roomie."""
+    return render(request, 'matcher/roomie_vibe.html')
+
+
 # Import all extended views
 from .views_extended import *

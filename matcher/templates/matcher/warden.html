@@ -1,193 +1,117 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>kindred · hostel administration portal</title>
+<title>Kindred · Warden Operations Desk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Cormorant+Garamond:ital,wght@0,500;1,400;1,500&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'kindred-design-system.css' %}">
 <style>
-:root{
-  --bg:#f8f2f4;--surface:#ffffffd9;--ink:#35293f;--soft:#6a5d78;--line:#35293f26;--lav:#d4c6f5;--lv:#8566d1;--rd:#e0709f;--peach:#ffd9c9;--sage:#d6e8da;--butter:#fff1c4;--rose:#f7c4d8;--warn:#c2410c;
-  --serif:"Cormorant Garamond","Iowan Old Style",Georgia,serif;--sans:"Quicksand","Trebuchet MS",system-ui,sans-serif;--hand:"Caveat","Segoe Print",cursive;
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --bg:#1a1424;--surface:#2a2138e6;--ink:#f4ecfb;--soft:#bbaed1;--line:#f4ecfb2b;--lv:#bda2ff;--rd:#ff8fbb;--lav:#4a3a73;--peach:#5a3a40;--sage:#2f4a3c;--butter:#554a2a;--rose:#5e3450;--warn:#fdba74
-  }
-}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
-body::after{content:"";position:fixed;inset:0;pointer-events:none;opacity:.08;z-index:50;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
-
-.orb{position:fixed;border-radius:50%;filter:blur(70px);opacity:.75;z-index:-1;pointer-events:none}
-.o1{width:46vmax;height:46vmax;background:var(--lav);left:-14vmax;top:-14vmax}
-.o2{width:40vmax;height:40vmax;background:var(--peach);right:-12vmax;bottom:-10vmax}
-
-.wrap{max-width:1120px;margin:0 auto;padding:0 24px 80px}
-.nv{display:flex;justify-content:space-between;align-items:center;padding:24px 0 16px;border-bottom:1px solid var(--line);margin-bottom:28px}
-.logo{font:italic 500 32px var(--serif);color:var(--ink);text-decoration:none}.logo span{color:var(--lv)}
-.back-link{font:600 15px var(--sans);color:var(--soft);text-decoration:none;padding:8px 18px;border-radius:99px;border:1px solid var(--line);transition:all .2s}
-.back-link:hover{color:var(--ink);border-color:var(--lv)}
-
-h1{font:italic 400 clamp(36px,5.5vw,52px) var(--serif);margin:0 0 8px;line-height:1.1}
-h2{font:italic 400 32px var(--serif);margin:32px 0 14px}
-.hand{font-family:var(--hand);font-size:24px;color:var(--lv);display:block}
-.sub{color:var(--soft);max-width:44em;margin:8px 0 24px}
-
-.card{background:var(--surface);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:28px;padding:24px;margin-bottom:20px}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
-.stat{text-align:center;padding:18px 14px}
-.stat b{display:block;font:italic 500 48px/1 var(--serif);color:var(--ink)}
-.stat span{font-size:13.5px;color:var(--soft);font-weight:600}
-
-/* Phase Controller */
-.phase-box{background:var(--surface);border:1px solid var(--line);border-radius:26px;padding:20px 24px;margin-bottom:28px}
-.phase-steps{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.phase-btn{padding:8px 16px;border-radius:99px;border:1px solid var(--line);background:none;font:600 13px var(--sans);cursor:pointer;color:var(--soft);transition:all .2s}
-.phase-btn:hover{color:var(--ink);border-color:var(--lv)}
-.phase-btn.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-
-.pair-card{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;padding:22px 26px;border-radius:28px;background:var(--surface);border:1px solid var(--line);margin-bottom:18px;transition:box-shadow .2s}
-.pair-card:hover{box-shadow:0 12px 30px -10px var(--lv)}
-.pair-card.allotted{border-color:var(--lv);background:linear-gradient(135deg,var(--surface),var(--sage))}
-
-.pair-students{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.av{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font:italic 500 24px var(--serif);color:#fffe;flex:none}
-.st-info h3{font:italic 500 24px var(--serif);margin:0;line-height:1.1}
-.st-info span{font-size:13px;color:var(--soft);font-weight:600}
-
-.score-badge{display:inline-block;padding:5px 13px;border-radius:99px;font-size:13px;font-weight:700;background:var(--butter);color:#35293f}
-.score-badge.high{background:var(--sage)}
-
-.allot-form{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-input[type=text]{padding:10px 16px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:500 14.5px var(--sans);width:130px}
-.btn{padding:10px 22px;border-radius:999px;background:var(--ink);color:var(--bg);font:600 14px var(--sans);border:1px solid var(--ink);cursor:pointer;transition:all .2s}
-.btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px -6px var(--lv)}
-.btn.action{background:var(--lv);border-color:var(--lv);color:#fff}
-
-.tag{padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700}
-.tag.done{background:var(--sage);color:#35293f}
-.tag.wait{background:var(--butter);color:#35293f}
-
-.unpaired-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
-.unpaired-item{padding:16px 18px;border-radius:24px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;gap:12px}
-
-/* Audit table */
-.audit-table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:12px}
-.audit-table th, .audit-table td{padding:10px 14px;border-bottom:1px solid var(--line);text-align:left}
-.audit-table th{font-weight:700;color:var(--soft);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
-
-#toast{position:fixed;bottom:24px;right:24px;z-index:100;display:flex;flex-direction:column;gap:10px}
-.toast-msg{background:var(--ink);color:var(--bg);padding:12px 22px;border-radius:99px;font:600 14px var(--sans);box-shadow:0 12px 28px #00000028}
-
-@media(max-width:760px){
-  .pair-card{grid-template-columns:1fr}
+/* Warden-specific neo-brutalist extensions */
+.warden-wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 20px 90px;
 }
 
-/* 100-Room Hostel Matrix Styles (5 Levels x 20 Rooms) */
-.matrix-container{
+/* 100-Room Matrix Styles */
+.matrix-container {
   overflow-x: auto;
   padding-bottom: 8px;
 }
-.matrix-grid{
+.matrix-grid {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-width: 820px;
+  min-width: 860px;
 }
-.level-row{
+.level-row {
   display: grid;
-  grid-template-columns: 120px 1fr;
+  grid-template-columns: 130px 1fr;
   gap: 14px;
   align-items: center;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  padding: 10px 16px;
-  border-radius: 18px;
-  transition: all 0.2s ease;
+  background: var(--color-white);
+  border: var(--border-thin);
+  padding: 12px 18px;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.level-row:hover{
-  border-color: var(--lv);
-  box-shadow: 0 4px 14px rgba(133,102,209,0.08);
+.level-row:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-btn);
 }
-.level-label{
-  font-family: var(--sans);
-  font-weight: 700;
-  font-size: 13.5px;
-  color: var(--ink);
+.level-label {
+  font-family: var(--font-main);
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--color-ink);
   line-height: 1.2;
 }
-.level-label small{
+.level-label small {
   display: block;
   font-size: 11px;
-  font-weight: 500;
-  color: var(--soft);
+  font-weight: 600;
+  color: var(--color-muted);
   margin-top: 2px;
 }
-.rooms-strip{
+.rooms-strip {
   display: grid;
   grid-template-columns: repeat(20, minmax(32px, 1fr));
   gap: 6px;
 }
-.room-btn{
-  height: 40px;
+.room-btn {
+  height: 44px;
   min-width: 0;
-  padding: 0 2px;
+  padding: 2px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  font-family: var(--sans);
+  font-family: var(--font-main);
   font-size: 12px;
-  font-weight: 700;
-  border-radius: 8px;
+  font-weight: 800;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border: 2px solid var(--color-ink);
+  transition: all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
   user-select: none;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  position: relative;
+  box-shadow: var(--shadow-sm);
 }
-.room-btn.vacant{
-  background: #dcfce7;
-  color: #166534;
-  border: 1.5px solid #86efac;
+.room-btn.vacant {
+  background: var(--color-mint);
+  color: var(--color-ink);
 }
-.room-btn.vacant:hover{
-  background: #bbf7d0;
-  border-color: #22c55e;
-  transform: translateY(-2px) scale(1.08);
-  box-shadow: 0 4px 12px rgba(34,197,94,0.3);
+.room-btn.vacant:hover {
+  background: var(--color-lime);
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--color-ink);
   z-index: 2;
 }
-.room-btn.allocated{
-  background: #fee2e2 !important;
-  color: #991b1b !important;
-  border: 1.5px solid #fca5a5 !important;
+.room-btn.allocated {
+  background: var(--color-soft-red) !important;
+  color: var(--color-ink) !important;
+  opacity: 0.75;
   cursor: not-allowed !important;
-  opacity: 0.88;
 }
-.room-btn.allocated:hover{
-  background: #fecaca !important;
-  border-color: #ef4444 !important;
+.room-btn.allocated:hover {
+  background: var(--color-soft-red) !important;
+  transform: none;
 }
-.room-btn.selected-for-allot{
-  background: var(--lv) !important;
-  color: #ffffff !important;
-  border-color: var(--lv) !important;
-  transform: scale(1.12);
-  box-shadow: 0 0 0 3px #ffffff, 0 6px 16px var(--lv);
+.room-btn.selected-for-allot {
+  background: var(--color-pink) !important;
+  color: var(--color-ink) !important;
+  transform: translate(-2px, -2px) scale(1.1);
+  box-shadow: 4px 4px 0 var(--color-ink);
   z-index: 5;
-  animation: pulse-glow 1s infinite alternate;
 }
-@keyframes pulse-glow {
-  from { box-shadow: 0 0 0 2px #fff, 0 0 10px var(--lv); }
-  to { box-shadow: 0 0 0 4px #fff, 0 0 20px var(--lv); }
-}
+
 @keyframes shake-btn {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-4px); }
@@ -196,377 +120,530 @@ input[type=text]{padding:10px 16px;border-radius:16px;border:1px solid var(--lin
 .shake {
   animation: shake-btn 0.25s ease-in-out 2;
 }
-.pair-pick-item{
-  padding: 12px 16px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: var(--surface);
+
+.pair-pick-item {
+  padding: 14px 18px;
+  border-radius: 16px;
+  border: 2.5px solid var(--color-ink);
+  background: var(--color-white);
   cursor: pointer;
-  margin-bottom: 8px;
-  transition: all 0.18s ease;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.15s ease;
 }
-.pair-pick-item:hover{
-  border-color: var(--lv);
-  background: rgba(133,102,209,0.08);
-  transform: translateY(-1px);
+.pair-pick-item:hover {
+  background: var(--color-lilac);
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-btn);
 }
 
+.unpaired-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 16px;
+}
+.unpaired-item {
+  padding: 16px 20px;
+  border-radius: 20px;
+  border: 2.5px solid var(--color-ink);
+  background: var(--color-white);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.av-circ {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2.5px solid var(--color-ink);
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--color-ink);
+  flex: none;
+}
+
+#toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.toast-msg {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  border: 3px solid var(--color-ink);
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: var(--shadow-card);
+  transition: opacity 0.3s ease;
+}
 </style>
 </head>
 <body>
-<div class="orb o1"></div><div class="orb o2"></div>
 
-<div class="wrap">
-  <nav class="nv">
-    <a href="{% url 'matcher:home' %}" class="logo">kin<span>dred</span> · warden desk</a>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-      <span style="font-size:13.5px;font-weight:700;color:var(--ink);padding:6px 14px;background:var(--butter);border-radius:99px;border:1px solid rgba(0,0,0,0.06)">
-        🛡️ {{ current_user.name }} (Hostel Warden)
-      </span>
-      {% if current_user.role == 'admin' %}
-      <a href="{% url 'matcher:admin_dashboard' %}" class="back-link">Admin Portal →</a>
-      {% endif %}
-      <a href="{% url 'matcher:logout' %}" class="back-link" style="color:var(--warn);border-color:var(--warn)">Sign Out</a>
+<div class="warden-wrap">
+  <!-- Sticky / Top Neo-brutalist Navigation Bar -->
+  <header style="margin-bottom: 28px;">
+    <nav class="nb-nav" style="background:var(--color-white);padding:12px 20px;">
+      <a href="{% url 'matcher:home' %}" class="nb-logo">
+        <span class="nb-logo-badge">K</span>
+        <span>kindred <small style="font-size:13px;font-weight:700;color:var(--color-muted);margin-left:4px">· warden desk</small></span>
+      </a>
+      
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span class="nb-chip" style="background:var(--color-soft-yellow);">
+          🛡️ {{ current_user.name }} (Hostel Warden)
+        </span>
+        {% if current_user.role == 'admin' %}
+        <a href="{% url 'matcher:admin_dashboard' %}" class="nb-btn nb-btn-accent" style="padding:7px 16px;font-size:13px;">
+          Admin Portal →
+        </a>
+        {% endif %}
+        <a href="{% url 'matcher:logout' %}" class="nb-btn nb-btn-danger" style="padding:7px 16px;font-size:13px;">
+          Sign Out
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Page Header Title -->
+  <div style="margin-bottom: 24px;">
+    <div style="display:inline-flex;align-items:center;gap:8px;background:var(--color-lime);border:2px solid var(--color-ink);padding:4px 14px;border-radius:999px;font-weight:800;font-size:12.5px;box-shadow:var(--shadow-sm);margin-bottom:12px;">
+      ⚡ HOSTEL ALLOTMENT & TRANSACTION CONTROLS
     </div>
-  </nav>
+    <h1 style="margin:0 0 8px;font-size:clamp(32px, 4.5vw, 48px);letter-spacing:-0.03em;">
+      Allotment Calendar & Room Matrix
+    </h1>
+    <p style="color:var(--color-muted);font-size:16px;font-weight:500;max-width:44em;margin:0;">
+      Supervise room allotments across discrete calendar phases, execute Blossom maximum-weight leftover matching, and lock room keys into the immutable university audit ledger.
+    </p>
+  </div>
 
-  <span class="hand">hostel allotment & transaction controls</span>
-  <h1>Allotment Calendar & Room Allocations</h1>
-  <p class="sub">Manage the full allotment lifecycle through discrete time windows, execute Blossom maximum-weight leftover matching, and assign rooms with full audit logging.</p>
-
-  <!-- Allotment Calendar Phase Controller (Section 4) -->
-  <div class="phase-box">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+  <!-- Allotment Calendar Phase Controller -->
+  <div class="nb-card" style="background:var(--color-lilac);margin-bottom:28px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:18px;">
       <div>
-        <span class="demo-tag" style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase">Current Calendar Phase:</span>
-        <b style="font-size:17px;margin-left:8px;color:var(--lv)">{{ calendar.get_phase_display }}</b>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn action" onclick="runBlossomMatching()">Run Blossom Algorithm (Leftovers)</button>
-        <button class="btn" onclick="runAutoAllotment()">Auto-Allot Rooms</button>
-      </div>
-    </div>
-    <div class="phase-steps">
-      <button class="phase-btn {% if calendar.phase == 'REGISTRATION' %}active{% endif %}" onclick="setPhase('REGISTRATION')">1. Registration</button>
-      <button class="phase-btn {% if calendar.phase == 'SURVEY_OPEN' %}active{% endif %}" onclick="setPhase('SURVEY_OPEN')">2. Survey Open</button>
-      <button class="phase-btn {% if calendar.phase == 'MATCHING_OPEN' %}active{% endif %}" onclick="setPhase('MATCHING_OPEN')">3. Matching Open</button>
-      <button class="phase-btn {% if calendar.phase == 'FREEZE' %}active{% endif %}" onclick="setPhase('FREEZE')">4. Freeze</button>
-      <button class="phase-btn {% if calendar.phase == 'LEFTOVER_PAIRING' %}active{% endif %}" onclick="setPhase('LEFTOVER_PAIRING')">5. Leftover Pairing</button>
-      <button class="phase-btn {% if calendar.phase == 'WARDEN_ALLOTMENT' %}active{% endif %}" onclick="setPhase('WARDEN_ALLOTMENT')">6. Warden Allotment</button>
-      <button class="phase-btn {% if calendar.phase == 'PUBLISHED' %}active{% endif %}" onclick="setPhase('PUBLISHED')">7. Published</button>
-    </div>
-  </div>
-
-  <div class="stats">
-    <div class="card stat"><b>{{ total_students_count }}</b><span>Enrolled Students</span></div>
-    <div class="card stat"><b>{{ confirmed_pairs_count }}</b><span>Confirmed Pairs</span></div>
-    <div class="card stat"><b>{{ allotted_count }}</b><span>Rooms Allotted</span></div>
-    <div class="card stat"><b>{{ open_tickets_count }}</b><span>Active Disputes</span></div>
-  </div>
-
-  <h2>Student Disputes & Maintenance Desk</h2>
-  <p class="sub">Review roommate conflicts, room change requests, and facility maintenance tickets logged by students.</p>
-  <div class="card" style="padding:14px 20px;margin-bottom:28px">
-    <table class="audit-table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Student</th>
-          <th>Type</th>
-          <th>Subject & Description</th>
-          <th>Status</th>
-          <th>Date Logged</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for t in tickets %}
-        <tr id="ticket-row-{{ t.id }}">
-          <td>#{{ t.id }}</td>
-          <td><b>{{ t.student.name }}</b><br><span style="font-size:12px;color:var(--soft)">{{ t.student.roll_no }}</span></td>
-          <td><span class="tag" style="background:var(--peach);color:#35293f">{{ t.get_ticket_type_display }}</span></td>
-          <td>
-            <b>{{ t.subject }}</b>
-            <div style="font-size:13px;color:var(--soft);margin-top:2px">{{ t.description|truncatewords:20 }}</div>
-            {% if t.resolution_notes %}
-            <div style="font-size:12px;color:var(--lv);margin-top:4px"><b>Resolution:</b> {{ t.resolution_notes }}</div>
-            {% endif %}
-          </td>
-          <td>
-            <span class="tag {% if t.status == 'RESOLVED' %}done{% elif t.status == 'IN_REVIEW' %}wait{% else %}{% endif %}" id="ticket-status-{{ t.id }}">
-              {{ t.get_status_display }}
-            </span>
-          </td>
-          <td style="font-size:12px;color:var(--soft)">{{ t.created_at|date:"M d, H:i" }}</td>
-          <td>
-            <div style="display:flex;gap:6px;flex-wrap:wrap">
-              {% if t.status != 'RESOLVED' %}
-              <button class="btn" style="padding:4px 12px;font-size:12px" onclick="updateTicket({{ t.id }}, 'IN_REVIEW')">Review</button>
-              <button class="btn action" style="padding:4px 12px;font-size:12px" onclick="updateTicket({{ t.id }}, 'RESOLVED')">Resolve</button>
-              {% else %}
-              <span style="font-size:12px;color:var(--soft)">Closed ✓</span>
-              {% endif %}
-            </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="7" class="sm">No tickets or roommate complaints currently open.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  
-  <!-- 100-Room Hostel Matrix (5 Levels x 20 Rooms) Section -->
-  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin:34px 0 14px">
-    <div>
-      <h2 style="margin:0">Hostel 100-Room Allocation Matrix</h2>
-      <p class="sub" style="margin:4px 0 0">Visual interactive grid of 100 rooms across 5 levels (20 rooms per floor). Click any green room to allot. <b>Once a room is allocated, it is permanently locked and cannot be selected again.</b></p>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <label for="matrix-hostel-select" style="font-weight:600;font-size:13.5px;color:var(--soft)">Select Hostel:</label>
-      <select id="matrix-hostel-select" onchange="loadHostelMatrix(this.value)" style="padding:8px 16px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 14px var(--sans)">
-        {% for h in all_hostels %}
-        <option value="{{ h.id }}" {% if h.id == active_hostel.id %}selected{% endif %}>{{ h.name }} ({{ h.get_gender_display }})</option>
-        {% endfor %}
-      </select>
-    </div>
-  </div>
-
-  <!-- Active Allocation Selection Banner (Shows when warden picks a pair to assign) -->
-  <div id="allocation-prompt-banner" class="card" style="display:none;background:linear-gradient(135deg,rgba(133,102,209,0.15),rgba(224,112,159,0.15));border:1.5px solid var(--lv);padding:14px 20px;margin-bottom:18px">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-      <div style="display:flex;align-items:center;gap:12px">
-        <span style="font-size:24px">🎯</span>
-        <div>
-          <b id="allocating-pair-names" style="color:var(--ink);font-size:15px">Allotting Room for: [Pair]</b>
-          <span style="display:block;font-size:12.5px;color:var(--soft);margin-top:2px">Click any available green room box in the 100-room grid below to complete allotment.</span>
+        <span style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-ink);">
+          CURRENT CALENDAR PHASE:
+        </span>
+        <div style="display:inline-block;margin-left:8px;background:var(--color-white);border:2px solid var(--color-ink);padding:4px 14px;border-radius:999px;font-weight:800;font-size:15px;box-shadow:var(--shadow-sm);">
+          {{ calendar.get_phase_display }}
         </div>
       </div>
-      <button class="btn" onclick="cancelPairSelection()" style="padding:6px 14px;font-size:12px;background:transparent;color:var(--ink);border:1px solid var(--line)">Cancel Selection</button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="nb-btn nb-btn-primary" onclick="runBlossomMatching()" style="font-size:13px;padding:9px 18px;">
+          🌸 Run Blossom Matching (Leftovers)
+        </button>
+        <button class="nb-btn nb-btn-secondary" onclick="runAutoAllotment()" style="font-size:13px;padding:9px 18px;">
+          ⚡ Auto-Allot Rooms
+        </button>
+      </div>
+    </div>
+    
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="nb-btn {% if calendar.phase == 'REGISTRATION' %}nb-btn-primary{% else %}nb-btn-secondary{% endif %}" style="padding:6px 14px;font-size:12.5px;" onclick="setPhase('REGISTRATION')">1. Registration</button>
+      <button class="nb-btn {% if calendar.phase == 'SURVEY_OPEN' %}nb-btn-primary{% else %}nb-btn-secondary{% endif %}" style="padding:6px 14px;font-size:12.5px;" onclick="setPhase('SURVEY_OPEN')">2. Survey Open</button>
+      <button class="nb-btn {% if calendar.phase == 'MATCHING_OPEN' %}nb-btn-primary{% else %}nb-btn-secondary{% endif %}" style="padding:6px 14px;font-size:12.5px;" onclick="setPhase('MATCHING_OPEN')">3. Matching Open</button>
+      <button class="nb-btn {% if calendar.phase == 'FREEZE' %}nb-btn-primary{% else %}nb-btn-secondary{% endif %}" style="padding:6px 14px;font-size:12.5px;" onclick="setPhase('FREEZE')">4. Freeze</button>
+      <button class="nb-btn {% if calendar.phase == 'LEFTOVER_PAIRING' %}nb-btn-primary{% else %}nb-btn-secondary{% endif %}" style="padding:6px 14px;font-size:12.5px;" onclick="setPhase('LEFTOVER_PAIRING')">5. Leftover Pairing</button>
+      <button class="nb-btn {% if calendar.phase == 'WARDEN_ALLOTMENT' %}nb-btn-primary{% else %}nb-btn-secondary{% endif %}" style="padding:6px 14px;font-size:12.5px;" onclick="setPhase('WARDEN_ALLOTMENT')">6. Warden Allotment</button>
+      <button class="nb-btn {% if calendar.phase == 'PUBLISHED' %}nb-btn-primary{% else %}nb-btn-secondary{% endif %}" style="padding:6px 14px;font-size:12.5px;" onclick="setPhase('PUBLISHED')">7. Published</button>
     </div>
   </div>
 
-  <!-- 100-Room Grid Card -->
-  <div class="card" id="room-matrix-card" style="padding:22px 24px;margin-bottom:32px">
-    <!-- Matrix Header & Stats -->
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:18px">
-      <div style="display:flex;align-items:center;gap:12px">
-        <span id="grid-hostel-title" style="font-weight:700;font-size:18px;color:var(--ink)">{{ active_hostel.name }}</span>
-        <span class="tag" style="background:var(--surface);border:1px solid var(--line);font-size:11.5px" id="grid-occupancy-summary">
-          100 Total Rooms · 5 Levels × 20 Rooms
-        </span>
-      </div>
-      <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;font-size:12.5px;font-weight:600">
-        <span style="display:flex;align-items:center;gap:6px">
-          <span style="width:14px;height:14px;border-radius:4px;background:#dcfce7;border:1.5px solid #22c55e;display:inline-block"></span>
-          <span id="stat-vacant-text"><b id="stat-vacant-count">{{ total_matrix_vacant }}</b> Available (Click to Allot)</span>
-        </span>
-        <span style="display:flex;align-items:center;gap:6px">
-          <span style="width:14px;height:14px;border-radius:4px;background:#fee2e2;border:1.5px solid #ef4444;display:inline-block"></span>
-          <span id="stat-allocated-text"><b id="stat-allocated-count">{{ total_matrix_allocated }}</b> Allocated (🔒 Locked)</span>
-        </span>
+  <!-- Stats Grid -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-bottom:32px;">
+    <div class="nb-card" style="background:var(--color-mint);padding:20px;text-align:center;">
+      <b style="display:block;font-size:42px;line-height:1;font-weight:800;color:var(--color-ink);">{{ total_students_count }}</b>
+      <span style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--color-ink);margin-top:4px;display:block;">Enrolled Students</span>
+    </div>
+    <div class="nb-card" style="background:var(--color-lilac);padding:20px;text-align:center;">
+      <b style="display:block;font-size:42px;line-height:1;font-weight:800;color:var(--color-ink);">{{ confirmed_pairs_count }}</b>
+      <span style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--color-ink);margin-top:4px;display:block;">Confirmed Pairs</span>
+    </div>
+    <div class="nb-card" style="background:var(--color-soft-yellow);padding:20px;text-align:center;">
+      <b style="display:block;font-size:42px;line-height:1;font-weight:800;color:var(--color-ink);">{{ allotted_count }}</b>
+      <span style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--color-ink);margin-top:4px;display:block;">Rooms Allotted</span>
+    </div>
+    <div class="nb-card" style="background:var(--color-soft-red);padding:20px;text-align:center;">
+      <b style="display:block;font-size:42px;line-height:1;font-weight:800;color:var(--color-ink);">{{ open_tickets_count }}</b>
+      <span style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--color-ink);margin-top:4px;display:block;">Active Disputes</span>
+    </div>
+  </div>
+
+  <!-- Student Disputes & Maintenance Desk -->
+  <div style="margin-bottom:34px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
+      <div>
+        <h2 style="margin:0;font-size:26px;">Student Disputes & Maintenance Desk</h2>
+        <p style="color:var(--color-muted);font-size:14px;margin:4px 0 0;">Review roommate conflicts, room switch appeals, and facility tickets logged by students.</p>
       </div>
     </div>
-
-    <!-- Levels Strip (Level 5 down to Level 1) -->
-    <div class="matrix-container">
-      <div class="matrix-grid" id="matrix-levels-grid">
-        {% for flr in floors_list %}
-        <div class="level-row" id="level-row-{{ flr.level }}">
-          <div class="level-label">
-            Level {{ flr.level }}
-            <small>({{ flr.level }}01 - {{ flr.level }}20)</small>
-          </div>
-          <div class="rooms-strip">
-            {% for r in flr.rooms %}
-            <button type="button"
-                    class="room-btn {% if r.is_allocated %}allocated{% else %}vacant{% endif %}"
-                    id="r-btn-{{ r.number }}"
-                    data-num="{{ r.number }}"
-                    data-id="{{ r.id }}"
-                    data-allocated="{% if r.is_allocated %}1{% else %}0{% endif %}"
-                    data-occupants="{{ r.occupants }}"
-                    onclick="handleRoomGridClick('{{ r.number }}', {{ r.id }}, {% if r.is_allocated %}true{% else %}false{% endif %}, '{{ r.occupants|escapejs }}')"
-                    title="{% if r.is_allocated %}🔒 Room {{ r.number }} is ALLOCATED to: {{ r.occupants }} (Cannot be selected again){% else %}Room {{ r.number }} (Level {{ flr.level }}) - Available (Double Room) - Click to Allot{% endif %}">
-              {% if r.is_allocated %}<span style="font-size:9px;line-height:1">🔒</span>{% endif %}
-              <span>{{ r.number }}</span>
-            </button>
+    
+    <div class="nb-card" style="background:var(--color-white);padding:20px;">
+      <div style="overflow-x:auto;">
+        <table class="nb-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Student</th>
+              <th>Category</th>
+              <th>Subject & Description</th>
+              <th>Status</th>
+              <th>Date Logged</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in tickets %}
+            <tr id="ticket-row-{{ t.id }}">
+              <td style="font-weight:800;font-family:var(--font-mono);">#{{ t.id }}</td>
+              <td>
+                <b>{{ t.student.name }}</b>
+                <div style="font-size:12px;color:var(--color-muted);">{{ t.student.roll_no }}</div>
+              </td>
+              <td>
+                <span class="nb-chip" style="background:var(--color-light-pink);font-size:11.5px;padding:3px 10px;">
+                  {{ t.get_ticket_type_display }}
+                </span>
+              </td>
+              <td>
+                <b>{{ t.subject }}</b>
+                <div style="font-size:13px;color:var(--color-muted);margin-top:3px;">{{ t.description|truncatewords:20 }}</div>
+                {% if t.resolution_notes %}
+                <div style="font-size:12px;color:var(--color-ink);background:var(--color-mint);padding:4px 10px;border-radius:8px;border:1.5px solid var(--color-ink);margin-top:6px;display:inline-block;">
+                  <b>Resolution:</b> {{ t.resolution_notes }}
+                </div>
+                {% endif %}
+              </td>
+              <td>
+                <span id="ticket-status-{{ t.id }}" class="nb-chip" style="{% if t.status == 'RESOLVED' %}background:var(--color-mint);{% elif t.status == 'IN_REVIEW' %}background:var(--color-soft-yellow);{% else %}background:var(--color-soft-red);{% endif %}">
+                  {{ t.get_status_display }}
+                </span>
+              </td>
+              <td style="font-size:12px;color:var(--color-muted);white-space:nowrap;">{{ t.created_at|date:"M d, H:i" }}</td>
+              <td>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  {% if t.status != 'RESOLVED' %}
+                  <button class="nb-btn nb-btn-secondary" style="padding:4px 12px;font-size:12px;" onclick="updateTicket({{ t.id }}, 'IN_REVIEW')">Review</button>
+                  <button class="nb-btn nb-btn-accent" style="padding:4px 12px;font-size:12px;" onclick="updateTicket({{ t.id }}, 'RESOLVED')">Resolve</button>
+                  {% else %}
+                  <span style="font-size:12px;font-weight:800;color:var(--color-muted);">Closed ✓</span>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" style="text-align:center;padding:24px;font-weight:700;color:var(--color-muted);">
+                🎉 No complaints or roommate disputes currently open. All is calm in the dorms!
+              </td>
+            </tr>
             {% endfor %}
-          </div>
-        </div>
-        {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 
-  <!-- Pair Selection Modal (Used when warden clicks a vacant room directly in the grid) -->
-  <div id="pair-picker-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px">
-    <div class="card" style="max-width:500px;width:100%;max-height:85vh;overflow-y:auto;position:relative">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:12px">
-        <div>
-          <h3 style="margin:0;font-size:22px">Allot Room <span id="modal-room-number" style="color:var(--lv)"></span></h3>
-          <span class="sm">Choose a confirmed roommate pair to assign to this room:</span>
+  <!-- 100-Room Hostel Matrix (5 Levels x 20 Rooms) Section -->
+  <div style="margin-bottom:34px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
+      <div>
+        <h2 style="margin:0;font-size:26px;">Hostel 100-Room Allocation Matrix</h2>
+        <p style="color:var(--color-muted);font-size:14px;margin:4px 0 0;">
+          Interactive grid of 100 rooms across 5 floors (20 rooms/floor). Click any green room to allot. <b>Once allocated, a room is locked permanently in the audit log.</b>
+        </p>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <label for="matrix-hostel-select" style="font-weight:800;font-size:13.5px;color:var(--color-ink);">Hostel:</label>
+        <select id="matrix-hostel-select" onchange="loadHostelMatrix(this.value)" class="nb-select" style="padding:7px 16px;font-size:13.5px;width:auto;">
+          {% for h in all_hostels %}
+          <option value="{{ h.id }}" {% if h.id == active_hostel.id %}selected{% endif %}>{{ h.name }} ({{ h.get_gender_display }})</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- Active Allocation Prompt Banner -->
+    <div id="allocation-prompt-banner" class="nb-card" style="display:none;background:var(--color-lime);margin-bottom:18px;padding:16px 20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:28px;">🎯</span>
+          <div>
+            <b id="allocating-pair-names" style="color:var(--color-ink);font-size:16px;">Allotting Room for: [Pair]</b>
+            <span style="display:block;font-size:13px;color:var(--color-ink);font-weight:600;margin-top:2px;">
+              Click any available green room box in the grid below to permanently lock their room assignment.
+            </span>
+          </div>
         </div>
-        <button type="button" class="btn" onclick="closePairPickerModal()" style="padding:4px 10px;font-size:16px;background:none;border:none;color:var(--soft);cursor:pointer">✕</button>
+        <button class="nb-btn nb-btn-secondary" onclick="cancelPairSelection()" style="padding:6px 14px;font-size:12px;">
+          Cancel Selection ✕
+        </button>
+      </div>
+    </div>
+
+    <!-- 100-Room Grid Card -->
+    <div class="nb-card" id="room-matrix-card" style="background:var(--color-white);padding:24px;">
+      <!-- Grid Header & Legend -->
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-bottom:16px;border-bottom:2px solid var(--color-ink);margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span id="grid-hostel-title" style="font-weight:800;font-size:20px;color:var(--color-ink);">{{ active_hostel.name }}</span>
+          <span class="nb-chip" style="background:var(--color-cream);font-size:12px;" id="grid-occupancy-summary">
+            100 Total Rooms · 5 Levels × 20 Rooms
+          </span>
+        </div>
+        <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;font-size:13px;font-weight:800;">
+          <span style="display:flex;align-items:center;gap:6px;">
+            <span style="width:16px;height:16px;border-radius:4px;background:var(--color-mint);border:2px solid var(--color-ink);display:inline-block;"></span>
+            <span id="stat-vacant-text"><b id="stat-vacant-count">{{ total_matrix_vacant }}</b> Available (Click to Allot)</span>
+          </span>
+          <span style="display:flex;align-items:center;gap:6px;">
+            <span style="width:16px;height:16px;border-radius:4px;background:var(--color-soft-red);border:2px solid var(--color-ink);display:inline-block;"></span>
+            <span id="stat-allocated-text"><b id="stat-allocated-count">{{ total_matrix_allocated }}</b> Allocated (🔒 Locked)</span>
+          </span>
+        </div>
       </div>
 
-      <div id="pair-picker-list" style="margin-top:14px">
+      <!-- Levels Strip (Level 5 down to Level 1) -->
+      <div class="matrix-container">
+        <div class="matrix-grid" id="matrix-levels-grid">
+          {% for flr in floors_list %}
+          <div class="level-row" id="level-row-{{ flr.level }}">
+            <div class="level-label">
+              Level {{ flr.level }}
+              <small>({{ flr.level }}01 - {{ flr.level }}20)</small>
+            </div>
+            <div class="rooms-strip">
+              {% for r in flr.rooms %}
+              <button type="button"
+                      class="room-btn {% if r.is_allocated %}allocated{% else %}vacant{% endif %}"
+                      id="r-btn-{{ r.number }}"
+                      data-num="{{ r.number }}"
+                      data-id="{{ r.id }}"
+                      data-allocated="{% if r.is_allocated %}1{% else %}0{% endif %}"
+                      data-occupants="{{ r.occupants }}"
+                      onclick="handleRoomGridClick('{{ r.number }}', {{ r.id }}, {% if r.is_allocated %}true{% else %}false{% endif %}, '{{ r.occupants|escapejs }}')"
+                      title="{% if r.is_allocated %}🔒 Room {{ r.number }} is ALLOCATED to: {{ r.occupants }} (Cannot be selected again){% else %}Room {{ r.number }} (Level {{ flr.level }}) - Available (Double Room) - Click to Allot{% endif %}">
+                {% if r.is_allocated %}<span style="font-size:10px;line-height:1">🔒</span>{% endif %}
+                <span>{{ r.number }}</span>
+              </button>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pair Selection Modal -->
+  <div id="pair-picker-modal" class="nb-modal-backdrop" style="display:none;align-items:center;justify-content:center;">
+    <div class="nb-modal" style="max-width:540px;width:100%;max-height:85vh;overflow-y:auto;background:var(--color-cream);padding:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:2px solid var(--color-ink);padding-bottom:12px;">
+        <div>
+          <h3 style="margin:0;font-size:22px;">Allot Room <span id="modal-room-number" style="color:var(--color-pink);"></span></h3>
+          <span style="font-size:13px;color:var(--color-muted);font-weight:600;">Choose a confirmed roommate pair to assign:</span>
+        </div>
+        <button type="button" class="nb-btn nb-btn-secondary" onclick="closePairPickerModal()" style="padding:4px 10px;font-size:14px;">✕</button>
+      </div>
+
+      <div id="pair-picker-list" style="margin-top:14px;">
         {% if pairs_data %}
-          <div style="font-size:12px;font-weight:700;color:var(--soft);text-transform:uppercase;margin:6px 0 8px;letter-spacing:0.04em">
+          <div style="font-size:12px;font-weight:800;color:var(--color-muted);text-transform:uppercase;margin:6px 0 10px;letter-spacing:0.04em;">
             Confirmed Pairs Awaiting Room Assignment
           </div>
           {% for item in pairs_data %}
           {% if item.pairing.status != 'ALLOTTED' %}
           <div class="pair-pick-item" id="modal-pair-{{ item.pairing.id }}" onclick="confirmAllotmentFromModal({{ item.pairing.id }}, '{{ item.s1.name|escapejs }} & {{ item.s2.name|escapejs }}')">
-            <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
               <div>
-                <b style="color:var(--ink);font-size:14.5px">{{ item.s1.name }} & {{ item.s2.name }}</b>
-                <div class="sm" style="color:var(--soft);margin-top:2px">{{ item.s1.roll_no }} · {{ item.s2.roll_no }} · {{ item.score }}/100 Match</div>
+                <b style="color:var(--color-ink);font-size:15px;">{{ item.s1.name }} & {{ item.s2.name }}</b>
+                <div style="font-size:12.5px;color:var(--color-muted);margin-top:2px;">{{ item.s1.roll_no }} · {{ item.s2.roll_no }} · {{ item.score }}/100 Match</div>
               </div>
-              <span class="tag wait">Click to Allot</span>
+              <span class="nb-chip" style="background:var(--color-lime);font-size:12px;">Click to Allot</span>
             </div>
           </div>
           {% endif %}
           {% endfor %}
-          <div id="no-unallotted-notice" class="sm" style="text-align:center;padding:24px;color:var(--soft);display:none">
+          <div id="no-unallotted-notice" style="text-align:center;padding:24px;color:var(--color-muted);font-weight:700;display:none;">
             All confirmed roommate pairs have already been permanently allotted rooms.<br><b>Once a room is allotted, it cannot be changed.</b>
           </div>
         {% else %}
-          <div class="sm" style="text-align:center;padding:20px">No confirmed pairs currently available.</div>
+          <div style="text-align:center;padding:24px;font-weight:700;color:var(--color-muted);">No confirmed pairs currently available.</div>
         {% endif %}
       </div>
     </div>
   </div>
 
-  <h2>Confirmed Roommate Pairings</h2>
-  <p class="sub">These student pairs are confirmed via mutual agreement or Blossom matching and ready for keys.</p>
+  <!-- Confirmed Roommate Pairings Section -->
+  <div style="margin-bottom:34px;">
+    <h2 style="margin:0 0 4px;font-size:26px;">Confirmed Roommate Pairings</h2>
+    <p style="color:var(--color-muted);font-size:14px;margin:0 0 16px;">Verified roommate pairs formed via mutual agreement or Blossom matching, ready for key allocation.</p>
 
-  {% if pairs_data %}
-    {% for item in pairs_data %}
-    <div class="pair-card {% if item.pairing.status == 'ALLOTTED' %}allotted{% endif %}" id="pair-{{ item.pairing.id }}">
-      <div>
-        <div class="pair-students">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div class="av" style="background:linear-gradient(150deg,hsl({{ item.s1.avatar_hue }},70%,78%),hsl({{ item.s1.avatar_hue|add:50 }},75%,72%))">
-              {{ item.s1.name|slice:":1"|lower }}
+    {% if pairs_data %}
+      <div style="display:flex;flex-direction:column;gap:14px;">
+      {% for item in pairs_data %}
+      <div class="nb-card {% if item.pairing.status == 'ALLOTTED' %}allotted{% endif %}" id="pair-{{ item.pairing.id }}" style="background:{% if item.pairing.status == 'ALLOTTED' %}var(--color-mint){% else %}var(--color-white){% endif %};padding:22px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;">
+        <div>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <!-- Student 1 -->
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="av-circ" style="background:hsl({{ item.s1.avatar_hue }},85%,80%);">
+                {{ item.s1.name|slice:":1"|upper }}
+              </div>
+              <div>
+                <h3 style="margin:0;font-size:18px;">{{ item.s1.name }}</h3>
+                <span style="font-size:12.5px;color:var(--color-muted);font-weight:600;">{{ item.s1.roll_no }} · the {{ item.s1.persona }}</span>
+              </div>
             </div>
-            <div class="st-info">
-              <h3>{{ item.s1.name }}</h3>
-              <span>{{ item.s1.roll_no }} · the {{ item.s1.persona }}</span>
+
+            <span style="font-size:22px;font-weight:800;color:var(--color-ink);">+</span>
+
+            <!-- Student 2 -->
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="av-circ" style="background:hsl({{ item.s2.avatar_hue }},85%,80%);">
+                {{ item.s2.name|slice:":1"|upper }}
+              </div>
+              <div>
+                <h3 style="margin:0;font-size:18px;">{{ item.s2.name }}</h3>
+                <span style="font-size:12.5px;color:var(--color-muted);font-weight:600;">{{ item.s2.roll_no }} · the {{ item.s2.persona }}</span>
+              </div>
             </div>
           </div>
 
-          <span style="font-family:var(--hand);font-size:24px;color:var(--lv)">+</span>
-
-          <div style="display:flex;align-items:center;gap:10px">
-            <div class="av" style="background:linear-gradient(150deg,hsl({{ item.s2.avatar_hue }},70%,78%),hsl({{ item.s2.avatar_hue|add:50 }},75%,72%))">
-              {{ item.s2.name|slice:":1"|lower }}
-            </div>
-            <div class="st-info">
-              <h3>{{ item.s2.name }}</h3>
-              <span>{{ item.s2.roll_no }} · the {{ item.s2.persona }}</span>
-            </div>
+          <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <span class="nb-chip" style="background:var(--color-lime);font-size:12.5px;">
+              ⚡ {{ item.score }}/100 Harmony Score
+            </span>
+            <span class="nb-chip" id="tag-{{ item.pairing.id }}" style="{% if item.pairing.status == 'ALLOTTED' %}background:var(--color-mint);{% else %}background:var(--color-soft-yellow);{% endif %};font-size:12.5px;">
+              {% if item.pairing.status == 'ALLOTTED' %}🔒 Allotted: Room {{ item.pairing.room.number }}{% else %}Awaiting Room Assignment{% endif %}
+            </span>
+            <span style="font-size:12px;color:var(--color-muted);font-weight:700;">
+              Method: {{ item.pairing.get_method_display }}
+            </span>
           </div>
         </div>
 
-        <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <span class="score-badge {% if item.score >= 75 %}high{% endif %}">
-            {{ item.score }}/100 Mutual Score
-          </span>
-          <span class="tag {% if item.pairing.status == 'ALLOTTED' %}done{% else %}wait{% endif %}" id="tag-{{ item.pairing.id }}">
-            {% if item.pairing.status == 'ALLOTTED' %}Allotted: Room {{ item.pairing.room.number }}{% else %}Awaiting Room Assignment{% endif %}
-          </span>
-          <span class="sm" style="color:var(--soft)">Method: {{ item.pairing.get_method_display }}</span>
-        </div>
-      </div>
-
-      <div class="pair-actions" id="pair-actions-{{ item.pairing.id }}" style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-        {% if item.pairing.status == 'ALLOTTED' %}
-        <div style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.12);border:1.5px solid rgba(34,197,94,0.4);color:#166534;padding:8px 16px;border-radius:14px;font-size:13px;font-weight:700">
-          <span>🔒</span>
-          <span>Room {{ item.pairing.room.number }} Permanently Allotted · Cannot be changed</span>
-        </div>
-        {% else %}
-        <button type="button" class="btn action" style="padding:8px 16px;font-size:12.5px;display:flex;align-items:center;gap:6px" onclick="selectPairForGridAllotment({{ item.pairing.id }}, '{{ item.s1.name|escapejs }}', '{{ item.s2.name|escapejs }}')">
-          <span>🎯</span>
-          <span>Select from 100-Room Grid →</span>
-        </button>
-        <form class="allot-form" onsubmit="allotRoom(event, {{ item.pairing.id }})">
-          <input type="text" id="room-input-{{ item.pairing.id }}" placeholder="e.g. 101" value="" required style="width:100px;padding:6px 12px;font-size:13px">
-          <button type="submit" class="btn" style="padding:6px 14px;font-size:12.5px">
-            Direct Allot
+        <div class="pair-actions" id="pair-actions-{{ item.pairing.id }}" style="display:flex;flex-direction:column;gap:10px;align-items:flex-end;">
+          {% if item.pairing.status == 'ALLOTTED' %}
+          <div style="display:flex;align-items:center;gap:8px;background:var(--color-white);border:2px solid var(--color-ink);padding:8px 16px;border-radius:999px;font-size:13px;font-weight:800;box-shadow:var(--shadow-sm);">
+            <span>🔒</span>
+            <span>Room {{ item.pairing.room.number }} Permanently Allotted</span>
+          </div>
+          {% else %}
+          <button type="button" class="nb-btn nb-btn-primary" style="padding:8px 16px;font-size:13px;display:flex;align-items:center;gap:6px;" onclick="selectPairForGridAllotment({{ item.pairing.id }}, '{{ item.s1.name|escapejs }}', '{{ item.s2.name|escapejs }}')">
+            <span>🎯</span>
+            <span>Select from 100-Room Grid →</span>
           </button>
-        </form>
-        {% endif %}
+          <form class="allot-form" onsubmit="allotRoom(event, {{ item.pairing.id }})" style="display:flex;gap:8px;align-items:center;">
+            <input type="text" id="room-input-{{ item.pairing.id }}" class="nb-input" placeholder="e.g. 101" required style="width:110px;padding:7px 12px;font-size:13px;border-radius:999px;">
+            <button type="submit" class="nb-btn nb-btn-secondary" style="padding:7px 16px;font-size:13px;">
+              Direct Allot
+            </button>
+          </form>
+          {% endif %}
+        </div>
       </div>
-    </div>
-    {% endfor %}
-  {% else %}
-    <div class="card" style="text-align:center;padding:40px">
-      <h3 style="font-style:italic">No confirmed roommate pairs yet</h3>
-      <p class="sm" style="margin-top:8px">When two students accept mutual requests or when Blossom leftover matching runs, verified pairs appear here.</p>
-    </div>
-  {% endif %}
-
-  <h2>Unpaired Students Pool ({{ unpaired_students|length }})</h2>
-  <p class="sub">Students still searching for roommates or eligible for automated leftover Blossom matching.</p>
-  <div class="unpaired-grid">
-    {% for s in unpaired_students %}
-    <div class="unpaired-item">
-      <div class="av" style="background:linear-gradient(150deg,hsl({{ s.avatar_hue }},70%,78%),hsl({{ s.avatar_hue|add:50 }},75%,72%))">
-        {{ s.name|slice:":1"|lower }}
+      {% endfor %}
       </div>
-      <div>
-        <div style="font-weight:700;font-size:15px">{{ s.name }} ({{ s.roll_no }})</div>
-        <div class="sm">the {{ s.persona }}</div>
-        <div class="sm" style="opacity:.8">{{ s.gender }} · {{ s.branch }} · {{ s.block.name|default:"Main Hostel" }}</div>
+    {% else %}
+      <div class="nb-card" style="background:var(--color-white);text-align:center;padding:48px;">
+        <h3 style="font-size:22px;margin-bottom:8px;">No confirmed roommate pairs yet</h3>
+        <p style="color:var(--color-muted);margin:0;font-size:14.5px;">When students accept mutual requests or when Blossom leftover matching runs, verified pairs appear here for room allotment.</p>
       </div>
-    </div>
-    {% empty %}
-    <p class="sm">All registered students are currently matched and paired!</p>
-    {% endfor %}
+    {% endif %}
   </div>
 
-  <h2>System Audit Trail</h2>
-  <p class="sub">Every mutual confirmation, room allotment, phase transition, and override is immutably logged with actor and reason.</p>
-  <div class="card" style="padding:14px 20px">
-    <table class="audit-table">
-      <thead>
-        <tr>
-          <th>Timestamp</th>
-          <th>Actor</th>
-          <th>Action</th>
-          <th>Target</th>
-          <th>Reason</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for a in audit_logs %}
-        <tr>
-          <td>{{ a.timestamp|date:"M d, H:i:s" }}</td>
-          <td><b>{{ a.actor }}</b></td>
-          <td><span class="tag" style="background:var(--lav);color:#35293f">{{ a.action }}</span></td>
-          <td>{{ a.target }}</td>
-          <td style="color:var(--soft)">{{ a.reason }}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5" class="sm">No audit logs recorded yet.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <!-- Unpaired Students Pool Section -->
+  <div style="margin-bottom:34px;">
+    <h2 style="margin:0 0 4px;font-size:26px;">Unpaired Students Pool ({{ unpaired_students|length }})</h2>
+    <p style="color:var(--color-muted);font-size:14px;margin:0 0 16px;">Students still actively searching for roommates or queued for automated leftover matching.</p>
+    
+    <div class="unpaired-grid">
+      {% for s in unpaired_students %}
+      <div class="unpaired-item">
+        <div class="av-circ" style="background:hsl({{ s.avatar_hue }},80%,80%);">
+          {{ s.name|slice:":1"|upper }}
+        </div>
+        <div>
+          <div style="font-weight:800;font-size:15px;color:var(--color-ink);">{{ s.name }} ({{ s.roll_no }})</div>
+          <span class="nb-chip" style="background:var(--color-lilac);font-size:11px;padding:2px 8px;margin-top:2px;">the {{ s.persona }}</span>
+          <div style="font-size:12px;color:var(--color-muted);font-weight:600;margin-top:4px;">{{ s.gender }} · {{ s.branch }} · {{ s.block.name|default:"Main Hostel" }}</div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="nb-card" style="grid-column:1/-1;background:var(--color-mint);text-align:center;padding:24px;">
+        <b>🎉 All registered students are currently matched and paired!</b>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- System Audit Trail Section -->
+  <div style="margin-bottom:34px;">
+    <h2 style="margin:0 0 4px;font-size:26px;">System Audit Trail</h2>
+    <p style="color:var(--color-muted);font-size:14px;margin:0 0 16px;">Immutable record of confirmations, key allotments, and phase overrides with actor and justification.</p>
+    
+    <div class="nb-card" style="background:var(--color-white);padding:20px;">
+      <div style="overflow-x:auto;">
+        <table class="nb-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Actor</th>
+              <th>Action</th>
+              <th>Target</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in audit_logs %}
+            <tr>
+              <td style="font-size:12.5px;color:var(--color-muted);white-space:nowrap;">{{ a.timestamp|date:"M d, H:i:s" }}</td>
+              <td><b>{{ a.actor }}</b></td>
+              <td>
+                <span class="nb-chip" style="background:var(--color-lilac);font-size:11.5px;padding:3px 10px;">{{ a.action }}</span>
+              </td>
+              <td style="font-weight:700;">{{ a.target }}</td>
+              <td style="font-size:13px;color:var(--color-muted);">{{ a.reason }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" style="text-align:center;padding:20px;color:var(--color-muted);font-weight:700;">No audit logs recorded yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
 <div id="toast"></div>
 
 <script>
+let selectedPairingId = null;
+let selectedPairNames = "";
+let activeModalRoomNum = null;
+let activeModalRoomId = null;
+
 function getCookie(name) {
-  var cookieValue = null;
+  let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
-    var cookies = document.cookie.split(';');
-    for (var i = 0; i < cookies.length; i++) {
-      var cookie = cookies[i].trim();
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
       if (cookie.substring(0, name.length + 1) === (name + '=')) {
         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
         break;
@@ -577,11 +654,16 @@ function getCookie(name) {
 }
 
 function toast(msg) {
-  var t = document.createElement('div');
+  const container = document.getElementById('toast');
+  if (!container) return;
+  const t = document.createElement('div');
   t.className = 'toast-msg';
   t.textContent = msg;
-  document.getElementById('toast').appendChild(t);
-  setTimeout(function(){ t.style.opacity = '0'; setTimeout(function(){ t.remove() }, 300); }, 3000);
+  container.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0';
+    setTimeout(() => { t.remove(); }, 300);
+  }, 3200);
 }
 
 function setPhase(phaseName) {
@@ -592,13 +674,13 @@ function setPhase(phaseName) {
       'X-CSRFToken': getCookie('csrftoken') || ''
     },
     body: JSON.stringify({ phase: phaseName })
-  }).then(function(r){ return r.json() }).then(function(res){
-    if(res.ok) {
+  }).then(r => r.json()).then(res => {
+    if (res.ok) {
       toast(res.message);
-      setTimeout(function(){ location.reload() }, 600);
+      setTimeout(() => location.reload(), 600);
     } else if (res.guard_triggered) {
       if (confirm(res.error + "\n\nDo you want to proceed with an Administrative Override?")) {
-        var reason = prompt("Enter mandatory administrative override reason:") || "Administrative phase override";
+        const reason = prompt("Enter mandatory administrative override reason:") || "Administrative phase override";
         fetch('/api/admin/set-phase/', {
           method: 'POST',
           headers: {
@@ -606,10 +688,10 @@ function setPhase(phaseName) {
             'X-CSRFToken': getCookie('csrftoken') || ''
           },
           body: JSON.stringify({ phase: phaseName, force: true, reason: reason })
-        }).then(function(r2){ return r2.json() }).then(function(res2){
-          if(res2.ok) {
+        }).then(r2 => r2.json()).then(res2 => {
+          if (res2.ok) {
             toast(res2.message);
-            setTimeout(function(){ location.reload() }, 600);
+            setTimeout(() => location.reload(), 600);
           } else {
             toast(res2.error || 'Failed to override phase');
           }
@@ -618,20 +700,26 @@ function setPhase(phaseName) {
     } else {
       toast(res.error || 'Failed to update phase');
     }
+  }).catch(err => {
+    console.error(err);
+    toast("Network error while setting phase.");
   });
 }
 
 function runBlossomMatching() {
-  if(!confirm("Run NetworkX Blossom Maximum-Weight Matching across all remaining unpaired students?")) return;
+  if (!confirm("Run NetworkX Blossom Maximum-Weight Matching across all remaining unpaired students?")) return;
   fetch('/api/admin/run-blossom/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-CSRFToken': getCookie('csrftoken') || ''
     }
-  }).then(function(r){ return r.json() }).then(function(res){
+  }).then(r => r.json()).then(res => {
     toast(res.message);
-    setTimeout(function(){ location.reload() }, 1000);
+    setTimeout(() => location.reload(), 1000);
+  }).catch(err => {
+    console.error(err);
+    toast("Network error during Blossom matching.");
   });
 }
 
@@ -642,64 +730,103 @@ function runAutoAllotment() {
       'Content-Type': 'application/json',
       'X-CSRFToken': getCookie('csrftoken') || ''
     }
-  }).then(function(r){ return r.json() }).then(function(res){
+  }).then(r => r.json()).then(res => {
     toast(res.message);
-    setTimeout(function(){ location.reload() }, 1000);
+    setTimeout(() => location.reload(), 1000);
+  }).catch(err => {
+    console.error(err);
+    toast("Network error during auto-allotment.");
+  });
+}
+
+function updateTicket(ticketId, status) {
+  let notes = "";
+  if (status === 'RESOLVED') {
+    notes = prompt("Enter resolution notes for this ticket (optional):") || "Resolved by Warden Desk.";
+  }
+  fetch('/api/tickets/' + ticketId + '/status/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken') || ''
+    },
+    body: JSON.stringify({ status: status, notes: notes })
+  }).then(r => r.json()).then(res => {
+    if (res.ok) {
+      toast(res.message || "Ticket status updated.");
+      const statusBadge = document.getElementById('ticket-status-' + ticketId);
+      if (statusBadge) {
+        statusBadge.textContent = res.status_display || status;
+        statusBadge.style.background = (status === 'RESOLVED') ? 'var(--color-mint)' : 'var(--color-soft-yellow)';
+      }
+      setTimeout(() => location.reload(), 800);
+    } else {
+      toast(res.error || "Failed to update ticket.");
+    }
+  }).catch(err => {
+    console.error(err);
+    toast("Network error while updating ticket.");
   });
 }
 
 function allotRoom(e, pairingId) {
   e.preventDefault();
-  var card = document.getElementById('pair-' + pairingId);
+  const card = document.getElementById('pair-' + pairingId);
   if (card && card.classList.contains('allotted')) {
     toast("🔒 This pair has already been permanently allotted a room. Once allotted, it cannot be changed.");
     return;
   }
-  var input = document.getElementById('room-input-' + pairingId);
-  var roomNum = input ? input.value.trim() : '';
+  const input = document.getElementById('room-input-' + pairingId);
+  const roomNum = input ? input.value.trim() : '';
   if (!roomNum) return;
 
   fetch('/api/warden/allot/' + pairingId + '/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-CSRFToken': getCookie('csrftoken')
+      'X-CSRFToken': getCookie('csrftoken') || ''
     },
     body: JSON.stringify({ room_number: roomNum })
-  }).then(function(r){ return r.json() }).then(function(res){
+  }).then(r => r.json()).then(res => {
     if (res.ok) {
       toast(res.message);
-      var tag = document.getElementById('tag-' + pairingId);
+      const tag = document.getElementById('tag-' + pairingId);
       if (tag) {
-        tag.className = 'tag done';
+        tag.className = 'nb-chip';
+        tag.style.background = 'var(--color-mint)';
         tag.textContent = '🔒 Allotted: Room ' + res.room_number;
       }
       if (card) {
         card.classList.add('allotted');
-        var actionsCol = document.getElementById("pair-actions-" + pairingId);
+        card.style.background = 'var(--color-mint)';
+        const actionsCol = document.getElementById("pair-actions-" + pairingId);
         if (actionsCol) {
-          actionsCol.innerHTML = '<div style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.12);border:1.5px solid rgba(34,197,94,0.4);color:#166534;padding:8px 16px;border-radius:14px;font-size:13px;font-weight:700">' +
-            '<span>🔒</span><span>Room ' + res.room_number + ' Permanently Allotted · Cannot be changed</span></div>';
+          actionsCol.innerHTML = '<div style="display:flex;align-items:center;gap:8px;background:var(--color-white);border:2px solid var(--color-ink);padding:8px 16px;border-radius:999px;font-size:13px;font-weight:800;box-shadow:var(--shadow-sm);">' +
+            '<span>🔒</span><span>Room ' + res.room_number + ' Permanently Allotted</span></div>';
         }
       }
-      var modalPairItem = document.getElementById("modal-pair-" + pairingId);
+      const modalPairItem = document.getElementById("modal-pair-" + pairingId);
       if (modalPairItem) modalPairItem.remove();
-      var remainingModalItems = document.querySelectorAll("#pair-picker-list .pair-pick-item");
-      var noUnallottedNotice = document.getElementById("no-unallotted-notice");
+      const remainingModalItems = document.querySelectorAll("#pair-picker-list .pair-pick-item");
+      const noUnallottedNotice = document.getElementById("no-unallotted-notice");
       if (noUnallottedNotice && remainingModalItems.length === 0) {
         noUnallottedNotice.style.display = "block";
       }
-      var hostelSelect = document.getElementById("matrix-hostel-select");
+      const hostelSelect = document.getElementById("matrix-hostel-select");
       if (hostelSelect && hostelSelect.value) {
-        setTimeout(function(){ loadHostelMatrix(hostelSelect.value); }, 150);
+        setTimeout(() => { loadHostelMatrix(hostelSelect.value); }, 150);
       }
     } else {
       toast(res.error || 'Failed to allot room');
     }
+  }).catch(err => {
+    console.error(err);
+    toast("Network error during direct allotment.");
   });
 }
+
 function selectPairForGridAllotment(pairingId, s1Name, s2Name) {
-  var card = document.getElementById("pair-" + pairingId);
+  const card = document.getElementById("pair-" + pairingId);
   if (card && card.classList.contains("allotted")) {
     toast("🔒 This pair has already been permanently allotted a room. Once allotted, it cannot be changed.");
     return;
@@ -707,15 +834,14 @@ function selectPairForGridAllotment(pairingId, s1Name, s2Name) {
   selectedPairingId = pairingId;
   selectedPairNames = s1Name + " & " + s2Name;
 
-  var banner = document.getElementById("allocation-prompt-banner");
-  var label = document.getElementById("allocating-pair-names");
+  const banner = document.getElementById("allocation-prompt-banner");
+  const label = document.getElementById("allocating-pair-names");
   if (banner && label) {
     label.textContent = "Allotting Room for: " + selectedPairNames;
     banner.style.display = "block";
   }
 
-  // Scroll smoothly to room matrix
-  var matrixCard = document.getElementById("room-matrix-card");
+  const matrixCard = document.getElementById("room-matrix-card");
   if (matrixCard) {
     matrixCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -726,24 +852,22 @@ function selectPairForGridAllotment(pairingId, s1Name, s2Name) {
 function cancelPairSelection() {
   selectedPairingId = null;
   selectedPairNames = "";
-  var banner = document.getElementById("allocation-prompt-banner");
+  const banner = document.getElementById("allocation-prompt-banner");
   if (banner) banner.style.display = "none";
 }
 
 function handleRoomGridClick(roomNum, roomId, isAllocated, occupants) {
-  var btn = document.getElementById("r-btn-" + roomNum);
+  const btn = document.getElementById("r-btn-" + roomNum);
 
-  // STRICT LOCK: Once a room is allocated, it CANNOT be selected again!
   if (isAllocated) {
     if (btn) {
       btn.classList.add("shake");
-      setTimeout(function(){ btn.classList.remove("shake"); }, 500);
+      setTimeout(() => { btn.classList.remove("shake"); }, 500);
     }
     toast("🔒 Room " + roomNum + " is already allocated" + (occupants ? " to " + occupants : "") + " and locked permanently. Once allotted, it cannot be changed.");
     return;
   }
 
-  // Case A: A pair was pre-selected from the confirmed list
   if (selectedPairingId) {
     if (confirm("Confirm Allotment: Permanently assign Room " + roomNum + " to " + selectedPairNames + "?\n\nImportant: Once a room is allotted, it cannot be changed.")) {
       executeGridAllotment(selectedPairingId, roomNum, btn, selectedPairNames);
@@ -751,15 +875,14 @@ function handleRoomGridClick(roomNum, roomId, isAllocated, occupants) {
     return;
   }
 
-  // Case B: No pair pre-selected, open modal to choose a confirmed pair
   activeModalRoomNum = roomNum;
   activeModalRoomId = roomId;
-  var modal = document.getElementById("pair-picker-modal");
-  var modalNum = document.getElementById("modal-room-number");
+  const modal = document.getElementById("pair-picker-modal");
+  const modalNum = document.getElementById("modal-room-number");
   if (modal && modalNum) {
     modalNum.textContent = roomNum;
-    var unallottedItems = modal.querySelectorAll(".pair-pick-item");
-    var noNotice = document.getElementById("no-unallotted-notice");
+    const unallottedItems = modal.querySelectorAll(".pair-pick-item");
+    const noNotice = document.getElementById("no-unallotted-notice");
     if (noNotice) {
       noNotice.style.display = (unallottedItems.length === 0) ? "block" : "none";
     }
@@ -768,7 +891,7 @@ function handleRoomGridClick(roomNum, roomId, isAllocated, occupants) {
 }
 
 function closePairPickerModal() {
-  var modal = document.getElementById("pair-picker-modal");
+  const modal = document.getElementById("pair-picker-modal");
   if (modal) modal.style.display = "none";
   activeModalRoomNum = null;
   activeModalRoomId = null;
@@ -776,8 +899,8 @@ function closePairPickerModal() {
 
 function confirmAllotmentFromModal(pairingId, pairNames) {
   if (!activeModalRoomNum) return;
-  var roomNum = activeModalRoomNum;
-  var btn = document.getElementById("r-btn-" + roomNum);
+  const roomNum = activeModalRoomNum;
+  const btn = document.getElementById("r-btn-" + roomNum);
 
   if (!confirm("Confirm Allotment: Permanently assign Room " + roomNum + " to " + pairNames + "?\n\nImportant: Once a room is allotted, it cannot be changed.")) {
     return;
@@ -788,73 +911,68 @@ function confirmAllotmentFromModal(pairingId, pairNames) {
 }
 
 function executeGridAllotment(pairingId, roomNum, btn, pairNames) {
-  var hostelSelect = document.getElementById("matrix-hostel-select");
-  var hostelId = hostelSelect ? hostelSelect.value : null;
+  const hostelSelect = document.getElementById("matrix-hostel-select");
+  const hostelId = hostelSelect ? hostelSelect.value : null;
 
   fetch('/api/warden/allot/' + pairingId + '/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-CSRFToken': getCookie('csrftoken')
+      'X-CSRFToken': getCookie('csrftoken') || ''
     },
     body: JSON.stringify({
       room_number: roomNum,
       hostel_id: hostelId,
       reason: "Warden 100-Room Grid Selection"
     })
-  }).then(function(r){ return r.json() }).then(function(res){
+  }).then(r => r.json()).then(res => {
     if (res.ok) {
-      // 1. Lock room button permanently: Red, locked, unclickable
       if (btn) {
         btn.classList.remove("vacant");
         btn.classList.add("allocated");
         btn.setAttribute("data-allocated", "1");
         btn.setAttribute("data-occupants", pairNames || "Assigned Students");
-        btn.innerHTML = '<span style="font-size:9px;line-height:1">🔒</span><span>' + roomNum + '</span>';
+        btn.innerHTML = '<span style="font-size:10px;line-height:1">🔒</span><span>' + roomNum + '</span>';
         btn.title = "🔒 Room " + roomNum + " is ALLOCATED to: " + (pairNames || "Assigned Students") + " (Permanently Locked: Cannot be changed)";
         btn.setAttribute("onclick", "handleRoomGridClick('" + roomNum + "', " + (btn.getAttribute('data-id') || 0) + ", true, '" + (pairNames || "").replace(/'/g, "\\'") + "')");
       }
 
-      // 2. Update pair card in list to locked permanent state
-      var card = document.getElementById("pair-" + pairingId);
-      var tag = document.getElementById("tag-" + pairingId);
+      const card = document.getElementById("pair-" + pairingId);
+      const tag = document.getElementById("tag-" + pairingId);
       if (tag) {
-        tag.className = 'tag done';
+        tag.className = 'nb-chip';
+        tag.style.background = 'var(--color-mint)';
         tag.textContent = '🔒 Allotted: Room ' + roomNum;
       }
       if (card) {
         card.classList.add("allotted");
-        var actionsCol = document.getElementById("pair-actions-" + pairingId);
+        card.style.background = 'var(--color-mint)';
+        const actionsCol = document.getElementById("pair-actions-" + pairingId);
         if (actionsCol) {
-          actionsCol.innerHTML = '<div style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.12);border:1.5px solid rgba(34,197,94,0.4);color:#166534;padding:8px 16px;border-radius:14px;font-size:13px;font-weight:700">' +
-            '<span>🔒</span><span>Room ' + roomNum + ' Permanently Allotted · Cannot be changed</span></div>';
+          actionsCol.innerHTML = '<div style="display:flex;align-items:center;gap:8px;background:var(--color-white);border:2px solid var(--color-ink);padding:8px 16px;border-radius:999px;font-size:13px;font-weight:800;box-shadow:var(--shadow-sm);">' +
+            '<span>🔒</span><span>Room ' + roomNum + ' Permanently Allotted</span></div>';
         }
       }
 
-      // 3. Update stats counters
-      var vacantSpan = document.getElementById("stat-vacant-count");
-      var allocatedSpan = document.getElementById("stat-allocated-count");
+      const vacantSpan = document.getElementById("stat-vacant-count");
+      const allocatedSpan = document.getElementById("stat-allocated-count");
       if (vacantSpan && allocatedSpan) {
-        var vCount = parseInt(vacantSpan.textContent) || 0;
-        var aCount = parseInt(allocatedSpan.textContent) || 0;
+        const vCount = parseInt(vacantSpan.textContent) || 0;
+        const aCount = parseInt(allocatedSpan.textContent) || 0;
         if (vCount > 0) vacantSpan.textContent = vCount - 1;
         allocatedSpan.textContent = aCount + 1;
       }
 
-      // 4. Remove pair from modal list so they can NEVER be selected again
-      var modalPairItem = document.getElementById("modal-pair-" + pairingId);
-      if (modalPairItem) {
-        modalPairItem.remove();
-      }
-      var remainingModalItems = document.querySelectorAll("#pair-picker-list .pair-pick-item");
-      var noUnallottedNotice = document.getElementById("no-unallotted-notice");
+      const modalPairItem = document.getElementById("modal-pair-" + pairingId);
+      if (modalPairItem) modalPairItem.remove();
+      const remainingModalItems = document.querySelectorAll("#pair-picker-list .pair-pick-item");
+      const noUnallottedNotice = document.getElementById("no-unallotted-notice");
       if (noUnallottedNotice && remainingModalItems.length === 0) {
         noUnallottedNotice.style.display = "block";
       }
 
-      // 5. Instantly re-sync 100-room matrix from server to guarantee exact database alignment
       if (hostelId) {
-        setTimeout(function(){ loadHostelMatrix(hostelId); }, 150);
+        setTimeout(() => { loadHostelMatrix(hostelId); }, 150);
       }
 
       cancelPairSelection();
@@ -862,47 +980,47 @@ function executeGridAllotment(pairingId, roomNum, btn, pairNames) {
     } else {
       toast(res.error || "Failed to allot room");
     }
-  }).catch(function(err){
+  }).catch(err => {
     console.error(err);
     toast("Network error while allocating room.");
   });
 }
+
 function loadHostelMatrix(hostelId) {
   if (!hostelId) return;
   fetch('/api/floormap/?hostel_id=' + hostelId)
-    .then(function(r){ return r.json() })
-    .then(function(data){
+    .then(r => r.json())
+    .then(data => {
       if (!data.ok) {
         toast(data.error || "Failed to load hostel rooms");
         return;
       }
 
-      var title = document.getElementById("grid-hostel-title");
+      const title = document.getElementById("grid-hostel-title");
       if (title && data.block) title.textContent = data.block.name;
 
-      var container = document.getElementById("matrix-levels-grid");
+      const container = document.getElementById("matrix-levels-grid");
       if (!container) return;
 
-      var totalRooms = 0, totalAllocated = 0, totalVacant = 0;
-      var floorsHtml = "";
+      let totalRooms = 0, totalAllocated = 0, totalVacant = 0;
+      let floorsHtml = "";
 
-      // Sort floors descending (5 down to 1)
-      var sortedFloors = (data.floors || []).slice().reverse();
+      const sortedFloors = (data.floors || []).slice().reverse();
 
-      sortedFloors.forEach(function(flr){
+      sortedFloors.forEach(flr => {
         totalRooms += flr.rooms.length;
-        var roomsHtml = "";
-        flr.rooms.forEach(function(r){
-          var isAlloc = (r.is_allocated || r.occupied >= r.capacity || r.color === 'red');
+        let roomsHtml = "";
+        flr.rooms.forEach(r => {
+          const isAlloc = (r.is_allocated || r.occupied >= r.capacity || r.color === 'red');
           if (isAlloc) totalAllocated++; else totalVacant++;
 
-          var occStr = (r.occupants || []).map(function(o){ return o.name }).join(" & ");
-          var titleAttr = isAlloc ?
+          const occStr = (r.occupants || []).map(o => o.name).join(" & ");
+          const titleAttr = isAlloc ?
             ("🔒 Room " + r.number + " is ALLOCATED to: " + (occStr || "Assigned Students") + " (Locked: Cannot be selected again)") :
             ("Room " + r.number + " (Level " + flr.floor + ") - Available Dual Room - Click to Allot");
 
           roomsHtml += '<button type="button" class="room-btn ' + (isAlloc ? 'allocated' : 'vacant') + '" id="r-btn-' + r.number + '" data-num="' + r.number + '" data-id="' + r.id + '" data-allocated="' + (isAlloc ? '1' : '0') + '" data-occupants="' + occStr + '" onclick="handleRoomGridClick(\'' + r.number + '\', ' + r.id + ', ' + (isAlloc ? 'true' : 'false') + ', \'' + occStr.replace(/'/g, "\\'") + '\')" title="' + titleAttr + '">' +
-            (isAlloc ? '<span style="font-size:9px;line-height:1">🔒</span>' : '') +
+            (isAlloc ? '<span style="font-size:10px;line-height:1">🔒</span>' : '') +
             '<span>' + r.number + '</span></button>';
         });
 
@@ -914,14 +1032,14 @@ function loadHostelMatrix(hostelId) {
 
       container.innerHTML = floorsHtml;
 
-      var vCountEl = document.getElementById("stat-vacant-count");
-      var aCountEl = document.getElementById("stat-allocated-count");
+      const vCountEl = document.getElementById("stat-vacant-count");
+      const aCountEl = document.getElementById("stat-allocated-count");
       if (vCountEl) vCountEl.textContent = totalVacant;
       if (aCountEl) aCountEl.textContent = totalAllocated;
 
       toast("Loaded " + (data.block ? data.block.name : "Hostel") + " (100 rooms · 5 levels)");
     })
-    .catch(function(err){
+    .catch(err => {
       console.error(err);
       toast("Error loading floor matrix");
     });

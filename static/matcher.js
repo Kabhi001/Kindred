@@ -232,7 +232,7 @@ function home(){
 
   var pairBanner = "";
   if (isPaired && m.pairing) {
-    pairBanner = "<div class='card' style='margin:20px 0 10px;border-color:var(--lv);background:linear-gradient(135deg,var(--surface),var(--sage));text-align:left'>" +
+    pairBanner = "<div class='card' style='margin:20px 0 10px;background:var(--color-mint);border:3px solid var(--color-ink);box-shadow:var(--shadow-card);text-align:left'>" +
       "<div style='display:flex;align-items:center;gap:14px;flex-wrap:wrap'>" +
         "<div style='display:flex'>" + tile(m.n, m.avatar_hue) + tile(partnerName, m.pairing.partner_avatar_hue) + "</div>" +
         "<div><span class='chip g' style='font-size:11.5px;padding:3px 10px'>Verified Roommate Pair</span>" +
@@ -492,7 +492,7 @@ function matches(){
 
   if (me && me.is_paired && me.pairing) {
     var prn = me.pairing;
-    h += "<div class='card' style='margin:16px 0 24px;border:2px solid var(--lv);background:linear-gradient(135deg,rgba(133,102,209,0.12),rgba(214,232,218,0.3));box-shadow:0 12px 32px -10px var(--lv)'>" +
+    h += "<div class='card' style='margin:16px 0 24px;background:var(--color-mint);border:3px solid var(--color-ink);box-shadow:var(--shadow-card)'>" +
       "<div style='display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px'>" +
         "<span class='chip g' style='font-size:13px;font-weight:700'>🎉 Official Roommate Match</span>" +
         "<span class='chip l' style='font-size:12px'>" + esc(prn.status || "CONFIRMED") + "</span>" +
@@ -611,7 +611,7 @@ function requests(){
   var pairBanner = "";
   if (S.me.is_paired && S.me.pairing) {
     var p = S.me.pairing;
-    pairBanner = "<div class='card' style='margin:18px 0;border-color:var(--lv);background:linear-gradient(135deg,var(--surface),var(--sage))'>" +
+    pairBanner = "<div class='card' style='margin:18px 0;background:var(--color-mint);border:3px solid var(--color-ink);box-shadow:var(--shadow-card)'>" +
       "<span class='chip g' style='font-size:12px'>Officially Paired</span>" +
       "<h2 style='font-size:26px;margin:6px 0'>Paired with " + esc(p.partner_name) + " (" + esc(p.partner_roll || "") + ")</h2>" +
       "<p class='sm'>" + (p.room ? "Allotted Room: <b>Room " + esc(p.room) + " (" + esc(p.block || "") + ")</b>" : "Awaiting Room Key Allotment by Warden in Portal") + "</p>" +

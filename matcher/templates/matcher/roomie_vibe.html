@@ -1,0 +1,297 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>kindred · roomie vibe check</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'kindred-design-system.css' %}">
+  <style>
+    .vibe-wrap {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 24px 20px 80px;
+    }
+
+    .hero-box {
+      background: var(--color-lilac);
+      border: 3px solid var(--color-ink);
+      border-radius: var(--radius-card);
+      box-shadow: 8px 8px 0 var(--color-ink);
+      padding: 48px 36px;
+      margin-bottom: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .vibe-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 14px;
+      border-radius: 999px;
+      background: var(--color-white);
+      border: 2px solid var(--color-ink);
+      outline: none;
+      box-shadow: 2px 2px 0 var(--color-ink);
+    }
+    .vibe-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--color-pink);
+      border: 2.5px solid var(--color-ink);
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--color-ink);
+      transition: transform 0.1s ease;
+    }
+    .vibe-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      background: var(--color-lime);
+    }
+
+    .interactive-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      align-items: stretch;
+      margin-bottom: 40px;
+    }
+    @media(max-width: 768px) {
+      .interactive-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="vibe-wrap">
+  <!-- Top Navigation Bar -->
+  <header style="margin-bottom: 28px;">
+    <nav class="nb-nav" style="background:var(--color-white);padding:12px 20px;">
+      <a href="{% url 'matcher:home' %}" class="nb-logo">
+        <span class="nb-logo-badge">K</span>
+        <span>kindred <small style="font-size:13px;font-weight:700;color:var(--color-muted);margin-left:4px">· roomie vibe</small></span>
+      </a>
+      
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <a href="{% url 'matcher:login' %}" class="nb-btn nb-btn-secondary" style="padding:7px 16px;font-size:13px;">
+          Log In
+        </a>
+        <a href="{% url 'matcher:register' %}" class="nb-btn nb-btn-primary" style="padding:7px 16px;font-size:13px;">
+          Get Matched →
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-box">
+    <div style="display:inline-flex;align-items:center;gap:8px;background:var(--color-lime);border:2px solid var(--color-ink);padding:4px 14px;border-radius:999px;font-weight:800;font-size:12.5px;box-shadow:var(--shadow-sm);margin-bottom:16px;">
+      ✨ THE LIFESTYLE RHYTHM COMPATIBILITY CHECK
+    </div>
+    <h1 style="margin:0 0 16px;font-size:clamp(36px, 6vw, 62px);letter-spacing:-0.03em;line-height:1.05;">
+      vibe check your roomie.<br>zero awkward convos.
+    </h1>
+    <p style="font-size:18px;font-weight:600;color:var(--color-ink);max-width:38em;line-height:1.5;margin-bottom:28px;">
+      Don't leave your semester peace to random lottery balls. Play with our live rhythm simulator below to see how our matching engine turns lifestyle habits into pure dorm harmony.
+    </p>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;">
+      <a href="{% url 'matcher:register' %}" class="nb-btn nb-btn-primary" style="font-size:15px;padding:12px 26px;">
+        Join Kindred Free →
+      </a>
+      <a href="{% url 'matcher:login' %}" class="nb-btn nb-btn-secondary" style="font-size:15px;padding:12px 26px;">
+        Sign In to Portal
+      </a>
+    </div>
+  </section>
+
+  <!-- Interactive Vibe Checker -->
+  <section class="interactive-grid">
+    <!-- Sliders Controls -->
+    <div class="nb-card" style="background:var(--color-white);padding:32px;">
+      <div style="display:inline-block;background:var(--color-cream);border:2px solid var(--color-ink);padding:4px 12px;border-radius:999px;font-size:12px;font-weight:800;margin-bottom:14px;">
+        SLIDER CONTROLS
+      </div>
+      <h2 style="font-size:24px;margin-bottom:20px;">Tweak Your Daily Routine:</h2>
+
+      <!-- Slider 1: Sleep Rhythm -->
+      <div style="margin-bottom:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <b style="font-size:14px;">🌙 Sleep / Wake Rhythm:</b>
+          <span id="label-sleep" class="nb-chip" style="background:var(--color-mint);font-size:11.5px;">Night Owl (2 AM)</span>
+        </div>
+        <input type="range" min="1" max="5" value="4" class="vibe-slider" id="slider-sleep" oninput="updateVibe()">
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--color-muted);margin-top:4px;">
+          <span>Early Bird (10 PM)</span>
+          <span>Night Owl (3 AM)</span>
+        </div>
+      </div>
+
+      <!-- Slider 2: Noise & Focus -->
+      <div style="margin-bottom:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <b style="font-size:14px;">🎧 Study Ambience:</b>
+          <span id="label-noise" class="nb-chip" style="background:var(--color-soft-yellow);font-size:11.5px;">Lo-Fi Beats / Talkative</span>
+        </div>
+        <input type="range" min="1" max="5" value="3" class="vibe-slider" id="slider-noise" oninput="updateVibe()">
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--color-muted);margin-top:4px;">
+          <span>Pin-Drop Silence</span>
+          <span>Open Music / Calls</span>
+        </div>
+      </div>
+
+      <!-- Slider 3: Tidiness -->
+      <div style="margin-bottom:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <b style="font-size:14px;">🧹 Cleanliness Standard:</b>
+          <span id="label-tidy" class="nb-chip" style="background:var(--color-light-pink);font-size:11.5px;">Relaxed Neat</span>
+        </div>
+        <input type="range" min="1" max="5" value="4" class="vibe-slider" id="slider-tidy" oninput="updateVibe()">
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--color-muted);margin-top:4px;">
+          <span>Casual Living</span>
+          <span>Spotless Minimalist</span>
+        </div>
+      </div>
+
+      <!-- Slider 4: Guest Openness -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <b style="font-size:14px;">🚪 Friends & Guest Policy:</b>
+          <span id="label-guests" class="nb-chip" style="background:var(--color-lime);font-size:11.5px;">Weekend Study Hangouts</span>
+        </div>
+        <input type="range" min="1" max="5" value="3" class="vibe-slider" id="slider-guests" oninput="updateVibe()">
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--color-muted);margin-top:4px;">
+          <span>Private Sanctuary</span>
+          <span>Dorm Open House</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Archetype Result Card -->
+    <div class="nb-card" id="archetype-card" style="background:var(--color-mint);padding:32px;display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="nb-chip" style="background:var(--color-white);font-size:12px;">YOUR PREDICTED ARCHETYPE</span>
+          <span id="harmony-tag" class="nb-chip" style="background:var(--color-lime);font-size:12px;">94% Optimal Match Rate</span>
+        </div>
+
+        <div style="margin-top:24px;text-align:center;">
+          <div id="archetype-emoji" style="font-size:64px;margin-bottom:8px;">🦉</div>
+          <h2 id="archetype-title" style="font-size:32px;margin:0 0 8px;">the Midnight Scholar</h2>
+          <p id="archetype-desc" style="font-size:15px;font-weight:600;color:var(--color-ink);line-height:1.5;">
+            Thrives under late-night lamp lights with ambient synth music. Keeps desk orderly and appreciates quiet morning sleep.
+          </p>
+        </div>
+
+        <!-- Harmony Breakdown Pills -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:20px;">
+          <span class="nb-chip" style="background:var(--color-white);font-size:12px;" id="chip-match-1">🤝 Compatible with Night Owls</span>
+          <span class="nb-chip" style="background:var(--color-white);font-size:12px;" id="chip-match-2">🚫 Avoids 6 AM Alarms</span>
+          <span class="nb-chip" style="background:var(--color-white);font-size:12px;">🚭 100% Smoke-Free Safe</span>
+        </div>
+      </div>
+
+      <div style="margin-top:32px;text-align:center;">
+        <a href="{% url 'matcher:register' %}" class="nb-btn nb-btn-primary" style="width:100%;text-align:center;font-size:15px;padding:12px 20px;">
+          Lock In Your Rhythm Profile →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 Pillars Section -->
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin-bottom:48px;">
+    <div class="nb-card" style="background:var(--color-cream);padding:24px;">
+      <div style="font-size:32px;margin-bottom:12px;">🧠</div>
+      <h3 style="font-size:20px;margin-bottom:8px;">Gale-Shapley Stable Pairs</h3>
+      <p style="font-size:14px;color:var(--color-muted);line-height:1.5;margin:0;">
+        No random draw. Students rank mutual preferences and stable matching algorithms eliminate regret.
+      </p>
+    </div>
+    <div class="nb-card" style="background:var(--color-cream);padding:24px;">
+      <div style="font-size:32px;margin-bottom:12px;">🚭</div>
+      <h3 style="font-size:20px;margin-bottom:8px;">Zero Smoke Policy</h3>
+      <p style="font-size:14px;color:var(--color-muted);line-height:1.5;margin:0;">
+        Strict anti-tobacco & smoke-free rules enforced campus-wide. Breathe clean in your dorm at all hours.
+      </p>
+    </div>
+    <div class="nb-card" style="background:var(--color-cream);padding:24px;">
+      <div style="font-size:32px;margin-bottom:12px;">🔑</div>
+      <h3 style="font-size:20px;margin-bottom:8px;">Instant Key Allotment</h3>
+      <p style="font-size:14px;color:var(--color-muted);line-height:1.5;margin:0;">
+        Warden-approved room keys and printable certificates with QR codes straight from your phone.
+      </p>
+    </div>
+  </section>
+</div>
+
+<script>
+function updateVibe() {
+  const sleep = parseInt(document.getElementById('slider-sleep').value);
+  const noise = parseInt(document.getElementById('slider-noise').value);
+  const tidy = parseInt(document.getElementById('slider-tidy').value);
+  const guests = parseInt(document.getElementById('slider-guests').value);
+
+  // Update text labels
+  const sleepLabels = ["Lark (9 PM)", "Early Bird (11 PM)", "Moderate (Midnight)", "Night Owl (2 AM)", "Creature of the Night (4 AM)"];
+  const noiseLabels = ["Pin-Drop Library", "Gentle Murmur", "Lo-Fi Beats", "Active Discussion", "Bass & Surround Sound"];
+  const tidyLabels = ["Casual Relaxed", "Weekly Sweep", "Orderly Space", "Neat & Organized", "Surgically Sanitized"];
+  const guestLabels = ["Private Sanctuary", "Close Friends Only", "Weekend Study Group", "Frequent Hangouts", "Campus Open House"];
+
+  document.getElementById('label-sleep').textContent = sleepLabels[sleep - 1];
+  document.getElementById('label-noise').textContent = noiseLabels[noise - 1];
+  document.getElementById('label-tidy').textContent = tidyLabels[tidy - 1];
+  document.getElementById('label-guests').textContent = guestLabels[guests - 1];
+
+  // Dynamic Persona
+  const card = document.getElementById('archetype-card');
+  const emoji = document.getElementById('archetype-emoji');
+  const title = document.getElementById('archetype-title');
+  const desc = document.getElementById('archetype-desc');
+  const chip1 = document.getElementById('chip-match-1');
+  const chip2 = document.getElementById('chip-match-2');
+
+  if (sleep >= 4 && noise <= 3) {
+    card.style.background = 'var(--color-lilac)';
+    emoji.textContent = '🦉';
+    title.textContent = 'the Midnight Scholar';
+    desc.textContent = 'Thrives under late-night lamp lights with headphones on. Keeps things neat and values quiet mornings.';
+    chip1.textContent = '🤝 Compatible with Night Owls';
+    chip2.textContent = '🚫 Avoids 6 AM Alarms';
+  } else if (sleep <= 2 && tidy >= 4) {
+    card.style.background = 'var(--color-mint)';
+    emoji.textContent = '🌅';
+    title.textContent = 'the Morning Architect';
+    desc.textContent = 'Up at sunrise for gym and clean breakfasts. Keeps the room pristine and organized for optimal daily focus.';
+    chip1.textContent = '🤝 Compatible with Early Birds';
+    chip2.textContent = '🧹 Loves Daily Room Sweeps';
+  } else if (guests >= 4) {
+    card.style.background = 'var(--color-lime)';
+    emoji.textContent = '⚡';
+    title.textContent = 'the Social Catalyst';
+    desc.textContent = 'The soul of the wing. Loves collaborative projects, campus socializing, and sharing snacks with visitors.';
+    chip1.textContent = '🤝 Best with Extroverts';
+    chip2.textContent = '🚪 Welcomes Weekend Guests';
+  } else if (tidy <= 2 && noise >= 3) {
+    card.style.background = 'var(--color-light-pink)';
+    emoji.textContent = '🎸';
+    title.textContent = 'the Freeform Creative';
+    desc.textContent = 'Relaxed about clutter as long as ideas are flowing. Enjoys listening to podcasts and studying on comfortable rugs.';
+    chip1.textContent = '🤝 Compatible with Easygoing Peers';
+    chip2.textContent = '🛋️ Low Stress Routine';
+  } else {
+    card.style.background = 'var(--color-soft-yellow)';
+    emoji.textContent = '🧘';
+    title.textContent = 'the Balanced Harmonizer';
+    desc.textContent = 'Flexible across study and rest periods. Easy to live with, respects roommate boundaries, and avoids unnecessary drama.';
+    chip1.textContent = '🤝 95%+ Compatibility Spectrum';
+    chip2.textContent = '⚖️ Perfect Middle-Ground Roomie';
+  }
+}
+</script>
+</body>
+</html>

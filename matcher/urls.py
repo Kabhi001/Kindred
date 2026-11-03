@@ -23,6 +23,8 @@ urlpatterns = [
     path('student/', views.index_view, name='student_portal'),
     path('matcher/', views.index_view, name='matcher_alias'),
     path('index/', views.index_view, name='index'),
+    path('roomie/', views.roomie_vibe_view, name='roomie_vibe'),
+    path('vibe/', views.roomie_vibe_view, name='vibe_alias'),
 
     # Role Specific Portals
     path('warden/', views.warden_dashboard_view, name='warden_dashboard'),
