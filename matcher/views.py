@@ -608,14 +608,25 @@ def api_submit_quiz(request):
 @require_http_methods(["GET"])
 @login_required_api
 def api_matches(request):
-    calendar = AllotmentCalendar.get_current()
-    if calendar.phase not in ['MATCHING_OPEN', 'LEFTOVER_PAIRING', 'WARDEN_ALLOTMENT', 'PUBLISHED']:
-        return JsonResponse({'matches': [], 'has_quiz': False, 'message': 'Matching is not open yet.'})
+    # Auto-seed on completely empty database (critical for fresh deployed instances)
+    if not Question.objects.exists() and not StudentUser.objects.filter(role='student').exists():
+        try:
+            import seed_demo_data
+            seed_demo_data.run()
+        except Exception:
+            pass
 
     user = get_current_user(request)
     if not user:
         return JsonResponse({'error': 'Authentication required.', 'matches': [], 'has_quiz': False}, status=401)
-    if not user.has_completed_survey:
+
+    calendar = AllotmentCalendar.get_current()
+    has_quiz = user.has_completed_survey or (user.responses.count() >= 3)
+
+    if calendar.phase not in ['MATCHING_OPEN', 'LEFTOVER_PAIRING', 'WARDEN_ALLOTMENT', 'PUBLISHED']:
+        return JsonResponse({'matches': [], 'has_quiz': has_quiz, 'message': f"Matching phase is currently '{calendar.get_phase_display()}'."})
+
+    if not has_quiz:
         return JsonResponse({'matches': [], 'has_quiz': False})
 
     ranked = compute_ranked_matches_for_student(user)
@@ -650,6 +661,10 @@ def api_matches(request):
             band_title = "High Friction Risk"
             band_code = "RISK"
 
+        is_part = bool(m.get('is_partner'))
+        if is_part:
+            req_status = 'confirmed'
+
         formatted.append({
             'id': m['id'],
             'name': m['name'],
@@ -676,9 +691,31 @@ def api_matches(request):
             'is_dealbreaker': has_clash,
             'request_status': req_status,
             'request_id': req_id,
+            'is_partner': is_part,
+            'room': m.get('room'),
         })
 
-    return JsonResponse({'matches': formatted, 'has_quiz': True})
+    pair = user.get_pair()
+    pair_info = None
+    if pair:
+        partner = pair.partner_of(user)
+        pair_info = {
+            'partner_name': partner.name,
+            'partner_roll': partner.roll_no,
+            'partner_registration_no': partner.roll_no,
+            'partner_avatar_hue': partner.avatar_hue,
+            'method': pair.get_method_display(),
+            'status': pair.get_status_display(),
+            'room': pair.room.number if pair.room else None,
+            'block': pair.room.block.name if pair.room else None,
+        }
+
+    return JsonResponse({
+        'matches': formatted,
+        'has_quiz': True,
+        'is_paired': user.is_paired,
+        'pairing': pair_info,
+    })
 
 
 @require_http_methods(["GET"])

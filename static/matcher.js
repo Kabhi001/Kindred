@@ -490,7 +490,25 @@ function matches(){
 
   h += "<p class='sub'>Each student is scored on how closely your lifestyle lines up with theirs, weighted by both of your personal deal-breakers and priorities.</p>";
 
-  if (!S.pe.length) return h + empty("no students added yet.", "Ask a classmate to take the quiz, or switch perspective in the top menu.");
+  if (me && me.is_paired && me.pairing) {
+    var prn = me.pairing;
+    h += "<div class='card' style='margin:16px 0 24px;border:2px solid var(--lv);background:linear-gradient(135deg,rgba(133,102,209,0.12),rgba(214,232,218,0.3));box-shadow:0 12px 32px -10px var(--lv)'>" +
+      "<div style='display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px'>" +
+        "<span class='chip g' style='font-size:13px;font-weight:700'>🎉 Official Roommate Match</span>" +
+        "<span class='chip l' style='font-size:12px'>" + esc(prn.status || "CONFIRMED") + "</span>" +
+      "</div>" +
+      "<h2 style='font-size:28px;margin:10px 0 4px'>Matched with " + esc(prn.partner_name) + " (" + esc(prn.partner_roll || prn.partner_registration_no || "") + ")</h2>" +
+      "<p class='sm' style='margin:0 0 12px'>" + (prn.room ? "Allotted Room: <b>Room " + esc(prn.room) + " (" + esc(prn.block || "Hostel") + ")</b>" : "Room Key Allotment in Progress by Warden") + "</p>" +
+      "<div class='row'><a href='/allotment/slip/' class='btn ok' style='text-decoration:none' target='_blank'>download allotment slip 📄</a></div>" +
+    "</div>";
+  }
+
+  if (!S.pe.length) {
+    if (me && me.is_paired) {
+      return h + "<p class='sub' style='margin-top:14px;color:var(--soft);font-style:italic'>✨ You have successfully secured your roommate pairing! Your allotment is locked with your partner above.</p>";
+    }
+    return h + empty("no students added yet.", "Ask a classmate to take the quiz, or switch perspective in the top menu.");
+  }
 
   var rows = S.pe.map(function(p){
     var r = p.serverScore ? {v: p.serverScore, clash: p.clashes || [], good: p.good || [], bad: p.friction} : score(p);
@@ -508,14 +526,17 @@ function matches(){
     if (!ch) ch = "<span class='chip w'>few traits line up</span>";
 
     var bandBadge = (p.harmony_band && p.harmony_band.title) ? "<span class='chip " + (p.harmony_band.code === "HARMONY" ? "g" : p.harmony_band.code === "ADAPTATION" ? "w" : "r") + "' style='font-size:11px;margin-left:6px'>" + esc(p.harmony_band.title) + "</span>" : "";
+    if (p.is_partner) bandBadge += "<span class='chip g' style='font-size:11px;margin-left:6px'>Official Roommate</span>";
 
     var b = "";
-    if (p.request_status === "confirmed" || (rq && (rq.status === "confirmed" || rq.status === "accepted"))) {
-      b = "<button class='btn ok' data-go='requests'>paired ✓</button>";
+    if (p.is_partner || p.request_status === "confirmed" || (rq && (rq.status === "confirmed" || rq.status === "accepted"))) {
+      b = "<button class='btn ok' data-go='requests'>paired ✓" + (p.room ? (" · Room " + esc(p.room)) : "") + "</button>";
     } else if (p.request_status === "sent" || (rq && rq.status === "sent")) {
       b = "<button class='btn gh' data-go='requests'>request sent, view</button>";
     } else if (p.request_status === "pending" || (rq && rq.status === "pending")) {
       b = "<button class='btn' data-go='requests'>needs your answer!</button>";
+    } else if (me && me.is_paired) {
+      b = "<span class='chip g' style='font-size:12px;margin-top:14px;display:inline-block'>You are Paired</span>";
     } else {
       b = "<button class='btn' data-s='" + p.id + "' data-name='" + esc(p.n) + "'>send request</button>";
     }
@@ -695,7 +716,9 @@ function refreshBackend(cb){
         good: m.good || [],
         friction: m.friction,
         request_status: m.request_status,
-        request_id: m.request_id
+        request_id: m.request_id,
+        is_partner: m.is_partner,
+        room: m.room
       };
     });
 

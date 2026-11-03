@@ -154,6 +154,35 @@ def compute_ranked_matches_for_student(student: StudentUser):
         paired_ids.add(u_b)
 
     if student.id in paired_ids:
+        # If student is already paired, return their confirmed roommate match
+        my_pair = Pair.objects.filter(Q(user_a=student) | Q(user_b=student)).select_related('user_a', 'user_b', 'room', 'room__block').first()
+        if my_pair:
+            partner = my_pair.partner_of(student)
+            questions = list(Question.objects.filter(is_active=True))
+            res = calculate_mutual_score(student, partner, questions)
+            score_for_me = res.get('score_b_to_a' if student.id > partner.id else 'score_a_to_b', res.get('final_score', 85))
+            score_for_peer = res.get('score_a_to_b' if student.id > partner.id else 'score_b_to_a', res.get('final_score', 85))
+            return [{
+                'id': partner.id,
+                'name': partner.name,
+                'roll_no': partner.roll_no,
+                'branch': partner.branch,
+                'year': partner.year,
+                'persona': partner.persona,
+                'block': partner.block.name if partner.block else (my_pair.room.block.name if my_pair.room else 'Main Hostel'),
+                'hostel': partner.block.name if partner.block else (my_pair.room.block.name if my_pair.room else 'Main Hostel'),
+                'avatar_hue': partner.avatar_hue,
+                'final_score': int(res.get('final_score', 85)),
+                'my_score': int(score_for_me),
+                'peer_score': int(score_for_peer),
+                'clashes': res.get('clashes', []),
+                'is_dealbreaker': len(res.get('clashes', [])) > 0,
+                'good_reasons': res.get('good_reasons', []),
+                'frictions': res.get('frictions', []),
+                'warnings': res.get('frictions', []),
+                'is_partner': True,
+                'room': my_pair.room.number if my_pair.room else None,
+            }]
         return []
 
     candidates_qs = StudentUser.objects.filter(
@@ -172,6 +201,18 @@ def compute_ranked_matches_for_student(student: StudentUser):
         candidates_qs = candidates_qs.exclude(Q(is_freshman=True) | Q(year__in=['1st Year', 'First Year']))
 
     candidates = list(candidates_qs)
+    if not candidates and student.block_id:
+        # Fallback: If no peers in specific block, match with same-gender peers across campus hostels
+        fallback_qs = StudentUser.objects.filter(
+            role='student',
+            gender=student.gender,
+        ).exclude(id=student.id).exclude(id__in=paired_ids).select_related('block')
+        if is_fresh:
+            fallback_fresh = fallback_qs.filter(Q(is_freshman=True) | Q(year__in=['1st Year', 'First Year']))
+            candidates = list(fallback_fresh) if fallback_fresh.exists() else list(fallback_qs)
+        else:
+            candidates = list(fallback_qs)
+
     if not candidates:
         return []
 
@@ -180,7 +221,7 @@ def compute_ranked_matches_for_student(student: StudentUser):
 
     questions = list(Question.objects.filter(is_active=True))
     active_count = len(questions)
-    threshold = min(8, active_count) if active_count > 0 else 8
+    threshold = min(4, active_count) if active_count > 0 else 4
 
     # Batch pre-fetch all active responses into a dictionary in memory in 1 query
     from collections import defaultdict

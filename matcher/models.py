@@ -189,7 +189,7 @@ class StudentUser(models.Model):
     @property
     def has_completed_survey(self):
         active_count = Question.objects.filter(is_active=True).count()
-        threshold = min(8, active_count) if active_count > 0 else 8
+        threshold = min(active_count, 4) if active_count >= 5 else active_count
         return self.responses.count() >= threshold
 
 
