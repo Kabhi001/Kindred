@@ -78,7 +78,18 @@ function copy(t, b){
 }
 
 function empty(h, p, b){
-  return "<div class='card empty'><svg viewBox='0 0 200 120'><circle cx='72' cy='60' r='44'/><circle cx='128' cy='60' r='44'/></svg><h3>" + h + "</h3><p class='sm'>" + p + "</p>" + (b || "") + "</div>";
+  return "<div class='card empty'>" +
+    "<div class='empty-illustration'>" +
+      "<svg viewBox='0 0 200 120' aria-hidden='true'>" +
+        "<circle class='c1' cx='76' cy='60' r='42' fill='#CDB8FF' stroke='#16121F' stroke-width='3.5' fill-opacity='0.85'/>" +
+        "<circle class='c2' cx='124' cy='60' r='42' fill='#FF5FA2' stroke='#16121F' stroke-width='3.5' fill-opacity='0.85'/>" +
+      "</svg>" +
+      "<span class='empty-badge'>✨</span>" +
+    "</div>" +
+    "<h3>" + h + "</h3>" +
+    "<p class='sm'>" + p + "</p>" +
+    (b || "") +
+  "</div>";
 }
 
 var KEYS = ["sleep", "privacy", "noise", "tidy", "temp", "guests", "sharing", "intent", "flexibility", "communication"];
@@ -419,7 +430,7 @@ function quiz(){
       "<p class='sm' style='margin:0 0 10px;color:var(--ink)'><b>Privacy & Consent (DPDP Act, 2023):</b> We only ask about lifestyle habits (sleep, noise, tidiness) to calculate roommate harmony. Your answers are stored securely and never shared with third parties.</p>" +
       "<label style='display:flex;align-items:center;gap:8px;font-size:13.5px;cursor:pointer'><input type='checkbox' id='dpdp-consent' checked> I agree to share my lifestyle preferences for hostel allotment matching.</label>" +
     "</div>" +
-    "<input type='text' id='nm' maxlength='40' placeholder='your full name' aria-label='Your full name' value='" + esc(Z.name || (m && m.n) || "") + "'><div class='row'><button class='btn' data-q='start'>" + (m && m.has_quiz ? "retake the quiz" : "begin") + "</button>" + (m && m.has_quiz ? "<button class='btn gh' data-q='res'>view my results</button>" : "") + "</div>";
+    "<input type='text' id='nm' class='nb-input' maxlength='40' placeholder='your full name' aria-label='Your full name' value='" + esc(Z.name || (m && m.n) || "") + "'><div class='row'><button class='btn' data-q='start'>" + (m && m.has_quiz ? "retake the quiz" : "begin") + "</button>" + (m && m.has_quiz ? "<button class='btn gh' data-q='res'>view my results</button>" : "") + "</div>";
   }
   if (Z.scr === "res"){
     var a = (m && m.a) ? m.a : Z.A;
@@ -621,7 +632,38 @@ function requests(){
   h += pairBanner;
   h += "<p class='sub'>When two students both say yes, their mutual pair is confirmed and queued for the hostel warden to assign a room.</p>";
   h += "<div class='stats'>" + [["received", receivedCount], ["sent", sentCount], ["paired", confirmedCount || (S.me.is_paired ? 1 : 0)]].map(function(x){ return "<div class='card stat'><b>" + x[1] + "</b><span>" + x[0] + "</span></div>" }).join("") + "</div>";
-  h += "<div class='g2'><div class='card'><h3>send a request</h3><input type='text' id='pn' maxlength='60' placeholder='classmate name or registration number (e.g. 12310266)' aria-label='Their name or registration number'><input type='text' id='pm' maxlength='150' placeholder='a short note (optional)' aria-label='Note'><button class='btn' data-mk='1'>create request</button></div><div class='card'><h3>paste an exchange code</h3><textarea id='cd' placeholder='a request (KR-) or reply code from another student' aria-label='Code'></textarea><button class='btn' data-rd='1'>read code</button></div></div><div class='msg' id='msg' role='status'></div>";
+  h += "<div class='g2'>" +
+    "<div class='card' style='display:flex;flex-direction:column;justify-content:space-between;'>" +
+      "<div>" +
+        "<div style='display:inline-flex;align-items:center;gap:6px;background:var(--color-lime);border:2px solid var(--color-ink);padding:3px 12px;border-radius:999px;font-size:11px;font-weight:800;box-shadow:var(--shadow-sm);margin-bottom:12px;'>💌 SEND INVITATION</div>" +
+        "<h3 style='margin:0 0 6px;font-size:22px;'>send a request</h3>" +
+        "<p class='sm' style='margin:0 0 16px;color:var(--color-muted);font-weight:600;'>Directly invite a classmate in your hostel tower by name or university registration number.</p>" +
+        "<div style='display:flex;flex-direction:column;gap:12px;'>" +
+          "<div>" +
+            "<label style='display:block;font-size:12px;font-weight:800;color:var(--color-ink);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;'>Classmate Name or Roll No</label>" +
+            "<input type='text' id='pn' class='nb-input' maxlength='60' placeholder='e.g. Abhishek Kumar or 12310266' aria-label='Their name or registration number'>" +
+          "</div>" +
+          "<div>" +
+            "<label style='display:block;font-size:12px;font-weight:800;color:var(--color-ink);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;'>Friendly Note (Optional)</label>" +
+            "<input type='text' id='pm' class='nb-input' maxlength='150' placeholder='e.g. Hey! Let us room together this year.' aria-label='Note'>" +
+          "</div>" +
+        "</div>" +
+      "</div>" +
+      "<button class='btn' data-mk='1' style='margin-top:20px;width:100%;text-align:center;'>create request →</button>" +
+    "</div>" +
+    "<div class='card' style='display:flex;flex-direction:column;justify-content:space-between;'>" +
+      "<div>" +
+        "<div style='display:inline-flex;align-items:center;gap:6px;background:var(--color-lilac);border:2px solid var(--color-ink);padding:3px 12px;border-radius:999px;font-size:11px;font-weight:800;box-shadow:var(--shadow-sm);margin-bottom:12px;'>🔑 CODE EXCHANGE</div>" +
+        "<h3 style='margin:0 0 6px;font-size:22px;'>paste an exchange code</h3>" +
+        "<p class='sm' style='margin:0 0 16px;color:var(--color-muted);font-weight:600;'>Received a Kindred request code (KR-) or encrypted token from a peer? Paste it here.</p>" +
+        "<div>" +
+          "<label style='display:block;font-size:12px;font-weight:800;color:var(--color-ink);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;'>Kindred Exchange Token</label>" +
+          "<textarea id='cd' class='nb-textarea' placeholder='Paste your request code (KR-...) or response code here...' aria-label='Code' style='min-height:108px;'></textarea>" +
+        "</div>" +
+      "</div>" +
+      "<button class='btn gh' data-rd='1' style='margin-top:20px;width:100%;text-align:center;'>read code →</button>" +
+    "</div>" +
+  "</div><div class='msg' id='msg' role='status'></div>";
 
   var l = S.rq.slice().sort(function(a, b){ return b.ts - a.ts });
   return h + (l.length ? l.map(rcard).join("") : empty("no requests yet.", "Create one above, or send one from your matches!"));

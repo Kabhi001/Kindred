@@ -540,3 +540,70 @@ b, strong {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+
+/* ==========================================================================
+   EMPTY STATE & 2-COLUMN GRID HELPERS
+   ========================================================================== */
+.empty {
+  text-align: center;
+  padding: 48px 24px;
+  background-color: var(--color-white);
+  border: var(--border-thick);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  margin-top: 24px;
+}
+.empty-illustration {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 14px;
+}
+.empty svg {
+  width: 160px;
+  height: 96px;
+  display: block;
+  margin: 0 auto;
+  overflow: visible;
+}
+.empty circle,
+.empty circle.c1 {
+  fill: var(--color-lilac) !important;
+  stroke: var(--color-ink) !important;
+  stroke-width: 3.5px !important;
+  fill-opacity: 0.85 !important;
+}
+.empty circle + circle,
+.empty circle.c2 {
+  fill: var(--color-pink) !important;
+  stroke: var(--color-ink) !important;
+  stroke-width: 3.5px !important;
+  fill-opacity: 0.85 !important;
+}
+.empty-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-lime);
+  border: 2.5px solid var(--color-ink);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 2px 2px 0 var(--color-ink);
+}
+
+.g2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
+@media (max-width: 768px) {
+  .g2 { grid-template-columns: 1fr; }
+}

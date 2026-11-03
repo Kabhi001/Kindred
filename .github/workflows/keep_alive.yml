@@ -13,3 +13,4 @@ jobs:
       - name: Ping Render Service
         run: |
           curl -s -f -m 30 "https://kindred-matcher.onrender.com/health/" || curl -s -f -m 30 "https://kindred-matcher.onrender.com/" || echo "Ping finished"
+
