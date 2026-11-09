@@ -182,3 +182,100 @@
   width: var(--scroll-pct, 0%);
   transition: width 0.05s linear;
 }
+
+/* ==========================================================================
+   HERO LEFT MICRO-INTERACTIONS
+   ========================================================================== */
+
+/* Screen reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Headline Word Bounce */
+.hero-word {
+  display: inline-block;
+  transform-origin: center bottom;
+  will-change: transform, opacity;
+}
+
+/* Tilted Lilac "Random" Box Slot Roller */
+.hero-title mark {
+  position: relative;
+  overflow: visible;
+  cursor: pointer;
+  transform-origin: center center;
+}
+.random-roller {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+/* Paragraph Marker Highlight Drawing Left to Right */
+.marker-highlight {
+  position: relative;
+  display: inline-block;
+  z-index: 1;
+}
+.marker-highlight::before {
+  content: "";
+  position: absolute;
+  inset: 12% -4px 6% -4px;
+  background-color: var(--motion-lime, #D4FF4F);
+  border: 1.5px solid var(--motion-ink, #16121F);
+  border-radius: 4px;
+  z-index: -1;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.65s var(--pop);
+}
+.marker-highlight.go::before {
+  transform: scaleX(1);
+}
+
+/* Button Arrow Slide */
+.btn-arrow {
+  display: inline-block;
+  transition: transform 0.2s var(--pop);
+  margin-left: 4px;
+}
+.nb-btn:hover .btn-arrow, .btn:hover .btn-arrow {
+  transform: translateX(5px);
+}
+
+/* Button Key Emoji Jiggle */
+.btn-key {
+  display: inline-block;
+  transform-origin: center center;
+  margin-left: 4px;
+}
+
+/* Trust Pills & Self-Drawing Checkmarks */
+.trust-pill-motion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  will-change: transform;
+}
+.tick-svg {
+  display: inline-block;
+  vertical-align: middle;
+  overflow: visible;
+}
+.tick-svg path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.45s cubic-bezier(.2, .9, .3, 1);
+}
+.tick-svg path.draw {
+  stroke-dashoffset: 0;
+}
