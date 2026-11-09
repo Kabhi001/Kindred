@@ -48,3 +48,8 @@ staticfiles/
 # Databases
 *.sqlite3
 db.sqlite3
+
+# Test artifacts and verification scratchpad
+scratch/
+screenshots/
+
