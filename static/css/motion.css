@@ -465,3 +465,122 @@
 .bouncing-step {
   animation: stepBounce 1.2s ease-in-out infinite;
 }
+
+/* ==========================================================================
+   SCROLL SECTIONS: STAMPS, DEALT CARDS, BLOSSOM GRAPH & TRADING CARDS
+   ========================================================================== */
+
+/* Section Title Stamps */
+.stamp-ready {
+  transform-origin: left bottom;
+  will-change: transform, opacity;
+}
+
+/* Dealt-Hand Cards: Straighten & Lift on Hover */
+.dealt-card {
+  transition: transform 0.25s var(--pop), box-shadow 0.25s ease-out;
+  will-change: transform;
+}
+.dealt-card:hover {
+  transform: rotate(0deg) translate(-3px, -6px) !important;
+  box-shadow: 10px 10px 0 var(--color-ink, #16121F) !important;
+}
+
+/* Blossom Graph Container & SVG */
+.blossom-graph-card {
+  background: var(--color-white, #FFF);
+  border: var(--border-thick);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+  margin: 28px 0;
+  overflow: hidden;
+}
+.blossom-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.blossom-status-pill {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 800;
+  background-color: var(--motion-pink, #FF5FA2);
+  color: var(--motion-ink, #16121F);
+  border: 2px solid var(--motion-ink, #16121F);
+  border-radius: var(--radius-pill);
+  padding: 3px 12px;
+  box-shadow: 2px 2px 0 var(--motion-ink, #16121F);
+}
+.blossom-canvas-wrap {
+  background-color: var(--color-cream, #FFF8EC);
+  border: var(--border-thick);
+  border-radius: 18px;
+  padding: 12px;
+  overflow: hidden;
+}
+.blossom-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 280px;
+}
+.b-edge {
+  stroke: var(--motion-ink, #16121F);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke 0.4s ease, stroke-width 0.4s ease;
+}
+.b-edge.active-match {
+  stroke: var(--motion-pink, #FF5FA2);
+  stroke-width: 5;
+}
+.b-node text {
+  font-family: var(--font-main, sans-serif);
+  font-weight: 800;
+  fill: var(--motion-ink, #16121F);
+  user-select: none;
+}
+.blossom-caption {
+  font-size: 13.5px;
+  color: var(--color-ink, #16121F);
+  margin: 14px 0 0;
+  line-height: 1.5;
+}
+
+/* Demo Trading Cards */
+.demo-trading-card {
+  perspective: 900px;
+  will-change: transform;
+  transition: transform 0.25s var(--pop), box-shadow 0.25s ease-out;
+}
+.demo-trading-card:hover {
+  transform: translate(-3px, -5px) rotate(-1deg);
+  box-shadow: 10px 10px 0 var(--color-ink, #16121F);
+}
+.demo-cred-copy {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 2px dashed rgba(22, 18, 31, 0.2);
+}
+.cred-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--color-white, #FFF);
+  border: 2px solid var(--color-ink, #16121F);
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--color-ink, #16121F);
+  transition: transform 0.15s var(--pop), background-color 0.15s;
+}
+.cred-pill:hover {
+  background-color: var(--motion-lime, #D4FF4F);
+  transform: translateY(-2px);
+}
