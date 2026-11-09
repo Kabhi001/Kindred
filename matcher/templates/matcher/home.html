@@ -7,6 +7,13 @@
 <title>kindred · university hostel roommate matcher</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script>
+  try {
+    if (localStorage.getItem('kindred-theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  } catch(e) {}
+</script>
 <link rel="stylesheet" href="{% static 'kindred-design-system.css' %}">
 <link rel="stylesheet" href="{% static 'css/motion.css' %}">
 <script defer src="{% static 'js/motion/core.js' %}"></script>
@@ -16,6 +23,8 @@
 <script defer src="{% static 'js/motion/telemetry.js' %}"></script>
 <script defer src="{% static 'js/motion/phase.js' %}"></script>
 <script defer src="{% static 'js/motion/scroll.js' %}"></script>
+<script defer src="{% static 'js/motion/cursor.js' %}"></script>
+<script defer src="{% static 'js/motion/theme.js' %}"></script>
 <script defer src="{% static 'js/motion/easter-egg.js' %}"></script>
 <style>
 /* Page-Specific Neo-Brutalist Layout Styles */
@@ -372,28 +381,44 @@
   <!-- Sticky Neo-Brutalist Navigation Bar -->
   <div class="nav-wrap">
     <header class="nb-navbar">
-      <a href="{% url 'matcher:home' %}" class="brand">
+      <a href="{% url 'matcher:home' %}" class="brand" data-cursor="home">
         <span class="brand-title">kin<span>dred</span></span>
         <span class="nb-chip nb-chip-lime" style="font-size:11px;padding:3px 10px">HOSTEL MATCHER</span>
       </a>
 
       <nav class="nav-menu">
-        <a href="#how-it-works" class="nav-link">how it works</a>
-        <a href="#campus-hostels" class="nav-link">hostels & rooms</a>
-        <a href="#algorithm" class="nav-link">blossom algo</a>
-        <a href="#demo-access" class="nav-link">demo logins</a>
+        <a href="#how-it-works" class="nav-link" data-cursor="go">how it works</a>
+        <a href="#campus-hostels" class="nav-link" data-cursor="go">hostels & rooms</a>
+        <a href="#algorithm" class="nav-link" data-cursor="go">blossom algo</a>
+        <a href="#demo-access" class="nav-link" data-cursor="go">demo logins</a>
       </nav>
 
       <div class="nav-actions">
         {% if logged_in_user %}
-          <a href="{% url 'matcher:student_portal' %}" class="nb-btn nb-btn-primary nb-btn-sm">
+          <a href="{% url 'matcher:student_portal' %}" class="nb-btn nb-btn-primary nb-btn-sm" data-cursor="portal">
             <span>my dashboard</span> →
           </a>
-          <a href="{% url 'matcher:logout' %}" class="nb-btn nb-btn-neutral nb-btn-sm">logout</a>
+          <a href="{% url 'matcher:logout' %}" class="nb-btn nb-btn-neutral nb-btn-sm" data-cursor="bye">logout</a>
         {% else %}
-          <a href="{% url 'matcher:login' %}" class="nb-btn nb-btn-neutral nb-btn-sm">Sign In to Portal</a>
-          <a href="{% url 'matcher:register' %}" class="nb-btn nb-btn-primary nb-btn-sm">register</a>
+          <a href="{% url 'matcher:login' %}" class="nb-btn nb-btn-neutral nb-btn-sm" data-cursor="key">Sign In to Portal</a>
+          <a href="{% url 'matcher:register' %}" class="nb-btn nb-btn-primary nb-btn-sm" data-cursor="join">register</a>
         {% endif %}
+        <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark mode" data-cursor="mode" title="Toggle theme">
+          <svg class="t-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="t-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
       </div>
     </header>
   </div>
@@ -422,25 +447,25 @@
               <span>go to student portal</span> →
             </a>
           {% else %}
-            <a href="{% url 'matcher:register' %}" class="nb-btn nb-btn-primary nb-btn-lg">
+            <a href="{% url 'matcher:register' %}" class="nb-btn nb-btn-primary nb-btn-lg" data-cursor="match">
               <span>find your roommate</span> →
             </a>
-            <a href="{% url 'matcher:login' %}" class="nb-btn nb-btn-accent nb-btn-lg">
+            <a href="{% url 'matcher:login' %}" class="nb-btn nb-btn-accent nb-btn-lg" data-cursor="key">
               <span>Sign In to Portal</span> 🔑
             </a>
           {% endif %}
         </div>
 
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-          <span class="nb-chip nb-chip-mint">✓ 100% smoke-free hostels</span>
-          <span class="nb-chip nb-chip-lilac">✓ dpdp act 2023 compliant</span>
-          <span class="nb-chip nb-chip-yellow">✓ anti-ragging verified</span>
+          <span class="nb-chip nb-chip-mint" data-cursor="safe">✓ 100% smoke-free hostels</span>
+          <span class="nb-chip nb-chip-lilac" data-cursor="safe">✓ dpdp act 2023 compliant</span>
+          <span class="nb-chip nb-chip-yellow" data-cursor="safe">✓ anti-ragging verified</span>
         </div>
       </div>
 
       <!-- Right Column: Rhythm Sine Wave Visualizer Card -->
       <div>
-        <div class="wave-card">
+        <div class="wave-card" data-cursor="vibe">
           <div class="wave-card-header">
             <span>Roommate Rhythm Telemetry</span>
             <span class="wave-status" id="cap">calibrating...</span>
@@ -462,7 +487,7 @@
               <span style="display:inline-block;width:12px;height:12px;background:#8E65F6;border:2px solid var(--color-ink);border-radius:50%"></span>
               <span>Matched Partner</span>
             </div>
-            <span class="nb-chip nb-chip-white" style="font-size:11px">8-D Matrix</span>
+            <span class="nb-chip nb-chip-white" style="font-size:11px" data-cursor="8-D">8-D Matrix</span>
           </div>
         </div>
 

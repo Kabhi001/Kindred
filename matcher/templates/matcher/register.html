@@ -5,11 +5,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Register Student Account · kindred</title>
+<script>
+  try {
+    if (localStorage.getItem('kindred-theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  } catch(e) {}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="{% static 'kindred-design-system.css' %}">
 <link rel="stylesheet" href="{% static 'css/motion.css' %}">
 <script defer src="{% static 'js/motion/core.js' %}"></script>
+<script defer src="{% static 'js/motion/cursor.js' %}"></script>
+<script defer src="{% static 'js/motion/theme.js' %}"></script>
 <script defer src="{% static 'js/motion/auth-motion.js' %}"></script>
 <style>
 body {
