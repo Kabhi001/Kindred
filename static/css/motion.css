@@ -1,0 +1,92 @@
+/* ==========================================================================
+   KINDRED MOTION SYSTEM — FOUNDATION (motion.css)
+   Neo-brutalist spring tokens, physical easing, canvas FX & toast.
+   ========================================================================== */
+
+:root {
+  --pop: cubic-bezier(.34, 1.56, .64, 1);
+  --snap: cubic-bezier(.2, .9, .3, 1);
+  --soft-spring: cubic-bezier(.3, 1.2, .5, 1);
+  --ease-out-back: cubic-bezier(.34, 1.35, .5, 1);
+  --motion-ink: #16121F;
+  --motion-lime: #D4FF4F;
+  --motion-pink: #FF5FA2;
+  --motion-lilac: #CDB8FF;
+  --motion-cream: #FFF8EA;
+  --motion-mint: #B8F5CF;
+  --motion-yellow: #FFE27A;
+}
+
+/* Accessibility: prefers-reduced-motion everywhere */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001s !important;
+    scroll-behavior: auto !important;
+  }
+  #motion-confetti, .fx-star, .motion-star {
+    display: none !important;
+  }
+}
+
+/* Confetti Canvas Overlay */
+#motion-confetti {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 15000;
+}
+
+/* Star Burst DOM Elements */
+.fx-star, .motion-star {
+  position: fixed;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  z-index: 14000;
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+
+/* Toast Component: Ink pill with lime border */
+#motion-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 34px;
+  transform: translate(-50%, 120px);
+  background: var(--motion-ink, #16121F);
+  color: var(--motion-lime, #D4FF4F);
+  border: 3px solid var(--motion-lime, #D4FF4F);
+  border-radius: 999px;
+  padding: 0.75rem 1.7rem;
+  font-family: var(--font-main, 'Bricolage Grotesque', sans-serif);
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  box-shadow: 4px 4px 0 var(--motion-ink, #16121F);
+  z-index: 17000;
+  transition: transform 0.45s var(--pop);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 90vw;
+  text-align: center;
+  will-change: transform;
+}
+
+#motion-toast.show {
+  transform: translate(-50%, 0);
+}
+
+#motion-toast.err {
+  color: #FFB4B4;
+  border-color: #FF5FA2;
+}
+
+#motion-toast .toast-icon {
+  font-size: 1.15rem;
+}
