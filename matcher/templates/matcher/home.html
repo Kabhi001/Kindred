@@ -381,8 +381,6 @@
       <nav class="nav-menu">
         <a href="#how-it-works" class="nav-link" data-cursor="go">how it works</a>
         <a href="#campus-hostels" class="nav-link" data-cursor="go">hostels & rooms</a>
-        <a href="#algorithm" class="nav-link" data-cursor="go">blossom algo</a>
-        <a href="#demo-access" class="nav-link" data-cursor="go">demo logins</a>
       </nav>
 
       <div class="nav-actions">
@@ -650,74 +648,7 @@
     </div>
   </section>
 
-  <!-- Algorithm Breakdown Section -->
-  <section id="algorithm" class="algo-box">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-      <span class="nb-chip nb-chip-lime">GRAPH THEORY</span>
-      <span class="nb-chip nb-chip-white">O(V²E) COMPLEXITY</span>
-    </div>
 
-    <h2 style="font-size:clamp(30px, 4vw, 46px);margin-bottom:16px">how edmonds' blossom algorithm guarantees cohort harmony.</h2>
-    <p style="font-size:18px;line-height:1.6;max-width:850px;margin-bottom:24px">
-      Most systems match greedily: student A takes the highest match student B, leaving student C with terrible compatibility student D. Kindred uses <b>Jack Edmonds' Blossom Maximum-Weight Matching</b> to find the global optimum pairing that maximizes overall satisfaction across every student simultaneously.
-    </p>
-
-    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:18px">
-      <div class="nb-card nb-card-white">
-        <h4 style="margin-bottom:6px">Blossom Contraction</h4>
-        <p class="nb-helper" style="color:var(--color-ink);margin:0">Shrinks odd-length alternating cycles into pseudonodes, preventing combinatorial explosion.</p>
-      </div>
-      <div class="nb-card nb-card-white">
-        <h4 style="margin-bottom:6px">Deal-Breaker Pruning</h4>
-        <p class="nb-helper" style="color:var(--color-ink);margin:0">Incompatible edge weights are set to negative infinity, mathematically preventing toxic pairings.</p>
-      </div>
-      <div class="nb-card nb-card-white">
-        <h4 style="margin-bottom:6px">Anti-Ragging Separation</h4>
-        <p class="nb-helper" style="color:var(--color-ink);margin:0">Strictly isolates freshers from seniors in distinct subgraphs to comply with UGC guidelines.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- 1-Click Demo Portals -->
-  <section id="demo-access" style="margin: 80px 0;">
-    <div style="text-align:center;max-width:680px;margin:0 auto 36px">
-      <div class="nb-sticker">INSTANT TEST ACCESS</div>
-      <h2 style="margin-top:14px">explore kindred role portals.</h2>
-      <p style="color:var(--color-muted);font-size:18px">Switch between Student, Hostel Warden, and Allotment Administrator perspectives.</p>
-    </div>
-
-    <div class="demo-grid">
-      <!-- Student Role Card -->
-      <div class="nb-card nb-card-lilac nb-card-hover">
-        <span class="nb-badge nb-chip-white">STUDENT PORTAL</span>
-        <h3 style="margin-top:14px;margin-bottom:8px">Undergraduate Student</h3>
-        <p style="font-size:14.5px;color:var(--color-ink)">Take the 10-D lifestyle quiz, view blossom radar charts, send pairing requests, and manage hostel slip.</p>
-        <div style="margin-top:20px">
-          <a href="{% url 'matcher:login' %}?role=student" class="nb-btn nb-btn-primary" style="width:100%">test student login →</a>
-        </div>
-      </div>
-
-      <!-- Warden Role Card -->
-      <div class="nb-card nb-card-lime nb-card-hover">
-        <span class="nb-badge nb-chip-white">WARDEN DESK</span>
-        <h3 style="margin-top:14px;margin-bottom:8px">Hostel Warden</h3>
-        <p style="font-size:14.5px;color:var(--color-ink)">Review confirmed roommate pairs, issue physical room keys, inspect occupancy floor matrices, and resolve student disputes.</p>
-        <div style="margin-top:20px">
-          <a href="{% url 'matcher:login' %}?role=warden" class="nb-btn nb-btn-neutral" style="width:100%">test warden portal →</a>
-        </div>
-      </div>
-
-      <!-- Admin Role Card -->
-      <div class="nb-card nb-card-pink nb-card-hover">
-        <span class="nb-badge nb-chip-white">ADMIN CONSOLE</span>
-        <h3 style="margin-top:14px;margin-bottom:8px">Allotment Admin</h3>
-        <p style="font-size:14.5px;color:var(--color-ink)">Control allotment calendar phases, trigger Edmonds' Blossom algorithm, audit anti-ragging compliance, and export CSVs.</p>
-        <div style="margin-top:20px">
-          <a href="{% url 'matcher:login' %}?role=admin" class="nb-btn nb-btn-neutral" style="width:100%">test admin console →</a>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <!-- FAQ & DPDP Act Compliance -->
   <section style="margin: 80px 0;">
