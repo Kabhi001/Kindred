@@ -279,3 +279,189 @@
 .tick-svg path.draw {
   stroke-dashoffset: 0;
 }
+
+/* ==========================================================================
+   HERO RIGHT: TELEMETRY CHART & ALLOTMENT PHASE CARD
+   ========================================================================== */
+
+/* Wave Card */
+.wave-card {
+  transition: transform 0.25s ease-out, box-shadow 0.25s ease-out;
+  will-change: transform;
+}
+
+/* Status Pill in sync pulse */
+.wave-status.in-sync {
+  background-color: var(--motion-lime, #D4FF4F);
+  border-color: #16121F;
+  box-shadow: 2px 2px 0 #16121F;
+}
+
+/* Telemetry Scanline */
+.telemetry-scanline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--motion-ink, #16121F);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease-out;
+  z-index: 5;
+}
+
+/* Telemetry Ink Tooltip */
+.telemetry-tooltip {
+  position: absolute;
+  top: 10px;
+  transform: translateX(-50%);
+  background-color: var(--motion-ink, #16121F);
+  color: var(--motion-lime, #D4FF4F);
+  border: 2px solid var(--motion-lime, #D4FF4F);
+  border-radius: 999px;
+  padding: 3px 12px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease-out;
+  box-shadow: 2px 2px 0 var(--motion-ink, #16121F);
+  z-index: 6;
+}
+.telemetry-tooltip .t-pink { color: #FF5FA2; }
+.telemetry-tooltip .t-purple { color: #CDB8FF; }
+
+/* Legend Pulse */
+@keyframes legendPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.35); }
+}
+.legend-pulse {
+  animation: legendPulse 1.8s ease-in-out infinite;
+  display: inline-block;
+  transform-origin: center center;
+}
+
+/* 8-D Matrix Fan-out */
+.matrix-pill {
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.2s var(--pop), box-shadow 0.2s;
+}
+.matrix-pill:hover {
+  transform: translateY(-2px) rotate(-1.5deg);
+  box-shadow: 3px 3px 0 #16121F;
+}
+.matrix-fan {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  pointer-events: none;
+  z-index: 10;
+}
+.matrix-dot {
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #16121F;
+  box-shadow: 1.5px 1.5px 0 #16121F;
+  opacity: 0;
+  transform: scale(0);
+  transition: transform 0.4s var(--pop), opacity 0.25s;
+}
+
+/* Phase Card & Live Pulse Dot */
+.phase-card-motion {
+  transition: transform 0.25s var(--pop), box-shadow 0.25s ease-out;
+  will-change: transform;
+}
+@keyframes livePulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.4; }
+}
+.live-pulse-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #0CA678;
+  border: 1.5px solid #16121F;
+  margin-right: 6px;
+  animation: livePulse 1.4s ease-in-out infinite;
+  vertical-align: middle;
+}
+
+/* Phase Typewriter Caret */
+@keyframes caretBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.phase-caret {
+  display: inline-block;
+  margin-left: 2px;
+  font-weight: 700;
+  color: var(--motion-ink, #16121F);
+  animation: caretBlink 0.9s steps(1) infinite;
+}
+
+/* Phase Stepper */
+.phase-stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 2px dashed rgba(22, 18, 31, 0.25);
+}
+.phase-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+.step-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #16121F;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  background-color: #FFFFFF;
+}
+.phase-step.active .step-dot {
+  background-color: var(--motion-pink, #FF5FA2);
+  color: var(--motion-ink, #16121F);
+  box-shadow: 2px 2px 0 #16121F;
+}
+.phase-step.done .step-dot {
+  background-color: var(--motion-mint, #B8F5CF);
+  color: #16121F;
+}
+.phase-step.upcoming .step-dot {
+  opacity: 0.45;
+}
+.step-bar {
+  flex: 1;
+  height: 2.5px;
+  background-color: #16121F;
+  opacity: 0.3;
+}
+.phase-step.done .step-bar {
+  opacity: 1;
+  background-color: #16121F;
+}
+@keyframes stepBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+.bouncing-step {
+  animation: stepBounce 1.2s ease-in-out infinite;
+}

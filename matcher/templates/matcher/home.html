@@ -13,6 +13,8 @@
 <script defer src="{% static 'js/motion/nav.js' %}"></script>
 <script defer src="{% static 'js/motion/hero.js' %}"></script>
 <script defer src="{% static 'js/motion/trust-pills.js' %}"></script>
+<script defer src="{% static 'js/motion/telemetry.js' %}"></script>
+<script defer src="{% static 'js/motion/phase.js' %}"></script>
 <script defer src="{% static 'js/motion/easter-egg.js' %}"></script>
 <style>
 /* Page-Specific Neo-Brutalist Layout Styles */
@@ -797,9 +799,10 @@ function showToast(msg, type) {
   }, 4000);
 }
 
-// Sine Wave Lifestyle Animation
+// Sine Wave Lifestyle Animation (Fallback if telemetry.js inactive)
 var raf;
 function initRhythmWave() {
+  if (window.KindredTelemetryActive) return;
   var wa = document.getElementById("wa");
   var wb = document.getElementById("wb");
   var cap = document.getElementById("cap");
