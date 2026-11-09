@@ -90,3 +90,95 @@
 #motion-toast .toast-icon {
   font-size: 1.15rem;
 }
+
+/* ==========================================================================
+   NAVBAR & BUTTON MICRO-INTERACTIONS
+   ========================================================================== */
+
+/* Navbar Scroll Reaction */
+.nb-navbar {
+  transition: transform 0.25s var(--pop), box-shadow 0.25s ease-out;
+  will-change: transform;
+}
+.nb-navbar.scrolled {
+  transform: scale(0.985);
+  box-shadow: 8px 10px 0 var(--color-ink, #16121F);
+}
+
+/* Nav Scribble Underline on Hover */
+.nav-link {
+  position: relative;
+  overflow: visible;
+}
+.nav-scribble {
+  position: absolute;
+  left: 8%;
+  bottom: 0px;
+  width: 84%;
+  height: 8px;
+  pointer-events: none;
+  overflow: visible;
+}
+.nav-scribble path {
+  fill: none;
+  stroke: var(--motion-pink, #FF5FA2);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.35s ease-out;
+}
+.nav-link:hover .nav-scribble path {
+  stroke-dashoffset: 0;
+}
+
+/* Sliding Pink Indicator Dot */
+.nav-indicator-dot {
+  position: absolute;
+  left: 0;
+  bottom: 0px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--motion-pink, #FF5FA2);
+  border: 1.5px solid var(--motion-ink, #16121F);
+  opacity: 0;
+  transition: transform 0.4s var(--pop), opacity 0.25s;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Button Press Physics & Magnetic Pull */
+.nb-btn, .btn {
+  --mx: 0px;
+  --my: 0px;
+  --hx: 0px;
+  --hy: 0px;
+  transform: translate(var(--mx), var(--my)) translate(var(--hx), var(--hy));
+  transition: transform 0.14s ease-out, box-shadow 0.14s ease-out, background-color 0.15s ease;
+  will-change: transform;
+}
+.nb-btn:hover:not(:disabled), .btn:hover:not(:disabled) {
+  --hx: -2px;
+  --hy: -2px;
+  box-shadow: 6px 6px 0 var(--color-ink, #16121F);
+}
+.nb-btn:active:not(:disabled), .btn:active:not(:disabled) {
+  --hx: 3px;
+  --hy: 3px;
+  box-shadow: 0 0 0 var(--color-ink, #16121F) !important;
+}
+
+/* Scroll Progress Bar under Top of Window */
+#scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 4px;
+  background: var(--motion-lime, #D4FF4F);
+  border-bottom: 1.5px solid var(--motion-ink, #16121F);
+  z-index: 9999;
+  pointer-events: none;
+  width: var(--scroll-pct, 0%);
+  transition: width 0.05s linear;
+}
