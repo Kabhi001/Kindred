@@ -16,19 +16,7 @@
     // 1. Inject Matched Moment Overlay (if not present)
     ensureMomentOverlay();
 
-    // 2. Intercept "send request" buttons for signature Genie Effect
-    document.addEventListener('click', async (e) => {
-      const sendBtn = e.target.closest('[data-s]');
-      if (!sendBtn || sendBtn.disabled || sendBtn.dataset.genieHandled) return;
-
-      const card = sendBtn.closest('.pc') || sendBtn.closest('.card');
-      if (!card) return;
-
-      // Play genie animation before API call finishes
-      await playGenieEffect(card, sendBtn);
-    });
-
-    // 3. Intercept "accept" request buttons for Match Moment Celebration
+    // 2. Intercept "accept" request buttons for Match Moment Celebration
     document.addEventListener('click', async (e) => {
       const acceptBtn = e.target.closest('[data-a]');
       if (!acceptBtn) return;
@@ -50,98 +38,7 @@
     initStatusStickers(km, reduced);
   }
 
-  // Signature Genie Effect: Clones card, funnels into navbar requests link
-  async function playGenieEffect(card, btn) {
-    const km = window.KindredMotion;
-    const reduced = km ? km.isReduced() : false;
 
-    // Target navbar requests link
-    const targetLink = document.querySelector('[data-go="requests"]') || document.querySelector('#nav-matches') || document.querySelector('.nav-actions');
-    if (!targetLink || reduced) return;
-
-    btn.disabled = true;
-    btn.classList.add('btn-pending-wobble');
-    btn.textContent = 'request pending...';
-
-    const r = card.getBoundingClientRect();
-    const t = targetLink.getBoundingClientRect();
-
-    const clone = card.cloneNode(true);
-    clone.style.cssText = `
-      position: fixed;
-      left: ${r.left}px;
-      top: ${r.top}px;
-      width: ${r.width}px;
-      height: ${r.height}px;
-      margin: 0;
-      z-index: 18000;
-      pointer-events: none;
-      transform-origin: 50% 100%;
-    `;
-    document.body.appendChild(clone);
-
-    const dx = t.left + t.width / 2 - (r.left + r.width / 2);
-    const dy = t.top + t.height / 2 - r.bottom;
-
-    const full = 'polygon(-14% -14%, 114% -14%, 114% 114%, -14% 114%)';
-    const f1 = 'polygon(0% 0%, 100% 0%, 64% 100%, 36% 100%)';
-    const f2 = 'polygon(41% 0%, 59% 0%, 52% 100%, 48% 100%)';
-
-    const anim = clone.animate(
-      [
-        { transform: 'translate(0, 0) scale(1, 1)', clipPath: full, offset: 0 },
-        { transform: 'translate(0, 14px) scale(1.08, 0.88)', clipPath: full, offset: 0.16 },
-        { transform: `translate(${dx * 0.16}px, ${dy * 0.12}px) scale(0.8, 0.95) skewX(-6deg)`, clipPath: f1, offset: 0.42 },
-        { transform: `translate(${dx * 0.6}px, ${dy * 0.62}px) scale(0.4, 0.5) skewX(10deg)`, clipPath: f1, offset: 0.75 },
-        { transform: `translate(${dx}px, ${dy}px) scale(0.04, 0.04) skewX(0deg)`, clipPath: f2, offset: 1 }
-      ],
-      { duration: km ? km.D(950) : 950, easing: 'cubic-bezier(.6, .05, .3, 1)', fill: 'forwards' }
-    );
-
-    // Source card press reaction
-    card.animate(
-      [{ transform: 'scale(1)' }, { transform: 'scale(0.96)' }, { transform: 'scale(1)' }],
-      { duration: 320 }
-    );
-
-    await anim.finished.catch(() => {});
-    clone.remove();
-    reqCount++;
-
-    // Target navbar bounce + pink +1 badge pop
-    targetLink.animate(
-      [
-        { transform: 'scale(1) rotate(0deg)' },
-        { transform: 'scale(1.3) rotate(-6deg)', offset: 0.5 },
-        { transform: 'scale(1) rotate(0deg)' }
-      ],
-      { duration: 450, easing: 'cubic-bezier(.34, 1.56, .64, 1)' }
-    );
-
-    let badge = targetLink.querySelector('.badge');
-    if (!badge) {
-      badge = document.createElement('span');
-      badge.className = 'badge';
-      targetLink.appendChild(badge);
-    }
-    badge.textContent = reqCount;
-    badge.animate(
-      [
-        { transform: 'scale(0)' },
-        { transform: 'scale(1.6)', offset: 0.5 },
-        { transform: 'scale(1)' }
-      ],
-      { duration: 500, easing: 'cubic-bezier(.34, 1.56, .64, 1)', fill: 'forwards' }
-    );
-
-    // Burst confetti & stars at navbar link
-    const targetCenterX = t.left + t.width / 2;
-    const targetCenterY = t.top + t.height / 2;
-    if (km) {
-      km.starBurst(targetCenterX, targetCenterY, 8);
-      km.confetti(targetCenterX, targetCenterY, 24, Math.PI * 2, -Math.PI / 2, 9);
-    }
-  }
 
   // Full-Screen Match Moment Collision Celebration Overlay
   function ensureMomentOverlay() {
@@ -324,8 +221,7 @@
   }
 
   window.KindredPortalMotion = {
-    triggerMatchMoment,
-    playGenieEffect
+    triggerMatchMoment
   };
 
   if (document.readyState === 'loading') {

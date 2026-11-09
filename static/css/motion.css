@@ -486,104 +486,7 @@
   box-shadow: 10px 10px 0 var(--color-ink, #16121F) !important;
 }
 
-/* Blossom Graph Container & SVG */
-.blossom-graph-card {
-  background: var(--color-white, #FFF);
-  border: var(--border-thick);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
-  padding: 24px;
-  margin: 28px 0;
-  overflow: hidden;
-}
-.blossom-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-.blossom-status-pill {
-  font-family: var(--font-mono, monospace);
-  font-size: 11px;
-  font-weight: 800;
-  background-color: var(--motion-pink, #FF5FA2);
-  color: var(--motion-ink, #16121F);
-  border: 2px solid var(--motion-ink, #16121F);
-  border-radius: var(--radius-pill);
-  padding: 3px 12px;
-  box-shadow: 2px 2px 0 var(--motion-ink, #16121F);
-}
-.blossom-canvas-wrap {
-  background-color: var(--color-cream, #FFF8EC);
-  border: var(--border-thick);
-  border-radius: 18px;
-  padding: 12px;
-  overflow: hidden;
-}
-.blossom-svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: 280px;
-}
-.b-edge {
-  stroke: var(--motion-ink, #16121F);
-  stroke-width: 3;
-  stroke-linecap: round;
-  transition: stroke 0.4s ease, stroke-width 0.4s ease;
-}
-.b-edge.active-match {
-  stroke: var(--motion-pink, #FF5FA2);
-  stroke-width: 5;
-}
-.b-node text {
-  font-family: var(--font-main, sans-serif);
-  font-weight: 800;
-  fill: var(--motion-ink, #16121F);
-  user-select: none;
-}
-.blossom-caption {
-  font-size: 13.5px;
-  color: var(--color-ink, #16121F);
-  margin: 14px 0 0;
-  line-height: 1.5;
-}
 
-/* Demo Trading Cards */
-.demo-trading-card {
-  perspective: 900px;
-  will-change: transform;
-  transition: transform 0.25s var(--pop), box-shadow 0.25s ease-out;
-}
-.demo-trading-card:hover {
-  transform: translate(-3px, -5px) rotate(-1deg);
-  box-shadow: 10px 10px 0 var(--color-ink, #16121F);
-}
-.demo-cred-copy {
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 2px dashed rgba(22, 18, 31, 0.2);
-}
-.cred-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background-color: var(--color-white, #FFF);
-  border: 2px solid var(--color-ink, #16121F);
-  border-radius: var(--radius-pill);
-  padding: 4px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 2px 2px 0 var(--color-ink, #16121F);
-  transition: transform 0.15s var(--pop), background-color 0.15s;
-}
-.cred-pill:hover {
-  background-color: var(--motion-lime, #D4FF4F);
-  transform: translateY(-2px);
-}
 
 /* ==========================================================================
    AUTH & PORTAL MICRO-INTERACTIONS: INPUTS, GENIE, MATCH MOMENT
@@ -609,16 +512,7 @@
   40% { transform: translateY(-7px); }
 }
 
-/* Request Pending Wobble */
-@keyframes pendingWobble {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-1.5deg); }
-  75% { transform: rotate(1.5deg); }
-}
-.btn-pending-wobble {
-  background-color: var(--motion-lilac, #CDB8FF) !important;
-  animation: pendingWobble 1.4s ease-in-out infinite;
-}
+
 
 /* Rejected Sticker Shake-Head */
 @keyframes nopeShake {
@@ -755,81 +649,4 @@
   opacity: 1;
 }
 
-/* Theme Toggle Button */
-.theme-toggle-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: var(--border-thick);
-  background: var(--color-white, #FFF);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  box-shadow: 2px 2px 0 var(--color-ink, #16121F);
-  transition: transform 0.25s var(--pop), box-shadow 0.2s;
-  padding: 0;
-  color: var(--color-ink, #16121F);
-  flex-shrink: 0;
-}
-.theme-toggle-btn:hover {
-  transform: rotate(25deg) scale(1.12);
-  box-shadow: 4px 4px 0 var(--color-ink, #16121F);
-}
-.theme-toggle-btn svg {
-  width: 20px;
-  height: 20px;
-  display: block;
-}
-.theme-toggle-btn .t-moon { display: none; }
-[data-theme="dark"] .theme-toggle-btn .t-sun { display: none; }
-[data-theme="dark"] .theme-toggle-btn .t-moon { display: block; }
 
-/* View Transitions Circular Reveal */
-::view-transition-old(root), ::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
-}
-::view-transition-old(root) { z-index: 1; }
-::view-transition-new(root) { z-index: 2; }
-
-/* Dark Mode Color Overrides — Preserves Palette Tokens */
-:root[data-theme="dark"] {
-  --color-cream: #16121F;
-  --color-white: #221A30;
-  --color-ink: #FFF8EA;
-  --color-muted: #B8A9CF;
-  --bg: #16121F;
-  --text: #FFF8EA;
-  --border-thick: 3px solid #FFF8EA;
-  --border-med: 2.5px solid #FFF8EA;
-  --border-thin: 2px solid #FFF8EA;
-  --shadow-sm: 2px 2px 0 #CDB8FF;
-  --shadow-btn: 3px 3px 0 #CDB8FF;
-  --shadow-card: 6px 6px 0 #CDB8FF;
-  --shadow-hero: 8px 8px 0 #CDB8FF;
-  --shadow-active: 1px 1px 0 #CDB8FF;
-}
-
-[data-theme="dark"] body {
-  background-color: var(--color-cream);
-  color: var(--color-ink);
-}
-[data-theme="dark"] .nb-navbar,
-[data-theme="dark"] .nb-card,
-[data-theme="dark"] .wave-card,
-[data-theme="dark"] .stat-box,
-[data-theme="dark"] .faq-card,
-[data-theme="dark"] .blossom-graph-card,
-[data-theme="dark"] .nb-footer,
-[data-theme="dark"] .card {
-  background-color: var(--color-white);
-  color: var(--color-ink);
-  border-color: #FFF8EA;
-  box-shadow: 6px 6px 0 #CDB8FF;
-}
-[data-theme="dark"] .brand-title {
-  color: #FFF8EA;
-}
-[data-theme="dark"] .nav-link {
-  color: #FFF8EA;
-}
